@@ -1,0 +1,60 @@
+.float_right {
+ 	float:right;
+	margin: 0px 0px 0px 5px
+	}
+
+.float_left {
+ 	float:left;
+	margin: 0px 5px 0px 0px
+	}
+
+#content .cpg_img1 {
+    padding: 2px;
+    border: 1px solid #dddddd;
+    margin: 3px 3px 3px 3px;
+    width: 100px;
+    height: 100px;
+}
+
+.cf {
+    height: 0px;
+    margin: 0px;
+    padding: 0px; 
+    clear: both;}
+#content .cpg_thumbimage {
+    padding: 5px;
+    background: #f4f4f4;
+    border: 1px solid #dddddd;
+    margin: 3px;
+}
+
+#sidebar .cpg_gal, #sidebar .cpg_cat, #sidebar .cpg_album {
+  background: #FAFAF0;
+  border: 1px solid #E8E7D0;
+  width: 100%;
+  height: 100%;
+}
+
+#sidebar .cpg_img {
+    float: left;
+    width: 75px;
+    height: 75px;
+    overflow:hidden;
+    border: 1px solid #000000;
+    margin: 5px 5px 5px 5px;
+    background: #000000;
+}
+
+#sidebar .cpg_galthumbimagel {
+    background: #000000;
+    margin-left: -12px;
+    overflow:hidden;
+    padding: 0;
+}
+
+#sidebar .cpg_galthumbimagep {
+    background: #000000;
+    padding: 0;
+    overflow:hidden;
+    margin-top: -12px;
+}
