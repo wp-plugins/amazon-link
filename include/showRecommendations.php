@@ -61,12 +61,12 @@
          $output .= "<div style='width:100%;height:130px; margin: 3px; border-bottom: 1px dashed;' class='amazon_prod'>\n";
          $output .= "<div style='height:7em;float:right;border:1px dotted; padding:5px;margin-right:10px; width:7em'><A style='text-align:center;' href='$r_url'><IMG style='margin-left:auto; margin-right:auto; display: block; height:7em' class='amazon_pic' src='$r_s_url'></a></div>\n";
          $output .= "<div style='width:65%; float:left'><p style='margin:0; line-height: 1em;'><a href='$r_url'>$r_title</a></p>";
-         $output .= "<p style='margin:0; line-height: 1em;'>by $r_artist </p>";
-         $output .= "<p style='margin:0; margin-top:4.5em; line-height: 1em;'>Rank/Rating: $r_rank/$r_rating</p>";
+         $output .= "<p style='margin:0; line-height: 1em;'>". __('by', 'amazon-link'). " $r_artist </p>";
+         $output .= "<p style='margin:0; margin-top:4.5em; line-height: 1em;'>". __('Rank/Rating', 'amazon-link')." : $r_rank/$r_rating</p>";
          $output .= "<p style='margin:0; line-height: 1em;'><b>Price <span style='color:red;'>$r_price</span></b></p></div></div>\n";
       } 
    } else {
-      $output .= "<p>No [amazon] tags found in the last '$last' posts in categories '$categories'</p>";
+      $output .= "<p>". sprintf(__('No [amazon] tags found in the last %1$s posts in categories %2$s', 'amazon-link'), $last, $categories). "</p>";
    }
    $output .= "</div>";
    return $output;

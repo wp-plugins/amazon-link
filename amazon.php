@@ -5,6 +5,7 @@ Plugin Name: Amazon Link
 Plugin URI: http://www.houseindorset.co.uk/plugins/amazon-link
 Description: Insert a link to Amazon using the passed ASIN number, with the required affiliate info.
 Version: 1.1
+Text Domain: amazon-link
 Author: Paul Stuttard
 Author URI: http://www.houseindorset.co.uk
 License: GPL2
@@ -65,7 +66,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
 
       function __construct() {
          $this->URLRoot = plugins_url("", __FILE__);
-         $this->$plugin_dir = basename(dirname(__FILE__));
+         $this->plugin_dir = basename(dirname(__FILE__));
 
          add_filter('the_content', array($this, 'contentFilter'));
          add_filter('the_posts', array($this, 'stylesNeeded'));
@@ -85,10 +86,8 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
       }
 
       function optionsMenu() {
-         /* Localisation only needed on admin page */
-         load_plugin_textdomain('amazon-link', $plugin_dir . '/i18n');
 
-         $my_page = add_options_page('Manage Amazon Wishlist', 'Amazon Link', 'manage_options', __FILE__, array($this, 'showOptions'));
+         $my_page = add_options_page(__('Manage Amazon Wishlist', 'amazon-link'), __('Amazon Link', 'amazon-link'), 'manage_options', __FILE__, array($this, 'showOptions'));
          add_action( "admin_print_styles-$my_page", array($this,'headerContent') );
       }
 
@@ -97,6 +96,9 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
       function headerContent() {
          $stylesheet = plugins_url("Amazon.css", __FILE__);
          wp_enqueue_style('amazonlink-style', $stylesheet);
+
+         /* load localisation only when needed */
+         load_plugin_textdomain('amazon-link', $this->plugin_dir . '/i18n');
       }
 
       function stylesNeeded($posts){

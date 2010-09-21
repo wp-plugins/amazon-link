@@ -36,7 +36,7 @@ Array containing items matching globals:
 /*****************************************************************************************/
 
    /*
-    * If first run or just deleted the last wishlist, need to create a default one
+    * If first run need to create a default settings
     */
    $Update=False;
    foreach ($this->optionList as $optName => $optDetails) {
