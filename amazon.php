@@ -2,9 +2,9 @@
 
 /*
 Plugin Name: Amazon Link
-Plugin URI: http://www.houseindorset.co.uk/plugins/Amazon-Link
+Plugin URI: http://www.houseindorset.co.uk/plugins/amazon-link
 Description: Insert a link to Amazon using the passed ASIN number, with the required affiliate info.
-Version: 1.0
+Version: 1.1
 Author: Paul Stuttard
 Author URI: http://www.houseindorset.co.uk
 License: GPL2
@@ -37,7 +37,7 @@ Usage:
 
 Layout:
 	CSS span:						amz_span
-	CSS link:						        amz_link
+	CSS link:					        amz_link
 */
 
 require_once("aws_signed_request.php");
@@ -45,18 +45,12 @@ require_once("aws_signed_request.php");
 if (!class_exists('AmazonWishlist_For_WordPress')) {
    class AmazonWishlist_For_WordPress {
 
+#define __ 
+
 /*****************************************************************************************/
       /// Settings:
 /*****************************************************************************************/
-      var $optionList = array(
-         'cat' => array ( 'Type' => 'hidden' ),
-         'last' => array ( 'Type' => 'hidden' ),
-         'asin' => array( 'Default' => '0', 'Type' => 'hidden'),
-         'text' => array( 'Name' => "Link Text", 'Description' => "Default text to display if none specified", 'Default' => 'www.amazon.co.uk', 'Type' => 'text'),
-         'tld' => array( 'Name' => "Amazon Domain", 'Description' => "Which country's Amazon domain to use", 'Default' => 'co.uk', 'Type' => 'selection', 'Options' => array ('co.uk', 'com', 'ca', 'de', 'jp', 'fr')),
-         'tag' => array( 'Name' => "Affiliate Tag", 'Description' => "Amazon associates ID used to assign Amazon referral commissions", 'Default' => 'livpauls-21', 'Type' => 'text'),
-         'pub_key' => array( 'Name' => "AWS Public Key", 'Description' => "Public key provided by your AWS Account", 'Default' => '', 'Type' => 'text'),
-         'priv_key' => array( 'Name' => "AWS Private key", 'Description' => "Private key provided by your AWS Account.", 'Default' => "", 'Type' => 'text'));
+      var $optionList = null;
 
       // String to insert into Posts to indicate where to insert the amazon items
       var $TagHead    = '[amazon';
@@ -70,15 +64,32 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
       }
 
       function __construct() {
+         $this->URLRoot = plugins_url("", __FILE__);
+         $this->$plugin_dir = basename(dirname(__FILE__));
+
          add_filter('the_content', array($this, 'contentFilter'));
          add_filter('the_posts', array($this, 'stylesNeeded'));
          add_action('admin_menu', array($this, 'optionsMenu'));
-         $this->URLRoot = plugins_url("", __FILE__);
+ 
+         /* Move Option List construction here so we can localise the strings */
+         $this->optionList = array(
+         'cat' => array ( 'Type' => 'hidden' ),
+         'last' => array ( 'Type' => 'hidden' ),
+         'asin' => array( 'Default' => '0', 'Type' => 'hidden'),
+         'text' => array( 'Name' => __('Link Text', 'amazon-link'), 'Description' => __('Default text to display if none specified', 'amazon-link'), 'Default' => 'www.amazon.co.uk', 'Type' => 'text', 'Size' => '40'),
+         'tld' => array( 'Name' => __('Amazon Domain', 'amazon-link'), 'Description' => __('Which country\'s Amazon domain to use', 'amazon-link'), 'Default' => 'co.uk', 'Type' => 'selection', 'Options' => array ('co.uk', 'com', 'ca', 'de', 'jp', 'fr')),
+         'tag' => array( 'Name' => __('Affiliate Tag', 'amazon-link'), 'Description' => __('Amazon associates ID used to assign Amazon referral commissions', 'amazon-link'), 'Default' => 'livpauls-21', 'Type' => 'text'),
+         'pub_key' => array( 'Name' => __('AWS Public Key', 'amazon-link'), 'Description' => __('Public key provided by your AWS Account', 'amazon-link'), 'Default' => '', 'Type' => 'text', 'Size' => '40'),
+         'priv_key' => array( 'Name' => __('AWS Private key', 'amazon-link'), 'Description' => __('Private key provided by your AWS Account.', 'amazon-link'), 'Default' => "", 'Type' => 'text', 'Size' => '40'));
+
       }
 
       function optionsMenu() {
-         $mypage = add_management_page('Manage Amazon Wishlist', 'AmazonLink', 8, __FILE__, array($this,'showOptions'));
-         add_action( "admin_print_styles-$mypage", array($this,'headerContent') );
+         /* Localisation only needed on admin page */
+         load_plugin_textdomain('amazon-link', $plugin_dir . '/i18n');
+
+         $my_page = add_options_page('Manage Amazon Wishlist', 'Amazon Link', 'manage_options', __FILE__, array($this, 'showOptions'));
+         add_action( "admin_print_styles-$my_page", array($this,'headerContent') );
       }
 
       /// Load styles only on Our Admin page or when Wishlist is displayed...

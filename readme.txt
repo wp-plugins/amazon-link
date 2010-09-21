@@ -3,7 +3,7 @@ Contributors: paulstuttard
 Donate link: http://www.houseindorset.co.uk/plugins/
 Tags: Amazon, links, wishlist, recommend
 Requires at least: 2.9
-Tested up to: 2.9
+Tested up to: 3.0.1
 Stable tag: 1.0
 
 Provides a method of inserting links to Amazon products and also generate a short list of related random items into your Wordpress site. 
@@ -44,4 +44,7 @@ suggestions.
 = 1.0 =
 First Release
 
-== Arbitrary section ==
+= 1.1 =
+Tested against 3.0.1.
+
+Move options page into 'Options' section

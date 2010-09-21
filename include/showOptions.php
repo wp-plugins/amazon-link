@@ -18,7 +18,7 @@ Array containing items matching globals:
    // See if the user has posted us some information
    // If they did, the admin Nonce should be set.
    $NotifyUpdate = False;
-   if( isset($_POST[ 'WishPicsAction' ]) && ($_POST[ 'WishPicsAction' ] == "Update Options") && 
+   if( isset($_POST[ 'WishPicsAction' ]) && ($_POST[ 'WishPicsAction' ] == __('Update Options', 'amazon-link')) && 
        check_admin_referer( 'update-WishPics-options')) {
 
       // Update Current Wishlist settings
@@ -57,7 +57,7 @@ Array containing items matching globals:
 ?>
 
 <div class="updated">
- <p><strong><?php _e('Options saved.', 'mt_trans_domain' ); ?></strong></p>
+ <p><strong><?php _e('Options saved.', 'amazon-link' ); ?></strong></p>
 </div>
 
 <?php
@@ -113,8 +113,10 @@ Array containing items matching globals:
    foreach ($optDetails['Options'] as $key => $Details) {
       echo "<option value='$Details' ". selected( $Opts[$optName] == $Details ). " >" . $Details . "</option>";
    }
-   echo "     <br />". $optDetails['Description']
 ?>
+     </select>
+     <br />
+   <?php echo $optDetails['Description']; ?>
 
     </td>
   </tr>
@@ -122,12 +124,12 @@ Array containing items matching globals:
 <?php      } else {
 
    // Insert a Text Item
-
+   $size = isset($optDetails['Size']) ? $optDetails['Size'] : '20';
 ?>
    <tr valign="top">
     <th scope="row"><label for="<?php echo $optName; ?>"> <?php echo $optDetails['Name']; ?></label></th>
     <td>
-     <input name="<?php echo $optName; ?>" type="text" value="<?php echo $Opts[$optName]; ?>" size="20" />
+     <input name="<?php echo $optName; ?>" type="text" value="<?php echo $Opts[$optName]; ?>" size="<?php echo $size ?>" />
      <br />
 <?php echo $optDetails['Description']?>
     </td>
@@ -142,7 +144,7 @@ Array containing items matching globals:
   </table>
 
   <p class="submit">
-   <input type="submit" class="button-primary" name="WishPicsAction" value="Update Options" />
+   <input type="submit" class="button-primary" name="WishPicsAction" value="<?php _e('Update Options', 'amazon-link' ); ?>" />
   </p>
  </form>
 </div>
