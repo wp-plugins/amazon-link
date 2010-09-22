@@ -31,7 +31,7 @@
 
       $pxml = aws_signed_request($this->Settings['tld'], $request, $this->Settings['pub_key'], $this->Settings['priv_key']);
       if ($pxml === False) {
-         echo "<PRE>Did not work.</PRE>";
+         $output .= __('Amazon query failed to return any results - Have you configured the AWS settings?', 'wish-pics');
       } else {
          $SimilarProducts=$pxml['Cart']['SimilarProducts']['SimilarProduct'];
       }
@@ -58,12 +58,12 @@
          $r_rating = $result['CustomerReviews']['AverageRating'];
          $r_price  = $result['Offers']['Offer']['OfferListing']['Price']['FormattedPrice'];
 
-         $output .= "<div style='width:100%;height:130px; margin: 3px; border-bottom: 1px dashed;' class='amazon_prod'>\n";
-         $output .= "<div style='height:7em;float:right;border:1px dotted; padding:5px;margin-right:10px; width:7em'><A style='text-align:center;' href='$r_url'><IMG style='margin-left:auto; margin-right:auto; display: block; height:7em' class='amazon_pic' src='$r_s_url'></a></div>\n";
-         $output .= "<div style='width:65%; float:left'><p style='margin:0; line-height: 1em;'><a href='$r_url'>$r_title</a></p>";
-         $output .= "<p style='margin:0; line-height: 1em;'>". __('by', 'amazon-link'). " $r_artist </p>";
-         $output .= "<p style='margin:0; margin-top:4.5em; line-height: 1em;'>". __('Rank/Rating', 'amazon-link')." : $r_rank/$r_rating</p>";
-         $output .= "<p style='margin:0; line-height: 1em;'><b>Price <span style='color:red;'>$r_price</span></b></p></div></div>\n";
+         $output .= "<div class='amazon_prod'>\n";
+         $output .= "<div class='amazon_img_container'><A href='$r_url'><IMG class='amazon_pic' src='$r_s_url'></a></div>\n";
+         $output .= "<div class='amazon_text_container'><p><a href='$r_url'>$r_title</a></p>";
+         $output .= "<div class='amazon_details'><p>". __('by', 'amazon-link'). " $r_artist <br />";
+         $output .= __('Rank/Rating', 'amazon-link')." : $r_rank/$r_rating<br />";
+         $output .= "<b>". __('Price', 'amazon-link'). " <span class='amazon_price'>$r_price</span></b></p></div></div></div>\n";
       } 
    } else {
       $output .= "<p>". sprintf(__('No [amazon] tags found in the last %1$s posts in categories %2$s', 'amazon-link'), $last, $categories). "</p>";

@@ -1,60 +1,56 @@
-.float_right {
- 	float:right;
-	margin: 0px 0px 0px 5px
-	}
-
-.float_left {
- 	float:left;
-	margin: 0px 5px 0px 0px
-	}
-
-#content .cpg_img1 {
-    padding: 2px;
-    border: 1px solid #dddddd;
-    margin: 3px 3px 3px 3px;
-    width: 100px;
-    height: 100px;
+.amazon_container {
 }
 
-.cf {
-    height: 0px;
-    margin: 0px;
-    padding: 0px; 
-    clear: both;}
-#content .cpg_thumbimage {
-    padding: 5px;
-    background: #f4f4f4;
-    border: 1px solid #dddddd;
-    margin: 3px;
+.amazon_prod {
+ width:100%;
+ height:130px;
+ margin: 3px;
+ border-bottom: 1px dashed;
 }
 
-#sidebar .cpg_gal, #sidebar .cpg_cat, #sidebar .cpg_album {
-  background: #FAFAF0;
-  border: 1px solid #E8E7D0;
-  width: 100%;
-  height: 100%;
+.amazon_img_container {
+ height:100px;
+ float:right;
+ border:1px dotted;
+ padding:5px;
+ margin-right:10px;
+ width:100px;
 }
 
-#sidebar .cpg_img {
-    float: left;
-    width: 75px;
-    height: 75px;
-    overflow:hidden;
-    border: 1px solid #000000;
-    margin: 5px 5px 5px 5px;
-    background: #000000;
+.amazon_img_container a {
+ text-align:center;
 }
 
-#sidebar .cpg_galthumbimagel {
-    background: #000000;
-    margin-left: -12px;
-    overflow:hidden;
-    padding: 0;
+.amazon_img_container img {
+ margin: none;
+ border: none;
+ padding:none;
+ margin-left:auto;
+ margin-right:auto;
+ display: block;
+ height:100%;
 }
 
-#sidebar .cpg_galthumbimagep {
-    background: #000000;
-    padding: 0;
-    overflow:hidden;
-    margin-top: -12px;
+.amazon_text_container {
+ width:65%;
+ float:left;
+ height:105px;
+}
+
+.amazon_text_container p {
+ margin:0;
+}
+
+.amazon_details {
+ margin-top:35px;
+}
+
+.amazon_text_container p:first-child:first-letter {
+ line-height: 1em;
+ font-size: 1em;
+ padding: none;
+}
+
+.amazon_price {
+ color:red;
 }

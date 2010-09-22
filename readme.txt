@@ -37,6 +37,18 @@ Private key settings to those provided in the AWS->Security Credentials->Access 
 You must have inserted at least a few links to Amazon products using the [amazon] tag for it to generate a list of related product
 suggestions.
 
+= Can I change the styling of the wishlist? =
+
+You can add the file 'user_styles.css' to the plugins directory overriding the default stylesheet, the wishlist has the following style elements:
+
+*   amazon_container      - Encloses whole wishlist.
+*   amazon_prod           - Encloses each list item.
+*   amazon_img_container  - Encloses the item thumbnail (link+img)
+*   amazon_pic            - Class of the item thumbnail IMG element
+*   amazon_text_container - Encloses the item description (Title paragraphs+link + Details paragraphs)
+*   amazon_details        - Encloses the item details part of the description
+*   amazon_price          - Spans the item's formatted price.
+
 == Screenshots ==
 
 == Changelog ==
@@ -45,6 +57,7 @@ suggestions.
 First Release
 
 = 1.1 =
-Tested against 3.0.1.
+Move options page into 'Options' section.
+Corrected stylesheet content, updated styles & provide facility to override the stylesheet.
+Add internationalisation hooks into plugin.
 
-Move options page into 'Options' section

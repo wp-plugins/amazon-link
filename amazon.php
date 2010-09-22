@@ -37,16 +37,21 @@ Usage:
 	[amazon cat=<Category List>&last=<Number of Posts>]    --> inserts table of random items
 
 Layout:
-	CSS span:						amz_span
-	CSS link:					        amz_link
+
+   amazon_container      - Encloses whole wishlist.
+   amazon_prod           - Encloses each list item.
+   amazon_img_container  - Encloses the item thumbnail (link+img)
+   amazon_pic            - Class of the item thumbnail IMG element
+   amazon_text_container - Encloses the item description (Title paragraphs+link + Details paragraphs)
+   amazon_details        - Encloses the item details part of the description
+   amazon_price          - Spans the item's formatted price.
+
 */
 
 require_once("aws_signed_request.php");
 
 if (!class_exists('AmazonWishlist_For_WordPress')) {
    class AmazonWishlist_For_WordPress {
-
-#define __ 
 
 /*****************************************************************************************/
       /// Settings:
@@ -66,7 +71,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
 
       function __construct() {
          $this->URLRoot = plugins_url("", __FILE__);
-         $this->plugin_dir = basename(dirname(__FILE__));
+         $this->plugin_dir = dirname( plugin_basename( __FILE__ ) );
 
          add_filter('the_content', array($this, 'contentFilter'));
          add_filter('the_posts', array($this, 'stylesNeeded'));
@@ -94,11 +99,17 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
       /// Load styles only on Our Admin page or when Wishlist is displayed...
 
       function headerContent() {
-         $stylesheet = plugins_url("Amazon.css", __FILE__);
+         // Allow the user to override our default styles. 
+         if (file_exists(dirname (__FILE__).'/user_styles.css')) {
+            $stylesheet = plugins_url("user_styles.css", __FILE__); 
+         } else {
+            $stylesheet = plugins_url("Amazon.css", __FILE__);
+         }
+
          wp_enqueue_style('amazonlink-style', $stylesheet);
 
          /* load localisation only when needed */
-         load_plugin_textdomain('amazon-link', $this->plugin_dir . '/i18n');
+         load_plugin_textdomain('amazon-link', $this->plugin_dir . '/i18n', $this->plugin_dir . '/i18n');
       }
 
       function stylesNeeded($posts){
@@ -268,4 +279,4 @@ function amazon_recommends($categories='1', $last='30')
   return $awlfw->showRecommendations ($categories, $last);
 }
 
-?>
+?>	

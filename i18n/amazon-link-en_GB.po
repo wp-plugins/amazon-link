@@ -18,7 +18,7 @@ msgstr ""
 
 #: amazon.php:80
 msgid "Link Text"
-msgstr "Link Text*"
+msgstr "Link Text test"
 
 #: amazon.php:80
 msgid "Default text to display if none specified"
