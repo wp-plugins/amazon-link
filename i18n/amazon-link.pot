@@ -1,4 +1,4 @@
-# Translation of the WordPress plugin amazon-link by .
+# Translation of the WordPress plugin wish-pics by .
 # Copyright (C) 2010 
 # This file is distributed under the same license as the  package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, 2010.
@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  \n"
 "Report-Msgid-Bugs-To: http://wordpress.org/tag/amazon-link\n"
-"POT-Creation-Date: 2010-09-23 13:18+0000\n"
+"POT-Creation-Date: 2010-09-23 13:35+0000\n"
 "PO-Revision-Date: 2010-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -24,43 +24,43 @@ msgstr ""
 msgid "Amazon Link"
 msgstr ""
 
-#: amazon.php:93
+#: amazon.php:111
 msgid "Link Text"
 msgstr ""
 
-#: amazon.php:93
+#: amazon.php:111
 msgid "Default text to display if none specified"
 msgstr ""
 
-#: amazon.php:94
+#: amazon.php:112
 msgid "Amazon Domain"
 msgstr ""
 
-#: amazon.php:94
+#: amazon.php:112
 msgid "Which country's Amazon domain to use"
 msgstr ""
 
-#: amazon.php:95
+#: amazon.php:113
 msgid "Affiliate Tag"
 msgstr ""
 
-#: amazon.php:95
+#: amazon.php:113
 msgid "Amazon associates ID used to assign Amazon referral commissions"
 msgstr ""
 
-#: amazon.php:96
+#: amazon.php:114
 msgid "AWS Public Key"
 msgstr ""
 
-#: amazon.php:96
+#: amazon.php:114
 msgid "Public key provided by your AWS Account"
 msgstr ""
 
-#: amazon.php:97
+#: amazon.php:115
 msgid "AWS Private key"
 msgstr ""
 
-#: amazon.php:97
+#: amazon.php:115
 msgid "Private key provided by your AWS Account."
 msgstr ""
 
