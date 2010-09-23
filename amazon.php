@@ -48,7 +48,7 @@ Layout:
 
 */
 
-require_once("aws_signed_request.php");
+//require_once("aws_signed_request.php");
 
 if (!class_exists('AmazonWishlist_For_WordPress')) {
    class AmazonWishlist_For_WordPress {
@@ -76,6 +76,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          add_filter('the_content', array($this, 'contentFilter'));
          add_filter('the_posts', array($this, 'stylesNeeded'));
          add_action('admin_menu', array($this, 'optionsMenu'));
+         add_action('init', array($this, 'loadLang'));
  
          /* Move Option List construction here so we can localise the strings */
          $this->optionList = array(
@@ -107,11 +108,12 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          }
 
          wp_enqueue_style('amazonlink-style', $stylesheet);
+      }
 
+      function loadLang() {
          /* load localisation only when needed */
          load_plugin_textdomain('amazon-link', $this->plugin_dir . '/i18n', $this->plugin_dir . '/i18n');
       }
-
       function stylesNeeded($posts){
          if (empty($posts)) return $posts;
        
@@ -279,4 +281,4 @@ function amazon_recommends($categories='1', $last='30')
   return $awlfw->showRecommendations ($categories, $last);
 }
 
-?>	
+?>
