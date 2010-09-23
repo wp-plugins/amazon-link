@@ -48,7 +48,7 @@ Layout:
 
 */
 
-//require_once("aws_signed_request.php");
+require_once("aws_signed_request.php");
 
 if (!class_exists('AmazonWishlist_For_WordPress')) {
    class AmazonWishlist_For_WordPress {
@@ -78,6 +78,13 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          add_action('admin_menu', array($this, 'optionsMenu'));
          add_action('init', array($this, 'loadLang'));
  
+      }
+
+      function optionsMenu() {
+
+         $my_page = add_options_page(__('Manage Amazon Wishlist', 'amazon-link'), __('Amazon Link', 'amazon-link'), 'manage_options', __FILE__, array($this, 'showOptions'));
+         add_action( "admin_print_styles-$my_page", array($this,'headerContent') );
+
          /* Move Option List construction here so we can localise the strings */
          $this->optionList = array(
          'cat' => array ( 'Type' => 'hidden' ),
@@ -89,12 +96,6 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          'pub_key' => array( 'Name' => __('AWS Public Key', 'amazon-link'), 'Description' => __('Public key provided by your AWS Account', 'amazon-link'), 'Default' => '', 'Type' => 'text', 'Size' => '40'),
          'priv_key' => array( 'Name' => __('AWS Private key', 'amazon-link'), 'Description' => __('Private key provided by your AWS Account.', 'amazon-link'), 'Default' => "", 'Type' => 'text', 'Size' => '40'));
 
-      }
-
-      function optionsMenu() {
-
-         $my_page = add_options_page(__('Manage Amazon Wishlist', 'amazon-link'), __('Amazon Link', 'amazon-link'), 'manage_options', __FILE__, array($this, 'showOptions'));
-         add_action( "admin_print_styles-$my_page", array($this,'headerContent') );
       }
 
       /// Load styles only on Our Admin page or when Wishlist is displayed...
@@ -111,9 +112,10 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
       }
 
       function loadLang() {
-         /* load localisation only when needed */
+         /* load localisation  */
          load_plugin_textdomain('amazon-link', $this->plugin_dir . '/i18n', $this->plugin_dir . '/i18n');
       }
+
       function stylesNeeded($posts){
          if (empty($posts)) return $posts;
        

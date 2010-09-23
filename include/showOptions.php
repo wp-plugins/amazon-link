@@ -70,7 +70,7 @@ Array containing items matching globals:
 ?>
 
 <div class="wrap">
- <h2>Amazon Wishlist/Link Plugin Options</h2>
+ <h2><?php _e('Amazon Link Plugin Options') ?></h2>
  <form name="form1" method="post" action="<?php echo str_replace( '%7E', '~', $_SERVER['REQUEST_URI']); ?>">
 
 <?php wp_nonce_field('update-WishPics-options'); ?>

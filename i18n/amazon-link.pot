@@ -1,4 +1,4 @@
-# Translation of the WordPress plugin   by .
+# Translation of the WordPress plugin amazon-link  by .
 # Copyright (C) 2010 
 # This file is distributed under the same license as the  package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, 2010.
@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  \n"
 "Report-Msgid-Bugs-To: http://wordpress.org/tag/amazon-link\n"
-"POT-Creation-Date: 2010-09-21 12:19+0000\n"
+"POT-Creation-Date: 2010-09-23 12:50+0000\n"
 "PO-Revision-Date: 2010-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,51 +16,51 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: amazon.php:80
+#: amazon.php:86
 msgid "Link Text"
 msgstr ""
 
-#: amazon.php:80
+#: amazon.php:86
 msgid "Default text to display if none specified"
 msgstr ""
 
-#: amazon.php:81
+#: amazon.php:87
 msgid "Amazon Domain"
 msgstr ""
 
-#: amazon.php:81
+#: amazon.php:87
 msgid "Which country's Amazon domain to use"
 msgstr ""
 
-#: amazon.php:82
+#: amazon.php:88
 msgid "Affiliate Tag"
 msgstr ""
 
-#: amazon.php:82
+#: amazon.php:88
 msgid "Amazon associates ID used to assign Amazon referral commissions"
 msgstr ""
 
-#: amazon.php:83
+#: amazon.php:89
 msgid "AWS Public Key"
 msgstr ""
 
-#: amazon.php:83
+#: amazon.php:89
 msgid "Public key provided by your AWS Account"
 msgstr ""
 
-#: amazon.php:84
+#: amazon.php:90
 msgid "AWS Private key"
 msgstr ""
 
-#: amazon.php:84
+#: amazon.php:90
 msgid "Private key provided by your AWS Account."
 msgstr ""
 
-#: amazon.php:90
+#: amazon.php:96
 msgid "Manage Amazon Wishlist"
 msgstr ""
 
-#: amazon.php:90
+#: amazon.php:96
 msgid "Amazon Link"
 msgstr ""
 
@@ -72,12 +72,22 @@ msgstr ""
 msgid "Options saved."
 msgstr ""
 
+#: include/showRecommendations.php:34
+msgid ""
+"Amazon query failed to return any results - Have you configured the AWS "
+"settings?"
+msgstr ""
+
 #: include/showRecommendations.php:64
 msgid "by"
 msgstr ""
 
 #: include/showRecommendations.php:65
 msgid "Rank/Rating"
+msgstr ""
+
+#: include/showRecommendations.php:66
+msgid "Price"
 msgstr ""
 
 #: include/showRecommendations.php:69
