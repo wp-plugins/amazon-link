@@ -84,18 +84,6 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
 
          $my_page = add_options_page(__('Manage Amazon Wishlist', 'amazon-link'), __('Amazon Link', 'amazon-link'), 'manage_options', __FILE__, array($this, 'showOptions'));
          add_action( "admin_print_styles-$my_page", array($this,'headerContent') );
-
-         /* Move Option List construction here so we can localise the strings */
-         $this->optionList = array(
-         'cat' => array ( 'Type' => 'hidden' ),
-         'last' => array ( 'Type' => 'hidden' ),
-         'asin' => array( 'Default' => '0', 'Type' => 'hidden'),
-         'text' => array( 'Name' => __('Link Text', 'amazon-link'), 'Description' => __('Default text to display if none specified', 'amazon-link'), 'Default' => 'www.amazon.co.uk', 'Type' => 'text', 'Size' => '40'),
-         'tld' => array( 'Name' => __('Amazon Domain', 'amazon-link'), 'Description' => __('Which country\'s Amazon domain to use', 'amazon-link'), 'Default' => 'co.uk', 'Type' => 'selection', 'Options' => array ('co.uk', 'com', 'ca', 'de', 'jp', 'fr')),
-         'tag' => array( 'Name' => __('Affiliate Tag', 'amazon-link'), 'Description' => __('Amazon associates ID used to assign Amazon referral commissions', 'amazon-link'), 'Default' => 'livpauls-21', 'Type' => 'text'),
-         'pub_key' => array( 'Name' => __('AWS Public Key', 'amazon-link'), 'Description' => __('Public key provided by your AWS Account', 'amazon-link'), 'Default' => '', 'Type' => 'text', 'Size' => '40'),
-         'priv_key' => array( 'Name' => __('AWS Private key', 'amazon-link'), 'Description' => __('Private key provided by your AWS Account.', 'amazon-link'), 'Default' => "", 'Type' => 'text', 'Size' => '40'));
-
       }
 
       /// Load styles only on Our Admin page or when Wishlist is displayed...
@@ -114,6 +102,18 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
       function loadLang() {
          /* load localisation  */
          load_plugin_textdomain('amazon-link', $this->plugin_dir . '/i18n', $this->plugin_dir . '/i18n');
+
+         /* Move Option List construction here so we can localise the strings */
+         $this->optionList = array(
+         'cat' => array ( 'Type' => 'hidden' ),
+         'last' => array ( 'Type' => 'hidden' ),
+         'asin' => array( 'Default' => '0', 'Type' => 'hidden'),
+         'text' => array( 'Name' => __('Link Text', 'amazon-link'), 'Description' => __('Default text to display if none specified', 'amazon-link'), 'Default' => 'www.amazon.co.uk', 'Type' => 'text', 'Size' => '40'),
+         'tld' => array( 'Name' => __('Amazon Domain', 'amazon-link'), 'Description' => __('Which country\'s Amazon domain to use', 'amazon-link'), 'Default' => 'co.uk', 'Type' => 'selection', 'Options' => array ('co.uk', 'com', 'ca', 'de', 'jp', 'fr')),
+         'tag' => array( 'Name' => __('Affiliate Tag', 'amazon-link'), 'Description' => __('Amazon associates ID used to assign Amazon referral commissions', 'amazon-link'), 'Default' => 'livpauls-21', 'Type' => 'text'),
+         'pub_key' => array( 'Name' => __('AWS Public Key', 'amazon-link'), 'Description' => __('Public key provided by your AWS Account', 'amazon-link'), 'Default' => '', 'Type' => 'text', 'Size' => '40'),
+         'priv_key' => array( 'Name' => __('AWS Private key', 'amazon-link'), 'Description' => __('Private key provided by your AWS Account.', 'amazon-link'), 'Default' => "", 'Type' => 'text', 'Size' => '40'));
+
       }
 
       function stylesNeeded($posts){
