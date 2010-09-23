@@ -1,0 +1,56 @@
+.amazon_container {
+}
+
+.amazon_prod {
+ width:100%;
+ height:130px;
+ margin: 3px;
+ border-bottom: 1px dashed;
+}
+
+.amazon_img_container {
+ height:100px;
+ float:right;
+ border:1px dotted;
+ padding:5px;
+ margin-right:10px;
+ width:100px;
+}
+
+.amazon_img_container a {
+ text-align:center;
+}
+
+.amazon_img_container img {
+ margin: none;
+ border: none;
+ padding:none;
+ margin-left:auto;
+ margin-right:auto;
+ display: block;
+ height:100%;
+}
+
+.amazon_text_container {
+ width:65%;
+ float:left;
+ height:105px;
+}
+
+.amazon_text_container p {
+ margin:0;
+}
+
+.amazon_details {
+ margin-top:35px;
+}
+
+.amazon_text_container p:first-child:first-letter {
+ line-height: 1em;
+ font-size: 1em;
+ padding: none;
+}
+
+.amazon_price {
+ color:red;
+}

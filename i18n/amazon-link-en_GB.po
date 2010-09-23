@@ -1,0 +1,98 @@
+# Translation of the WordPress plugin amazon-link by .
+# Copyright (C) 2010 
+# This file is distributed under the same license as the  package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2010.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version:  \n"
+"Report-Msgid-Bugs-To: http://wordpress.org/tag/amazon-link\n"
+"POT-Creation-Date: 2010-09-23 13:18+0000\n"
+"PO-Revision-Date: 2010-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: amazon.php:85
+msgid "Manage Amazon Wishlist"
+msgstr "Manage Amazon Wishlist T"
+
+#: amazon.php:85
+msgid "Amazon Link"
+msgstr "Amazon Link T"
+
+#: amazon.php:93
+msgid "Link Text"
+msgstr "Link Text T"
+
+#: amazon.php:93
+msgid "Default text to display if none specified"
+msgstr "Default text to display if none specified"
+
+#: amazon.php:94
+msgid "Amazon Domain"
+msgstr "Amazon Domain"
+
+#: amazon.php:94
+msgid "Which country's Amazon domain to use"
+msgstr "Which country's Amazon domain to use"
+
+#: amazon.php:95
+msgid "Affiliate Tag"
+msgstr "Affiliate Tag"
+
+#: amazon.php:95
+msgid "Amazon associates ID used to assign Amazon referral commissions"
+msgstr "Amazon associates ID used to assign Amazon referral commissions"
+
+#: amazon.php:96
+msgid "AWS Public Key"
+msgstr "AWS Public Key"
+
+#: amazon.php:96
+msgid "Public key provided by your AWS Account"
+msgstr "Public key provided by your AWS Account"
+
+#: amazon.php:97
+msgid "AWS Private key"
+msgstr "AWS Private key"
+
+#: amazon.php:97
+msgid "Private key provided by your AWS Account."
+msgstr "Private key provided by your AWS Account."
+
+#: include/showOptions.php:21 include/showOptions.php:147
+msgid "Update Options"
+msgstr "Update Options"
+
+#: include/showOptions.php:60
+msgid "Options saved."
+msgstr "Options saved."
+
+#: include/showOptions.php:73
+msgid "Amazon Link Plugin Options"
+msgstr "Amazon Link Plugin Options"
+
+#: include/showRecommendations.php:34
+msgid "Amazon query failed to return any results - Have you configured the AWS settings?"
+msgstr "Amazon query failed to return any results - Have you configured the AWS settings?"
+
+#: include/showRecommendations.php:64
+msgid "by"
+msgstr "by"
+
+#: include/showRecommendations.php:65
+msgid "Rank/Rating"
+msgstr "Rank/Rating T"
+
+#: include/showRecommendations.php:66
+msgid "Price"
+msgstr "Price"
+
+#: include/showRecommendations.php:69
+#, php-format
+msgid "No [amazon] tags found in the last %1$s posts in categories %2$s"
+msgstr "No [amazon] tags found in the last %1$s posts in categories %2$s"
