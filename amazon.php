@@ -71,13 +71,22 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
 
       function __construct() {
          $this->URLRoot = plugins_url("", __FILE__);
-         $this->plugin_dir = dirname( plugin_basename( __FILE__ ) );
+         $this->base_name  = plugin_basename( __FILE__ );
+         $this->plugin_dir = dirname( $this->base_name );
 
+         add_filter('plugin_row_meta', array($this, 'registerPluginLinks'),10,2);
          add_filter('the_content', array($this, 'contentFilter'));
          add_filter('the_posts', array($this, 'stylesNeeded'));
          add_action('admin_menu', array($this, 'optionsMenu'));
          add_action('init', array($this, 'loadLang'));
  
+      }
+
+      function registerPluginLinks($links, $file) {
+         if ($file == $this->base_name) {
+            $links[] = '<a href="options-general.php?page=' . $this->base_name .'">' . __('Settings','amazon-link') . '</a>';
+         }
+         return $links;
       }
 
       function optionsMenu() {

@@ -1,12 +1,12 @@
 === Amazon Link ===
 Contributors: paulstuttard
 Donate link: http://www.houseindorset.co.uk/plugins/
-Tags: Amazon, links, wishlist, recommend
+Tags: Amazon, links, wishlist, recommend, shortcode
 Requires at least: 2.9
 Tested up to: 3.0.1
 Stable tag: 1.1
 
-Provides a method of inserting links to Amazon products and also generate a short list of related random items into your Wordpress site. 
+Provides a shortcode for inserting links to Amazon products and also generate a short list (e.g. a wishlist) of related items into your site. 
 
 == Description ==
 
@@ -24,6 +24,7 @@ API and uses the 'CartSimilarities' feature to generate the list of items.
 1. Update the settings (at least change the default Affiliate Tag), see the FAQ.
 1. Place `[amazon asin=<ASIN>&text=<LINK TEXT>]` in a post or page to create a link.
 1. Place `[amazon cat=<CATEGORY LIST>&last=<NUMBER OF POSTS>]` in a page or post to create a wishlist.
+1. Optionally install your own style sheet in '/amazon-link/user_styles.css', see the FAQ.
 
 == Frequently Asked Questions ==
 
@@ -61,3 +62,17 @@ Move options page into 'Options' section.
 Corrected stylesheet content, updated styles & provide facility to override the stylesheet.
 Add internationalisation hooks into plugin.
 
+== Upgrade Notice ==
+
+= 1.1 =
+Upgrade if you wish to have internationalisation (i18n) support.
+
+== Screenshots ==
+
+1. This is the example wishlist taken from [www.HouseInDorset.co.uk](http://www.houseindorset.co.uk/plugins/amazon-link)
+
+== Translations ==
+
+The plugin comes with translation support but as yet no translations are included, please refer to the WordPress Codex for more information about activating the translation.
+If you want to help to translate the plugin to your language, please have a look at the i18n/amazon-link.pot file which contains all definitions and may be used to create a language specific .po file, if you do then
+contact me and I will add it to the plugin ready for the next update.
