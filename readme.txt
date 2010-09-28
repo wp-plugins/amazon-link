@@ -4,7 +4,7 @@ Donate link: http://www.houseindorset.co.uk/plugins/
 Tags: Amazon, links, wishlist, recommend, shortcode
 Requires at least: 2.9
 Tested up to: 3.0.1
-Stable tag: 1.1
+Stable tag: 1.2
 
 Provides a shortcode for inserting links to Amazon products and also generate a short list (e.g. a wishlist) of related items into your site. 
 
@@ -64,6 +64,9 @@ Add internationalisation hooks into plugin.
 First Release
 
 == Upgrade Notice ==
+
+= 1.2 =
+Minor internal structural changes, add options link from plugin page.
 
 = 1.1 =
 Upgrade if you wish to have internationalisation (i18n) support.
