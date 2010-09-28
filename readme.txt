@@ -50,17 +50,18 @@ You can add the file 'user_styles.css' to the plugins directory overriding the d
 *   amazon_details        - Encloses the item details part of the description
 *   amazon_price          - Spans the item's formatted price.
 
-== Screenshots ==
-
 == Changelog ==
 
-= 1.0 =
-First Release
+= 1.2 =
+Improve options page processing.
 
 = 1.1 =
 Move options page into 'Options' section.
 Corrected stylesheet content, updated styles & provide facility to override the stylesheet.
 Add internationalisation hooks into plugin.
+
+= 1.0 =
+First Release
 
 == Upgrade Notice ==
 

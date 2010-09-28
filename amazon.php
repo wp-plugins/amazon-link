@@ -50,6 +50,8 @@ Layout:
 
 require_once("aws_signed_request.php");
 
+require_once("include/displayForm.php");
+
 if (!class_exists('AmazonWishlist_For_WordPress')) {
    class AmazonWishlist_For_WordPress {
 
@@ -73,6 +75,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          $this->URLRoot = plugins_url("", __FILE__);
          $this->base_name  = plugin_basename( __FILE__ );
          $this->plugin_dir = dirname( $this->base_name );
+         $this->form = new AmazonWishlist_Options;
 
          add_filter('plugin_row_meta', array($this, 'registerPluginLinks'),10,2);
          add_filter('the_content', array($this, 'contentFilter'));
@@ -114,6 +117,8 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
 
          /* Move Option List construction here so we can localise the strings */
          $this->optionList = array(
+         'title' => array ( 'Type' => 'title', 'Value' => __('Amazon Link Plugin Options')),
+         'nonce' => array ( 'Type' => 'nonce', 'Name' => 'update-WishPics-options' ),
          'cat' => array ( 'Type' => 'hidden' ),
          'last' => array ( 'Type' => 'hidden' ),
          'asin' => array( 'Default' => '0', 'Type' => 'hidden'),
@@ -121,8 +126,8 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          'tld' => array( 'Name' => __('Amazon Domain', 'amazon-link'), 'Description' => __('Which country\'s Amazon domain to use', 'amazon-link'), 'Default' => 'co.uk', 'Type' => 'selection', 'Options' => array ('co.uk', 'com', 'ca', 'de', 'jp', 'fr')),
          'tag' => array( 'Name' => __('Affiliate Tag', 'amazon-link'), 'Description' => __('Amazon associates ID used to assign Amazon referral commissions', 'amazon-link'), 'Default' => 'livpauls-21', 'Type' => 'text'),
          'pub_key' => array( 'Name' => __('AWS Public Key', 'amazon-link'), 'Description' => __('Public key provided by your AWS Account', 'amazon-link'), 'Default' => '', 'Type' => 'text', 'Size' => '40'),
-         'priv_key' => array( 'Name' => __('AWS Private key', 'amazon-link'), 'Description' => __('Private key provided by your AWS Account.', 'amazon-link'), 'Default' => "", 'Type' => 'text', 'Size' => '40'));
-
+         'priv_key' => array( 'Name' => __('AWS Private key', 'amazon-link'), 'Description' => __('Private key provided by your AWS Account.', 'amazon-link'), 'Default' => "", 'Type' => 'text', 'Size' => '40'),
+         'button' => array( 'Type' => 'buttons', 'Buttons' => array( __('Update Options', 'amazon-link' ) => array( 'Class' => 'button-primary', 'Action' => 'WishPicsAction'))));
       }
 
       function stylesNeeded($posts){

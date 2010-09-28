@@ -67,6 +67,10 @@ Array containing items matching globals:
 
    // **********************************************************
    // Now display the options editing screen
+
+   $this->form->displayForm($this->optionList, $Opts, __('Amazon Link Plugin Options'));
+
+/*
 ?>
 
 <div class="wrap">
@@ -150,5 +154,5 @@ Array containing items matching globals:
 </div>
 
 <?php
-
+*/
 ?>
