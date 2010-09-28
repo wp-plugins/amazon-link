@@ -61,8 +61,8 @@
          $output .= "<div class='amazon_prod'>\n";
          $output .= "<div class='amazon_img_container'><A href='$r_url'><IMG class='amazon_pic' src='$r_s_url'></a></div>\n";
          $output .= "<div class='amazon_text_container'><p><a href='$r_url'>$r_title</a></p>";
-         $output .= "<div class='amazon_details'><p>". __('by', 'amazon-link'). " $r_artist <br />";
-         $output .= __('Rank/Rating', 'amazon-link')." : $r_rank/$r_rating<br />";
+         $output .= "<div class='amazon_details'><p>". sprintf(__('by %s', 'amazon-link'),$r_artist). "<br />";
+         $output .= sprintf(__('Rank/Rating : %1$s/%2$s', 'amazon-link'),$r_rank,$r_rating) ."<br />";
          $output .= "<b>". __('Price', 'amazon-link'). " <span class='amazon_price'>$r_price</span></b></p></div></div></div>\n";
       } 
    } else {
