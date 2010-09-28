@@ -1,4 +1,4 @@
-# Translation of the WordPress plugin wish-pics by .
+# Translation of the WordPress plugin amazon-link  by .
 # Copyright (C) 2010 
 # This file is distributed under the same license as the  package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, 2010.
@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  \n"
 "Report-Msgid-Bugs-To: http://wordpress.org/tag/amazon-link\n"
-"POT-Creation-Date: 2010-09-23 13:35+0000\n"
+"POT-Creation-Date: 2010-09-28 14:10+0000\n"
 "PO-Revision-Date: 2010-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,64 +16,68 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: amazon.php:85
+#: amazon.php:90
+msgid "Settings"
+msgstr ""
+
+#: amazon.php:97
 msgid "Manage Amazon Wishlist"
 msgstr ""
 
-#: amazon.php:85
+#: amazon.php:97
 msgid "Amazon Link"
 msgstr ""
 
-#: amazon.php:111
+#: amazon.php:120
+msgid "Amazon Link Plugin Options"
+msgstr ""
+
+#: amazon.php:125
 msgid "Link Text"
 msgstr ""
 
-#: amazon.php:111
+#: amazon.php:125
 msgid "Default text to display if none specified"
 msgstr ""
 
-#: amazon.php:112
+#: amazon.php:126
 msgid "Amazon Domain"
 msgstr ""
 
-#: amazon.php:112
+#: amazon.php:126
 msgid "Which country's Amazon domain to use"
 msgstr ""
 
-#: amazon.php:113
+#: amazon.php:127
 msgid "Affiliate Tag"
 msgstr ""
 
-#: amazon.php:113
+#: amazon.php:127
 msgid "Amazon associates ID used to assign Amazon referral commissions"
 msgstr ""
 
-#: amazon.php:114
+#: amazon.php:128
 msgid "AWS Public Key"
 msgstr ""
 
-#: amazon.php:114
+#: amazon.php:128
 msgid "Public key provided by your AWS Account"
 msgstr ""
 
-#: amazon.php:115
+#: amazon.php:129
 msgid "AWS Private key"
 msgstr ""
 
-#: amazon.php:115
+#: amazon.php:129
 msgid "Private key provided by your AWS Account."
 msgstr ""
 
-#: include/showOptions.php:21 include/showOptions.php:147
+#: amazon.php:130 include/showOptions.php:16
 msgid "Update Options"
 msgstr ""
 
-#: include/showOptions.php:60
+#: include/showOptions.php:55
 msgid "Options saved."
-msgstr ""
-
-#: include/showOptions.php:73
-msgid "Amazon Link Plugin Options"
 msgstr ""
 
 #: include/showRecommendations.php:34
@@ -81,11 +85,13 @@ msgid "Amazon query failed to return any results - Have you configured the AWS s
 msgstr ""
 
 #: include/showRecommendations.php:64
-msgid "by"
+#, php-format
+msgid "by %s"
 msgstr ""
 
 #: include/showRecommendations.php:65
-msgid "Rank/Rating"
+#, php-format
+msgid "Rank/Rating : %1$s/%2$s"
 msgstr ""
 
 #: include/showRecommendations.php:66
