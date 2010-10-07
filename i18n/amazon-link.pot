@@ -1,4 +1,4 @@
-# Translation of the WordPress plugin amazon-link  by .
+# Translation of the WordPress plugin amazon-link by .
 # Copyright (C) 2010 
 # This file is distributed under the same license as the  package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, 2010.
@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  \n"
 "Report-Msgid-Bugs-To: http://wordpress.org/tag/amazon-link\n"
-"POT-Creation-Date: 2010-09-28 14:10+0000\n"
+"POT-Creation-Date: 2010-10-07 12:32+0000\n"
 "PO-Revision-Date: 2010-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,67 +16,165 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: amazon.php:90
+#: amazon.php:102
 msgid "Settings"
 msgstr ""
 
-#: amazon.php:97
+#: amazon.php:109
 msgid "Manage Amazon Wishlist"
 msgstr ""
 
-#: amazon.php:97
+#: amazon.php:109
 msgid "Amazon Link"
 msgstr ""
 
-#: amazon.php:120
+#: amazon.php:140
+msgid "United Kingdom"
+msgstr ""
+
+#: amazon.php:141
+msgid "United States"
+msgstr ""
+
+#: amazon.php:142
+msgid "Germany"
+msgstr ""
+
+#: amazon.php:143
+msgid "France"
+msgstr ""
+
+#: amazon.php:144
+msgid "Japan"
+msgstr ""
+
+#: amazon.php:145
+msgid "Canada"
+msgstr ""
+
+#: amazon.php:148
 msgid "Amazon Link Plugin Options"
 msgstr ""
 
-#: amazon.php:125
+#: amazon.php:153
 msgid "Link Text"
 msgstr ""
 
-#: amazon.php:125
+#: amazon.php:153
 msgid "Default text to display if none specified"
 msgstr ""
 
-#: amazon.php:126
-msgid "Amazon Domain"
+#: amazon.php:154
+msgid "Localise Amazon Link"
 msgstr ""
 
-#: amazon.php:126
-msgid "Which country's Amazon domain to use"
+#: amazon.php:154
+msgid "Make the link point to the users local Amazon website, (you must have ip2nation installed for this to work)."
 msgstr ""
 
-#: amazon.php:127
-msgid "Affiliate Tag"
+#: amazon.php:155
+msgid "Multinational Link"
 msgstr ""
 
-#: amazon.php:127
-msgid "Amazon associates ID used to assign Amazon referral commissions"
+#: amazon.php:155
+msgid "Insert links to all other Amazon sites after primary link."
 msgstr ""
 
-#: amazon.php:128
+#: amazon.php:156
+msgid "Default Country"
+msgstr ""
+
+#: amazon.php:156
+msgid "Which country's Amazon site to use by default"
+msgstr ""
+
+#: amazon.php:157
 msgid "AWS Public Key"
 msgstr ""
 
-#: amazon.php:128
+#: amazon.php:157
 msgid "Public key provided by your AWS Account"
 msgstr ""
 
-#: amazon.php:129
+#: amazon.php:158
 msgid "AWS Private key"
 msgstr ""
 
-#: amazon.php:129
+#: amazon.php:158
 msgid "Private key provided by your AWS Account."
 msgstr ""
 
-#: amazon.php:130 include/showOptions.php:16
+#: amazon.php:159 include/showOptions.php:19
 msgid "Update Options"
 msgstr ""
 
-#: include/showOptions.php:55
+#: amazon.php:166
+msgid "Affiliate Tag"
+msgstr ""
+
+#: amazon.php:168
+#, php-format
+msgid "Enter your affiliate tag for %1$s."
+msgstr ""
+
+#: include/ip2nation.php:53
+msgid ""
+"You currently do not have <b>ip2nation</b> installed, and the remote file is unavailable"
+msgstr ""
+
+#: include/ip2nation.php:56
+#, php-format
+msgid "You currently do not have <b>ip2nation</b> installed, the latest version available is dated: %s"
+msgstr ""
+
+#: include/ip2nation.php:60
+#, php-format
+msgid "You're <b>ip2nation</b> database was last updated on %1$s, the remote file is unavailable."
+msgstr ""
+
+#: include/ip2nation.php:63
+#, php-format
+msgid "<b>WARNING!</b> You're <b>ip2nation</b> database is out of date. It was last updated on %1$s, the latest version available is dated: %2$s"
+msgstr ""
+
+#: include/ip2nation.php:66
+#, php-format
+msgid "You're <b>ip2nation</b> database is up to date. (It was last updated on %1 $s, the latest version available is dated: %2$s)."
+msgstr ""
+
+#: include/ip2nation.php:85
+msgid "ip2nation install: Failed to Download remote database file."
+msgstr ""
+
+#: include/ip2nation.php:91
+#, php-format
+msgid "ip2nation install: Failed to open temporary  file (%s)."
+msgstr ""
+
+#: include/ip2nation.php:96
+msgid "ip2nation install: Failed to open local zip file"
+msgstr ""
+
+#: include/ip2nation.php:101
+#, php-format
+msgid "ip2nation install: Failed - Content of the Zip file looks too large (%s bytes)."
+msgstr ""
+
+#: include/ip2nation.php:114
+#, php-format
+msgid "ip2nation install: Database downloaded and unzipped but failed to install [%s]"
+msgstr ""
+
+#: include/ip2nation.php:119
+#, php-format
+msgid "ip2nation install: Database downloaded and installed successfully. %s queries executed."
+msgstr ""
+
+#: include/showOptions.php:31 include/showOptions.php:80
+msgid "Install Database"
+msgstr ""
+
+#: include/showOptions.php:67
 msgid "Options saved."
 msgstr ""
 
@@ -84,21 +182,21 @@ msgstr ""
 msgid "Amazon query failed to return any results - Have you configured the AWS settings?"
 msgstr ""
 
-#: include/showRecommendations.php:64
+#: include/showRecommendations.php:66
 #, php-format
-msgid "by %s"
+msgid "by %1$s [%2$s]"
 msgstr ""
 
-#: include/showRecommendations.php:65
+#: include/showRecommendations.php:67
 #, php-format
 msgid "Rank/Rating : %1$s/%2$s"
 msgstr ""
 
-#: include/showRecommendations.php:66
+#: include/showRecommendations.php:68
 msgid "Price"
 msgstr ""
 
-#: include/showRecommendations.php:69
+#: include/showRecommendations.php:71
 #, php-format
 msgid "No [amazon] tags found in the last %1$s posts in categories %2$s"
 msgstr ""

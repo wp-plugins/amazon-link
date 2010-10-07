@@ -4,7 +4,7 @@ Donate link: http://www.houseindorset.co.uk/plugins/
 Tags: Amazon, links, wishlist, recommend, shortcode, ip2nation, localise
 Requires at least: 2.9
 Tested up to: 3.0.1
-Stable tag: 1.2
+Stable tag: 1.3
 
 Provides a shortcode for inserting links to Amazon products and also generate a short list (e.g. a wishlist) of related items into your site. 
 
