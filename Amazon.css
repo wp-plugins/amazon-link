@@ -1,3 +1,21 @@
+#al_popup
+{
+position: absolute;
+display: hidden;
+z-index: 50;
+width: 25px;
+left: -100;
+top: 100;
+}
+
+#al_popup img {
+width:100%;
+float:left;
+border: none;
+padding: none;
+margin: 1px;
+}
+
 .amazon_container {
 }
 
@@ -53,4 +71,7 @@
 
 .amazon_price {
  color:red;
+}
+
+.amazon_flag {
 }
