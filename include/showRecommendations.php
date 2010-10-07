@@ -29,7 +29,7 @@
           $counter++;
       }
 
-      $pxml = aws_signed_request($this->Settings['tld'], $request, $this->Settings['pub_key'], $this->Settings['priv_key']);
+      $pxml = $this->doQuery($request);
       if ($pxml === False) {
          $output .= __('Amazon query failed to return any results - Have you configured the AWS settings?', 'wish-pics');
       } else {
@@ -41,27 +41,29 @@
          $ASIN = $SimilarProducts[$counter]['ASIN'];
          $request = array("Operation"=>"ItemLookup","ItemId"=>$ASIN,"ResponseGroup"=>"Small,Images,Offers,Reviews,SalesRank","IdType"=>"ASIN","MerchantId"=>"Amazon","AssociateTag"=>$this->Settings['tag']);
 
-         $pxml = aws_signed_request($this->Settings['tld'], $request, $this->Settings['pub_key'], $this->Settings['priv_key']);
+         $pxml = $this->doQuery($request);
          $result = $pxml['Items']['Item'];
          $r_title  = $result['ItemAttributes']['Title'];
          $r_artist = isset($result['ItemAttributes']['Artist'])  ? $result['ItemAttributes']['Artist'] :
                      (isset($result['ItemAttributes']['Author'])  ? $result['ItemAttributes']['Author'] :
-                      (isset($result['ItemAttributes']['Creator']) ? $result['ItemAttributes']['Creator'] : '-'));
+                     (isset($result['ItemAttributes']['Director'])  ? $result['ItemAttributes']['Director'] :
+                      (isset($result['ItemAttributes']['Creator']) ? $result['ItemAttributes']['Creator'] : '-')));
+         $r_manufacturer = isset($result['ItemAttributes']['Manufacturer']) ? $result['ItemAttributes']['Manufacturer'] : '-';
 
          if (isset($result['MediumImage']))
            $r_s_url  = $result['MediumImage']['URL'];
          else
            $r_s_url  = "http://images-eu.amazon.com/images/G/02/misc/no-img-lg-uk.gif";
 
-         $r_url    = $result['DetailPageURL'];
+         $r_url    = $this->getURL($ASIN);
          $r_rank   = $result['SalesRank'];
          $r_rating = $result['CustomerReviews']['AverageRating'];
          $r_price  = $result['Offers']['Offer']['OfferListing']['Price']['FormattedPrice'];
 
          $output .= "<div class='amazon_prod'>\n";
          $output .= "<div class='amazon_img_container'><A href='$r_url'><IMG class='amazon_pic' src='$r_s_url'></a></div>\n";
-         $output .= "<div class='amazon_text_container'><p><a href='$r_url'>$r_title</a></p>";
-         $output .= "<div class='amazon_details'><p>". sprintf(__('by %s', 'amazon-link'),$r_artist). "<br />";
+         $output .= "<div class='amazon_text_container'><p>". $this->make_links($ASIN,$r_title) ."</p>";
+         $output .= "<div class='amazon_details'><p>". sprintf(__('by %1$s [%2$s]', 'amazon-link'),$r_artist, $r_manufacturer). "<br />";
          $output .= sprintf(__('Rank/Rating : %1$s/%2$s', 'amazon-link'),$r_rank,$r_rating) ."<br />";
          $output .= "<b>". __('Price', 'amazon-link'). " <span class='amazon_price'>$r_price</span></b></p></div></div></div>\n";
       } 

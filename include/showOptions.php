@@ -5,16 +5,18 @@
  * Admin Panel Processing
  *
  */
-
+   global $wpdb;
    $Opts = $this->getOptions();
 
 /*****************************************************************************************/
 
+   $Action = (isset($_POST[ 'AmazonLinkAction' ]) && check_admin_referer( 'update-AmazonLink-options')) ?
+                      $_POST[ 'AmazonLinkAction' ] : 'No Action';
+
    // See if the user has posted us some information
    // If they did, the admin Nonce should be set.
    $NotifyUpdate = False;
-   if( isset($_POST[ 'WishPicsAction' ]) && ($_POST[ 'WishPicsAction' ] == __('Update Options', 'amazon-link')) && 
-       check_admin_referer( 'update-WishPics-options')) {
+   if(  $Action == __('Update Options', 'amazon-link') ) {
 
       // Update Current Wishlist settings
 
@@ -26,6 +28,16 @@
       }
       $this->saveOptions($Opts);
       $NotifyUpdate = True;
+    } else if ( $Action == __('Install Database','amazon-link')) {
+
+      // User requested installation of the ip2nation database
+?>
+
+<div class="updated">
+ <p><strong><?php echo $this->ip2n->install(); ?></strong></p>
+</div>
+
+<?php
     }
 
 /*****************************************************************************************/
@@ -56,6 +68,21 @@
 </div>
 
 <?php
+   }
+
+/*****************************************************************************************/
+
+   $ip2n_status = $this->ip2n->status();
+  
+   if ($ip2n_status['Install'] == True) {
+      $this->optionList['ip2n_message']['Type'] = 'buttons';
+      $this->optionList['ip2n_message']['Description'] = $ip2n_status['Message'];
+      $this->optionList['ip2n_message']['Buttons'][__('Install Database','amazon-link')] = 
+                    array('Class' => 'button-secondary', 'Action' => 'AmazonLinkAction');
+   } else {
+      $this->optionList['ip2n_message']['Type'] = 'title';
+      $this->optionList['ip2n_message']['Value'] = $ip2n_status['Message'];
+      $this->optionList['ip2n_message']['Class'] = 'sub-head';
    }
 
 /*****************************************************************************************/

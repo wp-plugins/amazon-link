@@ -92,6 +92,42 @@ function displayForm($optionList, $Opts, $Open = True, $Body = True, $Close = Tr
    </tr>
 
 <?php
+         } else if ($optDetails['Type'] == 'radio') {
+
+            // Insert a Radio Selection
+            //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+?>
+   <tr valign="top">
+    <th scope="row"><label for="<?php echo $optName; ?>"><?php echo $optDetails['Name']; ?></label></th>
+    <td>
+     <div>
+      <div style="float:left; width:610px">
+       <ul>
+        <?php
+         foreach ($optDetails['Options'] as $Value => $Details) {
+            if (is_array($Details)) {
+               $Name = $Details['Name'];
+            } else {
+               $Name = $Details;
+               $Value= $Details;
+            }
+            echo "<li><input name='$optName' type='radio' value='$Value' ". checked( $Opts[$optName], $Value, False). " >" . $Name . "</input>";
+            if (isset($Details['Input'])) $this->displayInput($optionList[$Details['Input']], $Details['Input'], $Opts);
+            echo "</li>\n";
+         }
+        ?>
+       </ul>
+      </div>
+      <?php if (isset($optDetails['Buttons'])) $this->displayButtons($optDetails['Buttons']); ?>
+     </div>
+     <div style="clear:both"><?php echo $optDetails['Description']; ?></div>
+    </td>
+   </tr>
+
+<?php
+
+
          } else if ($optDetails['Type'] == 'buttons') {
 
             // Insert a set of Buttons
@@ -99,7 +135,8 @@ function displayForm($optionList, $Opts, $Open = True, $Body = True, $Close = Tr
 ?>
     <tr valign="top">
      <td colspan="2">
-       <?php $this->displayButtons($optDetails['Buttons']); ?>
+       <?php $this->displayButtons($optDetails['Buttons']); ?><br />
+       <?php if (isset($optDetails['Description'])) echo $optDetails['Description']; ?>
      </td>
     </tr>
 
@@ -178,6 +215,15 @@ function displayButtons ($buttons) {
    <input type="submit" class="<?php echo $details['Class']; ?>" name="<?php echo $details['Action'] ?>" value="<?php echo $Value; ?>" />
 <?php
    }
+}
+
+function displayInput ($optDetails, $optName, $Opts) {
+   $size = isset($optDetails['Size']) ? $optDetails['Size'] : '20';
+?>
+     <input name="<?php echo $optName; ?>" type="text" value="<?php echo $Opts[$optName]; ?>" size="<?php echo $size ?>" />
+     <?php if (isset($optDetails['Buttons'])) $this->displayButtons($optDetails['Buttons']); ?>
+     <?php echo $optDetails['Description']; ?>
+<?php
 }
 
    }
