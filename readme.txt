@@ -29,6 +29,8 @@ The links that are generated can optionally be localised to the Amazon store mos
 Since the reliability of guessing your visitors best Amazon store is questionable, an alternative is to enable the 'Multinational Link' option, this will enable a small popup for each link allowing the site visitor to choose the most appropriate site (based on local or language).
 
 
+On the Post and Page administrative pages there is also a box to help add the shortcodes, if you already know the ASIN then simply enter it into the ASIN input and click on 'Send To Editor'. If not then there is a facility to search Amazon, by Index, Product Title and or Product Author/Artist.
+
 == Installation ==
 
 1. Upload 'amazon-link.zip' to the '/wp-content/plugins/' directory and unzip it.
@@ -78,6 +80,9 @@ are only 6 major Amazon sites (UK, France, Germany, US, Japan and Canada). So th
 
 == Changelog ==
 
+= 1.4 =
+Added a simple widget to the post & page new/edit screen to assist in adding shortcodes to posts, providing a facility to search Amazon.
+
 = 1.3 =
 Add link localisation through IP address lookup, and support for all 6 amazon affiliate sites not just one via a image popup.
 
@@ -114,6 +119,11 @@ Upgrade if you wish to have internationalisation (i18n) support.
 The plugin comes with translation support but as yet no translations are included, please refer to the WordPress Codex for more information about activating the translation.
 If you want to help to translate the plugin to your language, please have a look at the i18n/amazon-link.pot file which contains all definitions and may be used to create a language specific .po file, if you do then
 contact me and I will add it to the plugin ready for the next update.
+
+== Technical ==
+The plugin relies upon the php script aws_signed_request kindly crafted by [Ulrich Mierendorff](http://mierendo.com/software/aws_signed_query/) to perform the requests to the Amazon service.
+
+The plugin has two utility classes that might be of use to other plugin designers. The first is one for generating the options page (as well as the 'Add Amazon Link' meta box). The second is an AJAX facility for performing Amazon product searches and returning an array of product details, including a facility to fill in a HTML template with various attributes of the product using the patterns %TITLE%, %PRICE%, %AUTHOR%, etc. See the plugin source files for more details on how to utilise them.
 
 == Settings ==
 
@@ -169,6 +179,5 @@ Note if you do not update the affiliate tags then I will earn the commission on 
 There are a number of things I want to update the plugin to do, some of which have already been done in other plugins, but not quite how I would like. I would like to bring it all together in one plugin.
 Features I will be adding to the plugin in the future:
 
-* Provide an amazon store search form/popup for use in other plugins and for inserting links into posts
 * Allow the wishlist to search for legacy amazon links not just ones embedded in the shortcode.
 

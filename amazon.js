@@ -2,7 +2,7 @@ var al_isNav = (navigator.appName.indexOf("Netscape") !=-1);
 function handlerMM(e){
    al_x = (al_isNav) ? e.pageX : event.x + document.body.scrollLeft - document.body.clientLeft;
    al_y = (al_isNav) ? e.pageY : event.y + document.body.scrollTop - document.body.clientTop;
-   if (document.body.parentElement && document.body.parentElement.clientLeft) {
+   if (document.body && document.body.parentElement && document.body.parentElement.clientLeft) {
       var bodParent = document.body.parentElement;
       al_x += bodParent.scrollLeft - bodParent.clientLeft;
       al_y += bodParent.scrollTop - bodParent.clientTop;

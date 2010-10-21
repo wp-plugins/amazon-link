@@ -16,6 +16,12 @@ padding: none;
 margin: 1px;
 }
 
+.sub-head {
+ border-bottom: 1px dotted #aaaaaa;
+ margin: 2px 0 2px 0;
+ padding: 2px 0 2px 0;
+}
+
 .amazon_container {
 }
 

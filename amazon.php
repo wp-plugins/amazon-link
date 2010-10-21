@@ -55,6 +55,9 @@ require_once('include/displayForm.php');
 if (!class_exists('AmazonWishlist_ip2nation'))
    include_once ( 'include/ip2nation.php');
 
+if (!class_exists('AmazonLinkSearch'))
+   include_once ( 'include/amazonSearch.php');
+
 if( !class_exists( 'WP_Http' ) )
     include_once( ABSPATH . WPINC. '/class-http.php' );
 
@@ -87,13 +90,14 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          $this->plugin_dir = dirname( $this->base_name );
          $this->form = new AmazonWishlist_Options;
          $this->ip2n = new AmazonWishlist_ip2nation;
+         $this->search = new AmazonLinkSearch;
 
-         add_filter('plugin_row_meta', array($this, 'registerPluginLinks'),10,2);
-         add_filter('the_content', array($this, 'contentFilter'));
-         add_filter('the_posts', array($this, 'stylesNeeded'));
-         add_action('admin_menu', array($this, 'optionsMenu'));
-         add_action('init', array($this, 'loadLang'));
-         register_activation_hook(__FILE__, array($this, 'activate'));
+         register_activation_hook(__FILE__, array($this, 'activate'));               // To perform options upgrade
+         add_action('init', array($this, 'init'));                                   // Load i18n and initialise translatable vars
+         add_filter('plugin_row_meta', array($this, 'registerPluginLinks'),10,2);    // Add extra links to plugins page
+         add_filter('the_posts', array($this, 'stylesNeeded'));                      // Check if styles/scripts are needed
+         add_filter('the_content', array($this, 'contentFilter'),15);                // Process the content
+         add_action('admin_menu', array($this, 'optionsMenu'));                      // Add options page hooks
  
       }
 
@@ -106,26 +110,41 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
 
       function optionsMenu() {
 
+         // Add plugin options page
          $my_page = add_options_page(__('Manage Amazon Wishlist', 'amazon-link'), __('Amazon Link', 'amazon-link'), 'manage_options', __FILE__, array($this, 'showOptions'));
-         add_action( "admin_print_styles-$my_page", array($this,'headerContent') );
+
+         // Add support for Post metabox, requires our styles and post edit AJAX scripts.
+         add_meta_box('amazonLinkID', 'Add Amazon Link', array($this,'insertForm'), 'post', 'normal');
+         add_meta_box('amazonLinkID', 'Add Amazon Link', array($this,'insertForm'), 'page', 'normal');
+         add_action( "admin_print_scripts-post.php", array($this,'edit_scripts') );
+         add_action( "admin_print_scripts-post-new.php", array($this,'edit_scripts') );
+         add_action( "admin_print_styles-post-new.php", array($this,'amazon_admin_styles') );
+         add_action( "admin_print_styles-post.php", array($this,'amazon_admin_styles') );
+         add_action( "admin_print_styles-" . $my_page, array($this,'amazon_admin_styles') );
       }
 
-      /// Load styles only on Our Admin page or when Wishlist is displayed...
+      /// We only need the styles and scripts when a Wishlist or the Multinational popup is displayed...
 
-      function headerContent() {
-         // Allow the user to override our default styles. 
-         if (file_exists(dirname (__FILE__).'/user_styles.css')) {
-            $stylesheet = plugins_url("user_styles.css", __FILE__); 
-         } else {
-            $stylesheet = plugins_url("Amazon.css", __FILE__);
-         }
-         $script = plugins_url("amazon.js", __FILE__);
-
-         wp_enqueue_style('amazonlink-style', $stylesheet);
-         wp_enqueue_script('amazonlink-script', $script);
+      function amazon_styles() {
+         wp_enqueue_style('amazon-link-style');
       }
 
-      function loadLang() {
+      function amazon_admin_styles() {
+         wp_enqueue_style('amazon-link-style');
+         wp_enqueue_style('amazon-link-form');
+      }
+
+      function amazon_scripts() {
+         wp_enqueue_script('amazon-link-script');
+      }
+
+
+      function edit_scripts() {
+         $script = plugins_url("postedit.js", __FILE__);
+         wp_enqueue_script('wpAmazonLinkAdmin', $script, array('jquery', 'amazon-link-search'), '1.0.0');
+      }
+
+      function init() {
 
          /* load localisation  */
          load_plugin_textdomain('amazon-link', $this->plugin_dir . '/i18n', $this->plugin_dir . '/i18n');
@@ -141,7 +160,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
                                      'us' => array('name' => __('United States', 'amazon-link'), 'flag' => 'images/flag_us.gif', 'tld' => 'com', 'site' => 'https://affiliate-program.amazon.com', 'default_tag' => 'lipawe-20'),
                                      'de' => array('name' => __('Germany', 'amazon-link'), 'flag' => 'images/flag_de.gif', 'tld' => 'de', 'site' => 'https://partnernet.amazon.de', 'default_tag' => 'lipas03-21'),
                                      'fr' => array('name' => __('France', 'amazon-link'), 'flag' => 'images/flag_fr.gif', 'tld' => 'fr', 'site' => 'https://partenaires.amazon.fr', 'default_tag' => 'lipas03-21'),
-                                     'jp' => array('name' => __('Japan', 'amazon-link'), 'flag' => 'images/flag_jp.gif', 'tld' => 'jp', 'site' => 'https://affiliate.amazon.co.jp', 'default_tag' => 'lipawe-20'),
+                                     'jp' => array('name' => __('Japan', 'amazon-link'), 'flag' => 'images/flag_jp.gif', 'tld' => 'jp', 'site' => 'https://affiliate.amazon.co.jp', 'default_tag' => 'Livpaul21-22'),
                                      'ca' => array('name' => __('Canada', 'amazon-link'), 'flag' => 'images/flag_ca.gif', 'tld' => 'ca', 'site' => 'https://associates.amazon.ca', 'default_tag' => 'lipas-20'));
 
          $this->optionList = array(
@@ -153,8 +172,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          'text' => array( 'Name' => __('Link Text', 'amazon-link'), 'Description' => __('Default text to display if none specified', 'amazon-link'), 'Default' => 'www.amazon.co.uk', 'Type' => 'text', 'Size' => '40'),
          'localise' => array('Name' => __('Localise Amazon Link', 'wish-pics'), 'Description' => __('Make the link point to the users local Amazon website, (you must have ip2nation installed for this to work).', 'amazon-link'), 'Default' => '1', 'Type' => 'checkbox'),
          'multi_cc' => array('Name' => __('Multinational Link', 'wish-pics'), 'Description' => __('Insert links to all other Amazon sites after primary link.', 'amazon-link'), 'Default' => '1', 'Type' => 'checkbox'),
-         'default_cc' => array( 'Name' => __('Default Country', 'amazon-link'), 'Description' => __('Which country\'s Amazon site to use by default', 'amazon-link'), 'Default' => 'uk', 'Type' => 'radio'),
-         'pub_key' => array( 'Name' => __('AWS Public Key', 'amazon-link'), 'Description' => __('Public key provided by your AWS Account', 'amazon-link'), 'Default' => '', 'Type' => 'text', 'Size' => '40'),
+         'default_cc' => array( 'Name' => __('Default Country', 'amazon-link'), 'Description' => __('Which country\'s Amazon site to use by default', 'amazon-link'), 'Default' => 'uk', 'Type' => 'radio'),         'pub_key' => array( 'Name' => __('AWS Public Key', 'amazon-link'), 'Description' => __('Public key provided by your AWS Account', 'amazon-link'), 'Default' => '', 'Type' => 'text', 'Size' => '40'),
          'priv_key' => array( 'Name' => __('AWS Private key', 'amazon-link'), 'Description' => __('Private key provided by your AWS Account.', 'amazon-link'), 'Default' => "", 'Type' => 'text', 'Size' => '40'),
          'button' => array( 'Type' => 'buttons', 'Buttons' => array( __('Update Options', 'amazon-link' ) => array( 'Class' => 'button-primary', 'Action' => 'AmazonLinkAction'))));
 
@@ -167,6 +185,17 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
             $this->optionList['tag_' . $cc]['Default'] = $data['default_tag'];
             $this->optionList['tag_' . $cc]['Description'] = sprintf(__('Enter your affiliate tag for %1$s.', 'amazon-link'), '<a href="'. $data['site']. '">'.$data['name'].'</a>' );
          }
+
+         $script = plugins_url("amazon.js", __FILE__);
+         // Allow the user to override our default styles. 
+         if (file_exists(dirname (__FILE__).'/user_styles.css')) {
+            $stylesheet = plugins_url("user_styles.css", __FILE__); 
+         } else {
+            $stylesheet = plugins_url("Amazon.css", __FILE__);
+         }
+
+         wp_register_style('amazon-link-style', $stylesheet);
+         wp_register_script('amazon-link-script', $script);
       }
 
       function activate() {
@@ -198,7 +227,8 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          foreach ($posts as $post) {
             $this->contentFilter($post->post_content, False, False);
             if ($this->stylesNeeded) {
-               $this->headerContent();
+               $this->amazon_styles();
+               $this->amazon_scripts();
                break;
             }
          }
@@ -243,7 +273,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
           */
          foreach ($this->optionList as $key => $details) {
             if (isset($args[$key])) {
-               $this->Settings[$key] = $args[$key];              // Local setting
+               $this->Settings[$key] = trim(stripslashes($args[$key]),"\x22\x27");              // Local setting
             } else if (isset($Opts[$key])) {
                $this->Settings[$key] = $Opts[$key];   // Global setting
             } else if (isset ($details['Default'])) {
@@ -358,6 +388,10 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          include('include/showOptions.php');
       }
 
+      function insertForm() {
+         include('include/insertForm.php');
+      }
+
       public function getURL($asin)
       {
          $top_cc  = $this->get_country();
@@ -387,6 +421,81 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
       public function doQuery($request)
       {
          return aws_signed_request($this->country_data[$this->Settings['default_cc']]['tld'], $request, $this->Settings['pub_key'], $this->Settings['priv_key']);
+      }
+
+      function performSearch() 
+      {
+         $Opts = $_POST;
+
+         if ($Opts['index'] == 'Books') {
+            $Term = "Author";
+         } else if ($Opts['index'] == 'Music') {
+            $Term = "Artist";
+         } else if ($Opts['index'] == 'DVD') {
+            $Term = "Publisher";
+         } else {
+            $Term = "Manufacturer";
+         }
+
+         // Create query to retrieve the first 10 matching items
+         $request = array("Operation" => "ItemSearch",
+                          "ResponseGroup" => "Small,Reviews,Images,Offers,SalesRank",
+                          $Term=>$Opts['author'],
+                          "Title"=>$Opts['title'],
+                          "SearchIndex"=>$Opts['index'],
+                          "Sort"=>"salesrank",
+                          "MerchantId"=>"Amazon",
+                          "ItemPage"=>$Opts['page']);
+
+         $pxml = amazon_query($request);
+
+         if (($pxml === False) || !isset($pxml['Items']['Item'])) {
+            $results = array('success' => false);
+            $Items = array();
+         } else {
+            $results = array('success' => true);
+            $Items=$pxml['Items']['Item'];
+         }
+ 
+         if (count($Items) > 0) {
+            for ($counter = 0; $counter < count($Items) ; $counter++) {
+               $result = $Items[$counter];
+               $data = array();
+               $data['asin']   = $result['ASIN'];
+               $data['title']  = $result['ItemAttributes']['Title'];
+               $data['artist'] = isset($result['ItemAttributes']['Artist']) ? $result['ItemAttributes']['Artist'] :
+                           (isset($result['ItemAttributes']['Author']) ? $result['ItemAttributes']['Author'] :
+                            (isset($result['ItemAttributes']['Creator']) ? $result['ItemAttributes']['Creator'] : '-'));
+               $data['manufacturer'] = isset($result['ItemAttributes']['Manufacturer']) ? $result['ItemAttributes']['Manufacturer'] : '-';
+
+               if (isset($result['MediumImage']))
+                 $data['thumb'] = $result['MediumImage']['URL'];
+               else
+                 $data['thumb'] = "http://images-eu.amazon.com/images/G/02/misc/no-img-lg-uk.gif";
+
+               if (isset($result['LargeImage']))
+                  $data['image'] = $result['LargeImage']['URL'];
+               else
+                  $data['image'] = $r_s_url;
+
+               $data['url']     = $result['DetailPageURL'];
+               $data['rank']    = $result['SalesRank'];
+               $data['rating']  = isset($result['CustomerReviews']['AverageRating']) ? $result['CustomerReviews']['AverageRating'] : '-';
+               $data['price']   = $result['Offers']['Offer']['OfferListing']['Price']['FormattedPrice'];
+               $data['id']      = $ASIN;
+               $data['type']    = 'Amazon';
+               $data['template'] = $this->process_template($data, htmlspecialchars_decode (stripslashes($Opts['template'])));
+               $results['items'][$data['asin']] = $data;
+            }
+         }
+         print json_encode($results);
+         exit();
+      }
+
+      function process_template ($data, $template) {
+         foreach ($data as $key => $string)
+            $template = str_replace('%'. strtoupper($key) . '%', $string, $template);
+         return $template;
       }
 
       function make_links($asin, $link_text)
