@@ -4,7 +4,7 @@ Donate link: http://www.houseindorset.co.uk/plugins/
 Tags: Amazon, links, wishlist, recommend, shortcode, ip2nation, localise
 Requires at least: 2.9
 Tested up to: 3.0.1
-Stable tag: 1.3
+Stable tag: 1.4
 
 Provides a shortcode for inserting links to Amazon products and also generate a short list (e.g. a wishlist) of related items into your site. 
 
@@ -99,6 +99,9 @@ First Release
 
 == Upgrade Notice ==
 
+= 1.4 =
+Upgrade to enable the metabox to allow easy insertion of the Amazon Links into Posts and Pages
+
 = 1.3 =
 Upgrade if you want multinational link support or link localisation.
 
@@ -113,6 +116,8 @@ Upgrade if you wish to have internationalisation (i18n) support.
 1. This is the example wishlist taken from [www.HouseInDorset.co.uk](http://www.houseindorset.co.uk/plugins/amazon-link)
 
 2. This shows the multinational Amazon link popup.
+
+3. This shows the Amazon Link Metabox that can be used to insert shortcode links into Posts or Pages.
 
 == Translations ==
 
