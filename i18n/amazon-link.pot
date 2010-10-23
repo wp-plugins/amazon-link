@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  \n"
 "Report-Msgid-Bugs-To: http://wordpress.org/tag/amazon-link\n"
-"POT-Creation-Date: 2010-10-07 12:32+0000\n"
+"POT-Creation-Date: 2010-10-23 19:26+0000\n"
 "PO-Revision-Date: 2010-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,110 +16,238 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: amazon.php:102
+#: amazon.php:106
 msgid "Settings"
 msgstr ""
 
-#: amazon.php:109
+#: amazon.php:114
 msgid "Manage Amazon Wishlist"
 msgstr ""
 
-#: amazon.php:109
+#: amazon.php:114
 msgid "Amazon Link"
 msgstr ""
 
-#: amazon.php:140
+#: amazon.php:159
 msgid "United Kingdom"
 msgstr ""
 
-#: amazon.php:141
+#: amazon.php:160
 msgid "United States"
 msgstr ""
 
-#: amazon.php:142
+#: amazon.php:161
 msgid "Germany"
 msgstr ""
 
-#: amazon.php:143
+#: amazon.php:162
 msgid "France"
 msgstr ""
 
-#: amazon.php:144
+#: amazon.php:163
 msgid "Japan"
 msgstr ""
 
-#: amazon.php:145
+#: amazon.php:164
 msgid "Canada"
 msgstr ""
 
-#: amazon.php:148
+#: amazon.php:167
 msgid "Amazon Link Plugin Options"
 msgstr ""
 
-#: amazon.php:153
+#: amazon.php:172 include/insertForm.php:37
 msgid "Link Text"
 msgstr ""
 
-#: amazon.php:153
+#: amazon.php:172
 msgid "Default text to display if none specified"
 msgstr ""
 
-#: amazon.php:154
+#: amazon.php:173 include/insertForm.php:65
 msgid "Localise Amazon Link"
 msgstr ""
 
-#: amazon.php:154
+#: amazon.php:173
 msgid "Make the link point to the users local Amazon website, (you must have ip2nation installed for this to work)."
 msgstr ""
 
-#: amazon.php:155
+#: amazon.php:174 include/insertForm.php:66
 msgid "Multinational Link"
 msgstr ""
 
-#: amazon.php:155
+#: amazon.php:174 include/insertForm.php:66
 msgid "Insert links to all other Amazon sites after primary link."
 msgstr ""
 
-#: amazon.php:156
+#: amazon.php:175
 msgid "Default Country"
 msgstr ""
 
-#: amazon.php:156
+#: amazon.php:175
 msgid "Which country's Amazon site to use by default"
 msgstr ""
 
-#: amazon.php:157
+#: amazon.php:175
 msgid "AWS Public Key"
 msgstr ""
 
-#: amazon.php:157
+#: amazon.php:175
 msgid "Public key provided by your AWS Account"
 msgstr ""
 
-#: amazon.php:158
+#: amazon.php:176
 msgid "AWS Private key"
 msgstr ""
 
-#: amazon.php:158
+#: amazon.php:176
 msgid "Private key provided by your AWS Account."
 msgstr ""
 
-#: amazon.php:159 include/showOptions.php:19
+#: amazon.php:177 include/showOptions.php:19
 msgid "Update Options"
 msgstr ""
 
-#: amazon.php:166
+#: amazon.php:184
 msgid "Affiliate Tag"
 msgstr ""
 
-#: amazon.php:168
+#: amazon.php:186
 #, php-format
 msgid "Enter your affiliate tag for %1$s."
 msgstr ""
 
+#: include/insertForm.php:11
+msgid "Results: "
+msgstr ""
+
+#: include/insertForm.php:24 include/insertForm.php:36
+#: include/insertForm.php:61
+msgid "Send To Editor"
+msgstr ""
+
+#: include/insertForm.php:25
+msgid "by %ARTIST% [%MANUFACTURER%]"
+msgstr ""
+
+#: include/insertForm.php:26
+msgid "Rank/Rating: %RANK%/%RATING%"
+msgstr ""
+
+#: include/insertForm.php:27 include/showRecommendations.php:68
+msgid "Price"
+msgstr ""
+
+#: include/insertForm.php:34
+msgid "Enter the following two settings for a standard Amazon Link"
+msgstr ""
+
+#: include/insertForm.php:35
+msgid "ASIN"
+msgstr ""
+
+#: include/insertForm.php:35
+msgid "Amazon product ASIN"
+msgstr ""
+
+#: include/insertForm.php:37
+msgid "Amazon Link text"
+msgstr ""
+
+#: include/insertForm.php:38
+msgid "Search Amazon for Products"
+msgstr ""
+
+#: include/insertForm.php:43
+msgid "Product Index"
+msgstr ""
+
+#: include/insertForm.php:43
+msgid "Which Amazon Product Index to Search through"
+msgstr ""
+
+#: include/insertForm.php:47
+msgid "Author"
+msgstr ""
+
+#: include/insertForm.php:47
+msgid "Author or Artist to search for"
+msgstr ""
+
+#: include/insertForm.php:48
+msgid "Title"
+msgstr ""
+
+#: include/insertForm.php:48
+msgid "Items Title to search for"
+msgstr ""
+
+#: include/insertForm.php:49
+msgid "Page"
+msgstr ""
+
+#: include/insertForm.php:49
+msgid "Page of Search Results"
+msgstr ""
+
+#: include/insertForm.php:51
+msgid "-"
+msgstr ""
+
+#: include/insertForm.php:52
+msgid "+"
+msgstr ""
+
+#: include/insertForm.php:53
+msgid "Search"
+msgstr ""
+
+#: include/insertForm.php:54
+msgid "x"
+msgstr ""
+
+#: include/insertForm.php:56
+msgid "Error - No results returned from your query."
+msgstr ""
+
+#: include/insertForm.php:59
+msgid "Enter the following two settings for an Amazon Wishlist"
+msgstr ""
+
+#: include/insertForm.php:60
+msgid "Post Category"
+msgstr ""
+
+#: include/insertForm.php:60
+msgid "List of Categories to search through for amazon links"
+msgstr ""
+
+#: include/insertForm.php:62
+msgid "Number of Posts"
+msgstr ""
+
+#: include/insertForm.php:62
+msgid "Number of posts to search back through for amazon links"
+msgstr ""
+
+#: include/insertForm.php:63
+msgid "Advanced settings"
+msgstr ""
+
+#: include/insertForm.php:64
+msgid "Use Defaults"
+msgstr ""
+
+#: include/insertForm.php:64
+msgid "Use the site default settings for the two options below"
+msgstr ""
+
+#: include/insertForm.php:65
+msgid "Make the link point to the users local Amazon website"
+msgstr ""
+
 #: include/ip2nation.php:53
-msgid ""
-"You currently do not have <b>ip2nation</b> installed, and the remote file is unavailable"
+msgid "You currently do not have <b>ip2nation</b> installed, and the remote file is unavailable"
 msgstr ""
 
 #: include/ip2nation.php:56
@@ -139,7 +267,7 @@ msgstr ""
 
 #: include/ip2nation.php:66
 #, php-format
-msgid "You're <b>ip2nation</b> database is up to date. (It was last updated on %1 $s, the latest version available is dated: %2$s)."
+msgid "You're <b>ip2nation</b> database is up to date. (It was last updated on %1$s, the latest version available is dated: %2$s)."
 msgstr ""
 
 #: include/ip2nation.php:85
@@ -190,10 +318,6 @@ msgstr ""
 #: include/showRecommendations.php:67
 #, php-format
 msgid "Rank/Rating : %1$s/%2$s"
-msgstr ""
-
-#: include/showRecommendations.php:68
-msgid "Price"
 msgstr ""
 
 #: include/showRecommendations.php:71
