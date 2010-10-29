@@ -1,5 +1,25 @@
+var al_isOpera = (navigator.userAgent.indexOf('Opera') != -1);
+var al_isIE = (!al_isOpera && navigator.userAgent.indexOf('MSIE') != -1);
 var al_isNav = (navigator.appName.indexOf("Netscape") !=-1);
 function handlerMM(e){
+if (e.pageX || e.pageY)
+	{
+		al_x = e.pageX;
+		al_y = e.pageY;
+	}
+else if (e.clientX || e.clientY)
+	{
+		al_x = e.clientX;
+		al_y = e.clientY;
+		if (al_isIE)
+		{
+			al_x += document.body.scrollLeft;
+			al_y += document.body.scrollTop;
+		}
+	}
+}
+
+function test (e) {
    al_x = (al_isNav) ? e.pageX : event.x + document.body.scrollLeft - document.body.clientLeft;
    al_y = (al_isNav) ? e.pageY : event.y + document.body.scrollTop - document.body.clientTop;
    if (document.body && document.body.parentElement && document.body.parentElement.clientLeft) {
