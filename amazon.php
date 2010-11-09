@@ -138,10 +138,36 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          wp_enqueue_script('amazon-link-script');
       }
 
-
       function edit_scripts() {
          $script = plugins_url("postedit.js", __FILE__);
          wp_enqueue_script('wpAmazonLinkAdmin', $script, array('jquery', 'amazon-link-search'), '1.0.0');
+      }
+
+      function generate_multi_script() {
+         $Settings= $this->getOptions();
+         ?>
+
+<script type='text/javascript'> 
+function al_gen_multi (id, asin, def) {
+   var country_data = new Array();
+<?php
+         foreach ($this->country_data as $cc => $data) {
+            echo "   country_data['". $cc ."'] = { 'flag' : '" . $this->URLRoot . "/" . $data['flag'] . "', 'tld' : '" . $data['tld'] . "',  'tag' : '" . $Settings['tag_' . $cc] ."'};\n";
+         }
+?>
+   var content = "";
+   for (var cc in country_data) {
+      if (cc != def) {
+         var url = 'http://www.amazon.' + country_data[cc].tld + '/gp/product/' + asin + '?ie=UTF8&tag=' + country_data[cc].tag + '&linkCode=as2&camp=1634&creative=6738&creativeASIN='+ asin;
+         content = content +'<a href="' + url + '"><img src="' + country_data[cc].flag + '"></a>';
+      }
+   }
+   al_link_in (id, content);
+}
+</script> 
+
+
+<?php
       }
 
       function init() {
@@ -229,6 +255,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
             if ($this->stylesNeeded) {
                $this->amazon_styles();
                $this->amazon_scripts();
+               add_action('wp_print_scripts', array($this, 'generate_multi_script'));
                break;
             }
          }
@@ -500,15 +527,11 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
 
       function make_links($asin, $link_text)
       {
-         $URLs = $this->getURLs($asin);
-         $URL = array_shift($URLs);
+         $URL = $this->getURL($asin);
          if ($this->Settings['multi_cc']) {
-            $text='<a onMouseOut="al_link_out()" href="' . $URL .'" onMouseOver="al_link_in('. $this->multi_id . ',\'';
-            $js = '';
-            foreach ($URLs as $cc => $link) {
-               $js.="<a href='" . $link . "'><img src='". $this->URLRoot . "/" . $this->country_data[$cc]['flag']. "'></a>";
-            }
-            $text .= addslashes($js) .'\')">' . stripslashes($link_text). '</a>';
+            $def = $this->get_country();
+            $text='<a onMouseOut="al_link_out()" href="' . $URL .'" onMouseOver="al_gen_multi('. $this->multi_id . ', \'' . $asin . '\', \''. $def .'\');">';
+            $text .= stripslashes($link_text). '</a>';
             if ($this->multi_id == 0) {
                $text .= '<span id="al_popup" onmouseover="al_div_in()" onmouseout="al_div_out()"></span>';
                $this->done_div = True;

@@ -1,7 +1,8 @@
 var al_isOpera = (navigator.userAgent.indexOf('Opera') != -1);
 var al_isIE = (!al_isOpera && navigator.userAgent.indexOf('MSIE') != -1);
 var al_isNav = (navigator.appName.indexOf("Netscape") !=-1);
-function handlerMM(e){
+function al_handlerMM(e){
+	if (!e) var e = window.event;
 if (e.pageX || e.pageY)
 	{
 		al_x = e.pageX;
@@ -19,16 +20,8 @@ else if (e.clientX || e.clientY)
 	}
 }
 
-function test (e) {
-   al_x = (al_isNav) ? e.pageX : event.x + document.body.scrollLeft - document.body.clientLeft;
-   al_y = (al_isNav) ? e.pageY : event.y + document.body.scrollTop - document.body.clientTop;
-   if (document.body && document.body.parentElement && document.body.parentElement.clientLeft) {
-      var bodParent = document.body.parentElement;
-      al_x += bodParent.scrollLeft - bodParent.clientLeft;
-      al_y += bodParent.scrollTop - bodParent.clientTop;
-   }
-}
-document.onmousemove = handlerMM;
+document.onmousemove = al_handlerMM;
+
 
 al_x = 100;
 al_y = 100;
