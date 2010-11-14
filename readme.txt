@@ -4,7 +4,7 @@ Donate link: http://www.houseindorset.co.uk/plugins/
 Tags: Amazon, links, wishlist, recommend, shortcode, ip2nation, localise
 Requires at least: 2.9
 Tested up to: 3.0.1
-Stable tag: 1.4
+Stable tag: 1.5
 
 Provides a shortcode for inserting links to Amazon products and also generate a short list (e.g. a wishlist) of related items into your site. 
 
@@ -48,6 +48,11 @@ If the file is corrupted or maliciously changed then this operation could comple
 
 == Frequently Asked Questions ==
 
+= I've tried the plugin and it doesn't do what I want, help? =
+
+If you think the plugin doesn't work, please try contacting me and I will endeavour to help. You can either start a forum topic on the [Wordpress site](http://wordpress.org/tags/amazon-link?forum_id=10) or 
+leave a comment on my site on the plugin page [Amazon Link Page](http://www.houseindorset.co.uk/plugins/amazon-link/).
+
 = Why doesn't the Wishlist function work? =
 
 For this to work you must have set up a working [Amazon Web Services](http://aws.amazon.com/) account and set the AWS Public and
@@ -80,6 +85,9 @@ are only 6 major Amazon sites (UK, France, Germany, US, Japan and Canada). So th
 
 == Changelog ==
 
+= 1.5 =
+Change the multinational link to use less in-line javascript.
+
 = 1.4 =
 Added a simple widget to the post & page new/edit screen to assist in adding shortcodes to posts, providing a facility to search Amazon.
 
@@ -98,6 +106,9 @@ Add internationalisation hooks into plugin.
 First Release
 
 == Upgrade Notice ==
+
+= 1.5 =
+Upgrade if you are having problems with the javascript in the multinational link.
 
 = 1.4 =
 Upgrade to enable the metabox to allow easy insertion of the Amazon Links into Posts and Pages
