@@ -1,4 +1,4 @@
-# Translation of the WordPress plugin amazon-link by .
+# Translation of the WordPress plugin amazon-link  by .
 # Copyright (C) 2010 
 # This file is distributed under the same license as the  package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, 2010.
@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  \n"
 "Report-Msgid-Bugs-To: http://wordpress.org/tag/amazon-link\n"
-"POT-Creation-Date: 2010-10-23 19:26+0000\n"
+"POT-Creation-Date: 2010-11-14 20:32+0000\n"
 "PO-Revision-Date: 2010-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -28,91 +28,92 @@ msgstr ""
 msgid "Amazon Link"
 msgstr ""
 
-#: amazon.php:159
+#: amazon.php:185
 msgid "United Kingdom"
 msgstr ""
 
-#: amazon.php:160
+#: amazon.php:186
 msgid "United States"
 msgstr ""
 
-#: amazon.php:161
+#: amazon.php:187
 msgid "Germany"
 msgstr ""
 
-#: amazon.php:162
+#: amazon.php:188
 msgid "France"
 msgstr ""
 
-#: amazon.php:163
+#: amazon.php:189
 msgid "Japan"
 msgstr ""
 
-#: amazon.php:164
+#: amazon.php:190
 msgid "Canada"
 msgstr ""
 
-#: amazon.php:167
+#: amazon.php:193
 msgid "Amazon Link Plugin Options"
 msgstr ""
 
-#: amazon.php:172 include/insertForm.php:37
+#: amazon.php:198 include/insertForm.php:37
 msgid "Link Text"
 msgstr ""
 
-#: amazon.php:172
+#: amazon.php:198
 msgid "Default text to display if none specified"
 msgstr ""
 
-#: amazon.php:173 include/insertForm.php:65
+#: amazon.php:199 include/insertForm.php:65
 msgid "Localise Amazon Link"
 msgstr ""
 
-#: amazon.php:173
-msgid "Make the link point to the users local Amazon website, (you must have ip2nation installed for this to work)."
+#: amazon.php:199
+msgid "Make the link point to the users local Amazon website, (you must have "
+"ip2nation installed for this to work)."
 msgstr ""
 
-#: amazon.php:174 include/insertForm.php:66
+#: amazon.php:200 include/insertForm.php:66
 msgid "Multinational Link"
 msgstr ""
 
-#: amazon.php:174 include/insertForm.php:66
+#: amazon.php:200 include/insertForm.php:66
 msgid "Insert links to all other Amazon sites after primary link."
 msgstr ""
 
-#: amazon.php:175
+#: amazon.php:201
 msgid "Default Country"
 msgstr ""
 
-#: amazon.php:175
+#: amazon.php:201
 msgid "Which country's Amazon site to use by default"
 msgstr ""
 
-#: amazon.php:175
+#: amazon.php:201
 msgid "AWS Public Key"
 msgstr ""
 
-#: amazon.php:175
+#: amazon.php:201
 msgid "Public key provided by your AWS Account"
 msgstr ""
 
-#: amazon.php:176
+#: amazon.php:202
 msgid "AWS Private key"
 msgstr ""
 
-#: amazon.php:176
+#: amazon.php:202
 msgid "Private key provided by your AWS Account."
 msgstr ""
 
-#: amazon.php:177 include/showOptions.php:19
+#: amazon.php:203 include/showOptions.php:19
 msgid "Update Options"
 msgstr ""
 
-#: amazon.php:184
+#: amazon.php:210
 msgid "Affiliate Tag"
 msgstr ""
 
-#: amazon.php:186
+#: amazon.php:212
 #, php-format
 msgid "Enter your affiliate tag for %1$s."
 msgstr ""
@@ -285,7 +286,8 @@ msgstr ""
 
 #: include/ip2nation.php:101
 #, php-format
-msgid "ip2nation install: Failed - Content of the Zip file looks too large (%s bytes)."
+msgid "ip2nation install: Failed - Content of the Zip file looks too large (%s "
+"bytes)."
 msgstr ""
 
 #: include/ip2nation.php:114
