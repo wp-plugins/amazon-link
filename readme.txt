@@ -4,7 +4,7 @@ Donate link: http://www.houseindorset.co.uk/plugins/
 Tags: Amazon, links, wishlist, recommend, shortcode, ip2nation, localise
 Requires at least: 2.9
 Tested up to: 3.0.1
-Stable tag: 1.5
+Stable tag: 1.6
 
 Provides a shortcode for inserting links to Amazon products and also generate a short list (e.g. a wishlist) of related items into your site. 
 
@@ -81,9 +81,12 @@ The plugin has the option to install the ip2nation database which provides a loo
 If you install the database and enable the 'localise links' option then it will point the amazon link to the 'best match' amazon site based on the visitors IP address location.
 
 Obviously the database is not perfect and some people browse through proxies or through their company's firewall so it may get the wrong country of origin. Additionally there
-are only 6 major Amazon sites (UK, France, Germany, US, Japan and Canada). So the plugin has to guess where a country's residents are most likely to shop online.
+are only 6 major Amazon sites (UK, France, Germany, US, Japan Italy, China and Canada). So the plugin has to guess where a country's residents are most likely to shop online.
 
 == Changelog ==
+
+= 1.6 =
+Add support for China and Canada Associates sites, fix ip2nation status check bug.
 
 = 1.5 =
 Change the multinational link to use less in-line javascript.
@@ -106,6 +109,9 @@ Add internationalisation hooks into plugin.
 First Release
 
 == Upgrade Notice ==
+
+= 1.6 =
+Upgrade to support the 2 new amazon associates site, and address ip2nation bug.
 
 = 1.5 =
 Upgrade if you are having problems with the javascript in the multinational link.
