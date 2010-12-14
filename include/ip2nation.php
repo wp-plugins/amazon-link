@@ -38,8 +38,8 @@ if (!class_exists('AmazonWishlist_ip2nation')) {
          }
 
          $request = new WP_Http;
-         $result = $request->head( $this->remote_file );
-         if ($result) {
+         $result = $request->head( $this->remote_file, array('timeout' => 3));
+         if (isset($result->headers)) {
             $ip2nationfile_ts = strtotime($result['headers']['last-modified']);
             $ip2nationfile_time = date('D, d M Y H:i:s', $ip2nationfile_ts);
             $ip2nationfile_length = $result['headers']['content-length'];
@@ -81,7 +81,7 @@ if (!class_exists('AmazonWishlist_ip2nation')) {
           // Download zip file...
           $request = new WP_Http;
           $result = $request->request( $this->ip2nation_file );
-          if (!$result)
+          if ($result instanceof WP_Error )
              return __('ip2nation install: Failed to Download remote database file.','amazon-link');
 
           // Save file to temp directory

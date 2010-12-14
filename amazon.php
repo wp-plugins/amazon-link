@@ -187,7 +187,10 @@ function al_gen_multi (id, asin, def) {
                                      'de' => array('name' => __('Germany', 'amazon-link'), 'flag' => 'images/flag_de.gif', 'tld' => 'de', 'site' => 'https://partnernet.amazon.de', 'default_tag' => 'lipas03-21'),
                                      'fr' => array('name' => __('France', 'amazon-link'), 'flag' => 'images/flag_fr.gif', 'tld' => 'fr', 'site' => 'https://partenaires.amazon.fr', 'default_tag' => 'lipas03-21'),
                                      'jp' => array('name' => __('Japan', 'amazon-link'), 'flag' => 'images/flag_jp.gif', 'tld' => 'jp', 'site' => 'https://affiliate.amazon.co.jp', 'default_tag' => 'Livpaul21-22'),
+                                     'it' => array('name' => __('Italy', 'amazon-link'), 'flag' => 'images/flag_it.gif', 'tld' => 'it', 'site' => 'https://programma-affiliazione.amazon.it', 'default_tag' => 'livpaul-21'),
+                                     'cn' => array('name' => __('China', 'amazon-link'), 'flag' => 'images/flag_cn.gif', 'tld' => 'cn', 'site' => 'https://associates.amazon.cn', 'default_tag' => 'livpaul-21'),
                                      'ca' => array('name' => __('Canada', 'amazon-link'), 'flag' => 'images/flag_ca.gif', 'tld' => 'ca', 'site' => 'https://associates.amazon.ca', 'default_tag' => 'lipas-20'));
+
 
          $this->optionList = array(
          'title' => array ( 'Type' => 'title', 'Value' => __('Amazon Link Plugin Options')),
@@ -319,8 +322,10 @@ function al_gen_multi (id, asin, def) {
         $country_map = array('uk' => array('uk', 'ie', 'gi', 'gl', 'nl', 'vg', 'cy', 'gb'),
                              'fr' => array('fr', 'be', 'bj', 'bf', 'bi', 'cm', 'cf', 'td', 'km', 'cg', 'dj', 'ga', 'gp',
                                            'gf', 'gr', 'pf', 'tf', 'ht', 'ci', 'lu', 'mg', 'ml', 'mq', 'yt', 'mc', 'nc',
-                                           'ne', 're', 'sn', 'sc', 'tg', 'vu', 'wf', 'it', 'es'),
+                                           'ne', 're', 'sn', 'sc', 'tg', 'vu', 'wf', 'es'),
                              'de' => array('de', 'at', 'ch', 'no', 'dn', 'li', 'sk'),
+                             'it' => array('it'),
+                             'cn' => array('cn'),
                              'ca' => array('ca', 'pm'),
                              'jp' => array('jp')
                             );
