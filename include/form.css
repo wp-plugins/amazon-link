@@ -1,0 +1,23 @@
+.al_opt_container {
+ clear:both;
+}
+
+.al_label {
+ display:inline;
+ float:left;
+ width:30%;
+}
+
+.al_opt_details {
+ margin: 0px 0px 0px 31%;
+}
+
+.al_input {
+ float:left; 
+ margin-right:10px;
+}
+
+.al_description {
+ font-size:80%;
+ clear:both;
+}
