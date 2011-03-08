@@ -9,6 +9,7 @@ var wpAmazonLinkSearcher = function () {}
 
 wpAmazonLinkSearcher.prototype = {
     search_options    : {},
+    options    : {},
     sendingAmazonRequest : false,
 
     incPage : function(event) {
@@ -32,6 +33,50 @@ wpAmazonLinkSearcher.prototype = {
     clearResults : function(event) {
         jQuery(event).find('#amazon-link-result-list').empty();
     },
+
+   grabMedia: function(event, options) {
+        var collection = jQuery(event).find("[id^=amazon-link-search]");
+        var $ths = this;
+
+        collection.each(function () {
+           $ths['options'][this.name] = jQuery(this).val();
+        });
+        $ths['options']['action'] = 'amazon-link-get-image';
+
+        if (options != undefined) {
+           jQuery.extend($ths['options'], options); 
+        jQuery('#upload-button-'+options['asin']).addClass('al_hide-1');
+        jQuery('#upload-progress-'+options['asin']).removeClass('ajax-feedback');
+        jQuery.post('admin-ajax.php', $ths['options'] , $ths.mediaDone, 'json');
+	}
+   },
+
+   removeMedia: function(event, options) {
+        var collection = jQuery(event).find("[id^=amazon-link-search]");
+        var $ths = this;
+
+        collection.each(function () {
+           $ths['options'][this.name] = jQuery(this).val();
+        });
+        $ths['options']['action'] = 'amazon-link-remove-image';
+
+        if (options != undefined) {
+           jQuery.extend($ths['options'], options); 
+        jQuery('#uploaded-button-'+options['asin']).addClass('al_show-0');
+        jQuery('#upload-progress-'+options['asin']).removeClass('ajax-feedback');
+        jQuery.post('admin-ajax.php', $ths['options'] , $ths.mediaDone, 'json');
+	}
+   },
+
+   mediaDone: function (response, status){
+      if( response["in_library"] == false ) {
+         jQuery('#upload-progress-'+response['asin']).addClass('ajax-feedback');
+         jQuery('#upload-button-'+response['asin']).removeClass('al_hide-1');
+      } else {
+         jQuery('#upload-progress-'+response['asin']).addClass('ajax-feedback');
+         jQuery('#uploaded-button-'+response['asin']).removeClass('al_show-0');
+      }
+   },
 
    searchAmazon : function(event) {
         var collection = jQuery(event).find("[id^=amazon-link-search]");

@@ -42,6 +42,7 @@
  *    - %RANK%
  *    - %RATING%
  *    - %PRICE%
+ *    - %DOWNLOADED% (1 if Images are in the local Wordpress media library)
  */
 
 if (!class_exists('AmazonLinkSearch')) {
@@ -61,7 +62,9 @@ if (!class_exists('AmazonLinkSearch')) {
       function init() {
          $script = plugins_url("amazon-link-search.js", __FILE__);
          wp_register_script('amazon-link-search', $script, array('jquery'), '1.0.0');
-         add_action('wp_ajax_amazon-link-search', array($this, 'performSearch'));    // Handle ajax search requests
+         add_action('wp_ajax_amazon-link-search', array($this, 'performSearch'));      // Handle ajax search requests
+         add_action('wp_ajax_amazon-link-get-image', array($this, 'grabImage'));       // Handle ajax image download
+         add_action('wp_ajax_amazon-link-remove-image', array($this, 'removeImage'));  // Handle ajax image removal
       }
 
       function performSearch() {
@@ -106,6 +109,7 @@ if (!class_exists('AmazonLinkSearch')) {
                $data['artist'] = isset($result['ItemAttributes']['Artist']) ? $result['ItemAttributes']['Artist'] :
                            (isset($result['ItemAttributes']['Author']) ? $result['ItemAttributes']['Author'] :
                             (isset($result['ItemAttributes']['Creator']) ? $result['ItemAttributes']['Creator'] : '-'));
+               $data['artist'] = $this->remove_parents($data['artist']);
                $data['manufacturer'] = isset($result['ItemAttributes']['Manufacturer']) ? $result['ItemAttributes']['Manufacturer'] : '-';
 
                if (isset($result['MediumImage']))
@@ -116,14 +120,25 @@ if (!class_exists('AmazonLinkSearch')) {
                if (isset($result['LargeImage']))
                   $data['image'] = $result['LargeImage']['URL'];
                else
-                  $data['image'] = $r_s_url;
+                  $data['image'] = $data['thumb'];
 
                $data['url']     = $result['DetailPageURL'];
                $data['rank']    = $result['SalesRank'];
                $data['rating']  = isset($result['CustomerReviews']['AverageRating']) ? $result['CustomerReviews']['AverageRating'] : '-';
                $data['price']   = $result['Offers']['Offer']['OfferListing']['Price']['FormattedPrice'];
-               $data['id']      = $ASIN;
+               $data['id']      = $result['asin'];
                $data['type']    = 'Amazon';
+
+               $args = array( 'post_type' => 'attachment', 'numberposts' => 1, 
+                        'meta_key' => 'amazon-link-ASIN', 'meta_value' => $data['asin'] ); 
+               $media_ids = get_posts( $args );
+               if ($media_ids) {
+                  $data['media_id'] = $media_ids[0]->ID;
+                  $data['downloaded'] = '1';
+               } else {
+                  $data['media_id'] = 0;
+                  $data['downloaded'] = '0';
+               }
                $data['template'] = $this->process_template($data, htmlspecialchars_decode (stripslashes($Opts['template'])));
                $results['items'][$data['asin']] = $data;
             }
@@ -136,6 +151,129 @@ if (!class_exists('AmazonLinkSearch')) {
          foreach ($data as $key => $string)
             $template = str_replace('%'. strtoupper($key) . '%', $string, $template);
          return $template;
+      }
+
+      function removeImage() {
+         $Opts = $_POST;
+
+         /* Do we have this image? */
+         $args = array( 'post_type' => 'attachment', 'numberposts' => 1, 
+                        'meta_key' => 'amazon-link-ASIN', 'meta_value' => $Opts['asin'] ); 
+         $media_ids = get_posts( $args );
+
+         if (!$media_ids) {
+            $results = array('in_library' => false, 'asin' => $Opts['asin'], 'error' => __('No matching image found', 'amazon-link'));
+         } else {
+
+            $results = array('in_library' => false, 'asin' => $Opts['asin'], 'error' => __('Images deleted','amazon-link'));
+
+            /* Only remove images attached to this post */
+            foreach ($media_ids as $id => $media_id) {
+               if ($media_id->post_parent == $Opts['post']) {
+                  /* Remove attachment */
+                  wp_delete_attachment($media_id->ID);
+               } else {
+                  $results['in_library'] = true;
+                  $results['id'] = $media_id->ID;
+               }
+            }
+         }
+         print json_encode($results);
+         exit();         
+      }
+
+      function grabImage() {
+         $Opts = $_POST;
+
+         /* Do not upload if we already have this image */
+         $args = array( 'post_type' => 'attachment', 'numberposts' => 1, 
+                        'meta_key' => 'amazon-link-ASIN', 'meta_value' => $Opts['asin'] ); 
+         $media_ids = get_posts( $args );
+         if ($media_ids) {
+            $results = array('in_library' => true, 'asin' => $Opts['asin'], 'id' => $media_ids[0]->ID);
+         } else {
+
+            /* Attempt to download the image */
+            $result = $this->grab_image($Opts['asin'], $Opts['post']);
+            if (is_wp_error($result))
+            {
+               $results = array('in_library' => false, 'asin' => $Opts['asin'], 'error' => $result->get_error_code());
+            } else {
+               $results = array('in_library' => true, 'asin' => $Opts['asin'], 'id' => $result);
+            }
+         }
+         print json_encode($results);
+         exit();         
+      }
+
+      function grab_image ($ASIN, $post_id = 0) {
+
+         $ASIN = strtoupper($ASIN);
+
+         $request = array("Operation"=>"ItemLookup","ItemId"=>$ASIN,"ResponseGroup"=>"Small,Images","IdType"=>"ASIN","MerchantId"=>"Amazon");
+
+         $pxml = amazon_query($request);
+         $result = $pxml['Items']['Item'];
+         $r_title  = $result['ItemAttributes']['Title'];
+         $r_artist = isset($result['ItemAttributes']['Artist'])  ? $result['ItemAttributes']['Artist'] :
+                     (isset($result['ItemAttributes']['Author'])  ? $result['ItemAttributes']['Author'] :
+                     (isset($result['ItemAttributes']['Director'])  ? $result['ItemAttributes']['Director'] :
+                      (isset($result['ItemAttributes']['Creator']) ? $result['ItemAttributes']['Creator'] : '-')));
+         $r_artist  = $this->remove_parents($r_artist);
+
+         if (isset($result['LargeImage']))
+           $r_s_url  = $result['LargeImage']['URL'];
+         elseif (isset($result['MediumImage']))
+           $r_s_url  = $result['MediumImage']['URL'];
+         else
+           $r_s_url  = "http://images-eu.amazon.com/images/G/02/misc/no-img-lg-uk.gif";
+
+         if ( ! ( ( $uploads = wp_upload_dir() ) && false === $uploads['error'] ) )
+            return new WP_Error($uploads['error']);
+
+         $filename = $ASIN. '.JPG';
+         $filename = '/' . wp_unique_filename( $uploads['path'], basename($filename));
+         $filename_full = $uploads['path'] . $filename;
+
+         $request = new WP_Http;
+         $result = $request->request( $r_s_url );
+         if ($result instanceof WP_Error )
+            return new WP_Error(__('Could not retrieve remote image file','amazon-link'));
+
+         // Save file to media library
+         $content = $result['body'];
+         $size = file_put_contents ($filename_full, $content);
+
+         if (is_readable($filename_full)) {
+            // Grabbed Image successfully now add it to the media library
+            $wp_filetype = wp_check_filetype(basename($filename_full), null );
+            $attachment = array(
+               'guid' => $filename,
+               'post_mime_type' => $wp_filetype['type'],
+               'post_title' => $r_artist . ' - ' . $r_title,   // Title
+               'post_excerpt' => $r_title,                     // Caption
+               'post_content' => '',                           // Description
+               'post_status' => 'inherit');
+            $attach_id = wp_insert_attachment( $attachment, $filename_full, $post_id);
+            // you must first include the image.php file
+            // for the function wp_generate_attachment_metadata() to work
+            update_post_meta($attach_id , 'amazon-link-ASIN', $ASIN);
+            require_once(ABSPATH . "wp-admin" . '/includes/image.php');
+            $attach_data = wp_generate_attachment_metadata( $attach_id, $filename_full );
+            //echo "<PRE>"; print_r($attach_data); echo "</PRE>";
+            wp_update_attachment_metadata( $attach_id,  $attach_data );
+         } else {
+            return new WP_Error(__('Could not read downloaded image','amazon-link'));
+         }
+         return $attach_id;
+      }
+
+      function remove_parents ($array) {
+         if (is_array($array)) {
+            return $this->remove_parents($array[0]);
+         } else {
+            return $array;
+         }
       }
 
    }

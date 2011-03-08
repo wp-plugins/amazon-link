@@ -1,10 +1,10 @@
 === Amazon Link ===
 Contributors: paulstuttard
 Donate link: http://www.houseindorset.co.uk/plugins/
-Tags: Amazon, links, wishlist, recommend, shortcode, ip2nation, localise
-Requires at least: 2.9
+Tags: Amazon, links, wishlist, recommend, shortcode, ip2nation, localise, images, media library
+Requires at least: 3.0.1
 Tested up to: 3.0.1
-Stable tag: 1.7
+Stable tag: 1.8
 
 Provides a shortcode for inserting links to Amazon products and also generate a short list (e.g. a wishlist) of related items into your site. 
 
@@ -29,7 +29,9 @@ The links that are generated can optionally be localised to the Amazon store mos
 Since the reliability of guessing your visitors best Amazon store is questionable, an alternative is to enable the 'Multinational Link' option, this will enable a small popup for each link allowing the site visitor to choose the most appropriate site (based on local or language).
 
 
-On the Post and Page administrative pages there is also a box to help add the shortcodes, if you already know the ASIN then simply enter it into the ASIN input and click on 'Send To Editor'. If not then there is a facility to search Amazon, by Index, Product Title and or Product Author/Artist.
+On the Post and Page administrative pages there is also a box to help add the shortcodes, if you already know the ASIN then simply enter it into the ASIN input and click on 'Send To Editor'. If not then there is a facility to search Amazon, by Index, Product Title and or Product Author/Artist. There is also a facility to
+add cover images from the Amazon items into the local media library as attachments to the post. These images or the remote ones hosted on Amazon can be used to insert image or thumbnail links into your posts.
+
 
 == Installation ==
 
@@ -85,6 +87,9 @@ are only 6 major Amazon sites (UK, France, Germany, US, Japan Italy, China and C
 
 == Changelog ==
 
+= 1.8 =
+Add support for images into the shortcode, as well as the ability to add images to the Wordpress media library.
+
 = 1.7 =
 Rework ip2nation download function
 
@@ -112,9 +117,11 @@ Add internationalisation hooks into plugin.
 First Release
 
 == Upgrade Notice ==
+= 1.8 =
+Upgrade to this release to add support for image links, and downloading of cover images to the Wordpress media library.
 
 = 1.7 =
-Updgrade if you are having problems installing the ip2nation database
+Upgrade if you are having problems installing the ip2nation database
 
 = 1.6 =
 Upgrade to support the 2 new amazon associates site, and address ip2nation bug.
@@ -157,6 +164,10 @@ The plugin has two utility classes that might be of use to other plugin designer
 
 = Link Text =
 If you do not specify the 'text' argument in your [amazon] shortcode, then this text will be used by default.
+= Remote Images =
+If this option is selected then when generating shortcodes for image links to insert into your posts, the plugin will point to ones hosted on Amazon, rather than ones in the media library.
+= Image Class =
+This is the class used for images displayed in Amazon image links.
 = Localise Amazon Link =
 If this option is selected and the [ip2nation](http://www.ip2nation.com/) database has been installed then the plugin will attempt to use the most appropriate Amazon site when creating the link, currently supports <a href="http://www.amazon.co.uk">www.amazon.co.uk</a>, <a href="http://www.amazon.com">www.amazon.com</a>, <a href="http://www.amazon.ca">www.amazon.ca</a>, <a href="http://www.amazon.de">www.amazon.de</a>, <a href="http://www.amazon.fr">www.amazon.fr</a> and <a href="http://www.amazon.jp">www.amazon.jp</a>.
 = Multinational Link =
@@ -171,6 +182,16 @@ See above.
 
 = text =
 The text used to generate the amazon link, Enter any plain string e.g. 'text=My Text'.
+
+= thumb =
+The URL used to display an image thumbnail for the amazon link in the post, if '1' is used then the thumbnail of image stored in the Wordpress media library is used.
+
+= image =
+The URL used to display a fulll size image for the amazon link in the post, if '1' is used then the fullsize image stored in the Wordpress media library is used. If both 'image' and 'thumbnail' are set then
+the shortcode will cause a thumbnail image to be displayed in the post which links to the fullsize image (rather than to the Amazon store).
+
+= image_class =
+The css class used when displaying the image in the post.
 
 = asin =
 The unique Amazon product ID, of the form '1405235675'. Enter as 'asin=1405235675'.

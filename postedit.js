@@ -13,12 +13,12 @@ wpAmazonLinkAdmin.prototype = {
     options           : {},
 
     toggleAdvanced : function(event) {
-        var collection = jQuery(event).find("input[name='multi_cc'], input[name='localise']");
+        var collection = jQuery(event).find("input[name='multi_cc'], input[name='localise'], input[name='image'], input[name='thumb'], input[name='remote_images']");
         var defaults   = jQuery(event).find("input[name='defaults']:checked").length;
         if (defaults) {
-           jQuery(collection).parent().parent().hide(); /*css("border: 2px solid"); */
+           jQuery(collection).parent().parent().hide();
         } else {
-           jQuery(collection).parent().parent().show(); /*css("border: 2px solid"); */
+           jQuery(collection).parent().parent().show();
         }
     },
 
@@ -26,12 +26,42 @@ wpAmazonLinkAdmin.prototype = {
         var content = this['options']['content'];
         delete this['options']['content'];
 
+        /* If use 'defaults' is set then do not force these options */
         if (this['options']['defaults'] == "1") {
            delete this['options']['multi_cc'];
            delete this['options']['localise'];
+           delete this['options']['image'];
+           delete this['options']['thumb'];
         }
+
         delete this['options']['defaults'];
 
+        /* If user has selected the button to add images, then override global setting */
+        if (this['options']['image_override'] == "1") {
+           this['options']['image'] = "1";
+        }
+        if (this['options']['thumb_override'] == "1") {
+           this['options']['thumb'] = "1";
+        }
+
+        /* If not using local images, then use the remote URL's for the images */
+        if (this['options']['remote_images'] == "1") {
+           if ((this['options']['image'] == "1") && (this['options']['image_url'] != undefined)) {
+              this['options']['image'] = this['options']['image_url'];
+           }
+           if ((this['options']['thumb'] == "1") && (this['options']['thumb_url'] != undefined)){
+              this['options']['thumb'] = this['options']['thumb_url'];
+           }
+        }
+
+        /* Delete temporary options only used by the java exchange */
+        delete this['options']['remote_images'];
+        delete this['options']['image_override'];
+        delete this['options']['thumb_override'];
+        delete this['options']['image_url'];
+        delete this['options']['thumb_url'];
+        
+        /* Now generate the short code with what is left */
         var attrs = '';
         var sep = '';
         jQuery.each(this['options'], function(name, value){

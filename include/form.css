@@ -21,3 +21,10 @@
  font-size:80%;
  clear:both;
 }
+
+.al_hide-1 {
+ display:none;
+}
+.al_show-0 {
+ display:none;
+}
