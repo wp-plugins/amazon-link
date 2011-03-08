@@ -1,98 +1,417 @@
-# Translation of the WordPress plugin wish-pics by .
 # Copyright (C) 2010 
-# This file is distributed under the same license as the  package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2010.
-#
-#, fuzzy
+# This file is distributed under the same license as the amazon-link package.
 msgid ""
 msgstr ""
 "Project-Id-Version:  \n"
 "Report-Msgid-Bugs-To: http://wordpress.org/tag/amazon-link\n"
-"POT-Creation-Date: 2010-09-23 13:35+0000\n"
+"POT-Creation-Date: 2011-03-08 14:37:00+00:00\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
 "PO-Revision-Date: 2010-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
-"Content-Transfer-Encoding: 8bit\n"
 
-#: amazon.php:85
-msgid "Manage Amazon Wishlist"
-msgstr ""
-
-#: amazon.php:85
-msgid "Amazon Link"
-msgstr ""
-
-#: amazon.php:111
-msgid "Link Text"
-msgstr ""
-
-#: amazon.php:111
-msgid "Default text to display if none specified"
-msgstr ""
-
-#: amazon.php:112
-msgid "Amazon Domain"
-msgstr ""
-
-#: amazon.php:112
-msgid "Which country's Amazon domain to use"
-msgstr ""
-
-#: amazon.php:113
-msgid "Affiliate Tag"
-msgstr ""
-
-#: amazon.php:113
-msgid "Amazon associates ID used to assign Amazon referral commissions"
-msgstr ""
-
-#: amazon.php:114
-msgid "AWS Public Key"
-msgstr ""
-
-#: amazon.php:114
-msgid "Public key provided by your AWS Account"
-msgstr ""
-
-#: amazon.php:115
-msgid "AWS Private key"
-msgstr ""
-
-#: amazon.php:115
-msgid "Private key provided by your AWS Account."
-msgstr ""
-
-#: include/showOptions.php:21 include/showOptions.php:147
+#: include/showOptions.php:19 amazon.php:210
 msgid "Update Options"
 msgstr ""
 
-#: include/showOptions.php:60
-msgid "Options saved."
+#: include/showOptions.php:31 include/showOptions.php:80
+msgid "Install Database"
 msgstr ""
 
-#: include/showOptions.php:73
-msgid "Amazon Link Plugin Options"
+#: include/showOptions.php:67
+msgid "Options saved."
 msgstr ""
 
 #: include/showRecommendations.php:34
 msgid "Amazon query failed to return any results - Have you configured the AWS settings?"
 msgstr ""
 
-#: include/showRecommendations.php:64
-msgid "by"
-msgstr ""
-
-#: include/showRecommendations.php:65
-msgid "Rank/Rating"
-msgstr ""
-
 #: include/showRecommendations.php:66
+msgid "by %1$s [%2$s]"
+msgstr ""
+
+#: include/showRecommendations.php:67
+msgid "Rank/Rating : %1$s/%2$s"
+msgstr ""
+
+#: include/showRecommendations.php:68 include/insertForm.php:43
 msgid "Price"
 msgstr ""
 
-#: include/showRecommendations.php:69
-#, php-format
+#: include/showRecommendations.php:71
 msgid "No [amazon] tags found in the last %1$s posts in categories %2$s"
+msgstr ""
+
+#: include/insertForm.php:11
+msgid "Results: "
+msgstr ""
+
+#: include/insertForm.php:31
+msgid "Insert a text only link into the post"
+msgstr ""
+
+#: include/insertForm.php:31
+msgid "Text"
+msgstr ""
+
+#: include/insertForm.php:32
+msgid "Insert as a thumbnail link into the post"
+msgstr ""
+
+#: include/insertForm.php:32
+msgid "Thumbnail"
+msgstr ""
+
+#: include/insertForm.php:33
+msgid "Insert a fullsize image link into the post"
+msgstr ""
+
+#: include/insertForm.php:33
+msgid "Image"
+msgstr ""
+
+#: include/insertForm.php:36
+msgid "Upload cover image into media library"
+msgstr ""
+
+#: include/insertForm.php:36
+msgid "Upload"
+msgstr ""
+
+#: include/insertForm.php:37
+msgid "Remove image from media library"
+msgstr ""
+
+#: include/insertForm.php:37
+msgid "Delete"
+msgstr ""
+
+#: include/insertForm.php:41
+msgid "by %ARTIST% [%MANUFACTURER%]"
+msgstr ""
+
+#: include/insertForm.php:42
+msgid "Rank/Rating: %RANK%/%RATING%"
+msgstr ""
+
+#: include/insertForm.php:53
+msgid "Enter the following two settings for a standard Amazon Link"
+msgstr ""
+
+#: include/insertForm.php:54
+msgid "ASIN"
+msgstr ""
+
+#: include/insertForm.php:54
+msgid "Amazon product ASIN"
+msgstr ""
+
+#: include/insertForm.php:55 include/insertForm.php:81
+msgid "Send To Editor"
+msgstr ""
+
+#: include/insertForm.php:56 amazon.php:201
+msgid "Link Text"
+msgstr ""
+
+#: include/insertForm.php:56
+msgid "Amazon Link text"
+msgstr ""
+
+#: include/insertForm.php:57
+msgid "Search Amazon for Products"
+msgstr ""
+
+#: include/insertForm.php:63
+msgid "Product Index"
+msgstr ""
+
+#: include/insertForm.php:63
+msgid "Which Amazon Product Index to Search through"
+msgstr ""
+
+#: include/insertForm.php:67
+msgid "Author"
+msgstr ""
+
+#: include/insertForm.php:67
+msgid "Author or Artist to search for"
+msgstr ""
+
+#: include/insertForm.php:68
+msgid "Title"
+msgstr ""
+
+#: include/insertForm.php:68
+msgid "Items Title to search for"
+msgstr ""
+
+#: include/insertForm.php:69
+msgid "Page"
+msgstr ""
+
+#: include/insertForm.php:69
+msgid "Page of Search Results"
+msgstr ""
+
+#: include/insertForm.php:71
+msgid "-"
+msgstr ""
+
+#: include/insertForm.php:72
+msgid "+"
+msgstr ""
+
+#: include/insertForm.php:73
+msgid "Search"
+msgstr ""
+
+#: include/insertForm.php:74
+msgid "x"
+msgstr ""
+
+#: include/insertForm.php:76
+msgid "Error - No results returned from your query."
+msgstr ""
+
+#: include/insertForm.php:79
+msgid "Enter the following two settings for an Amazon Wishlist"
+msgstr ""
+
+#: include/insertForm.php:80
+msgid "Post Category"
+msgstr ""
+
+#: include/insertForm.php:80
+msgid "List of Categories to search through for amazon links"
+msgstr ""
+
+#: include/insertForm.php:82
+msgid "Number of Posts"
+msgstr ""
+
+#: include/insertForm.php:82
+msgid "Number of posts to search back through for amazon links"
+msgstr ""
+
+#: include/insertForm.php:83
+msgid "Advanced settings"
+msgstr ""
+
+#: include/insertForm.php:84
+msgid "Use Defaults"
+msgstr ""
+
+#: include/insertForm.php:84
+msgid "Use the site default settings for the options below"
+msgstr ""
+
+#: include/insertForm.php:85 amazon.php:206
+msgid "Localise Amazon Link"
+msgstr ""
+
+#: include/insertForm.php:85
+msgid "Make the link point to the users local Amazon website"
+msgstr ""
+
+#: include/insertForm.php:86 amazon.php:207
+msgid "Multinational Link"
+msgstr ""
+
+#: include/insertForm.php:86 amazon.php:207
+msgid "Insert links to all other Amazon sites after primary link."
+msgstr ""
+
+#: include/insertForm.php:87
+msgid "Display Item Thumbnail"
+msgstr ""
+
+#: include/insertForm.php:87
+msgid "Display thumbnail Cover Image instead of Text."
+msgstr ""
+
+#: include/insertForm.php:88
+msgid "Display Item Image"
+msgstr ""
+
+#: include/insertForm.php:88
+msgid "Display full size Cover Image instead of Text."
+msgstr ""
+
+#: include/insertForm.php:89
+msgid "Amazon Images"
+msgstr ""
+
+#: include/insertForm.php:89
+msgid "When displaying images use ones hosted on Amazon, not in local media library."
+msgstr ""
+
+#: include/ip2nation.php:54
+msgid "You currently do not have <b>ip2nation</b> installed, and the remote file is unavailable"
+msgstr ""
+
+#: include/ip2nation.php:57
+msgid "You currently do not have <b>ip2nation</b> installed, the latest version available is dated: %s"
+msgstr ""
+
+#: include/ip2nation.php:61
+msgid "You're <b>ip2nation</b> database was last updated on %1$s, the remote file is unavailable."
+msgstr ""
+
+#: include/ip2nation.php:64
+msgid "<b>WARNING!</b> You're <b>ip2nation</b> database is out of date. It was last updated on %1$s, the latest version available is dated: %2$s"
+msgstr ""
+
+#: include/ip2nation.php:67
+msgid "You're <b>ip2nation</b> database is up to date. (It was last updated on %1$s, the latest version available is dated: %2$s)."
+msgstr ""
+
+#: include/ip2nation.php:86
+msgid "ip2nation install: Failed to Download remote database file."
+msgstr ""
+
+#: include/ip2nation.php:92
+msgid "ip2nation install: Failed to open temporary  file (%s)."
+msgstr ""
+
+#: include/ip2nation.php:97
+msgid "ip2nation install: Failed to open local zip file"
+msgstr ""
+
+#: include/ip2nation.php:102
+msgid "ip2nation install: Failed - Content of the Zip file looks too large (%s bytes)."
+msgstr ""
+
+#: include/ip2nation.php:115
+msgid "ip2nation install: Database downloaded and unzipped but failed to install [%s]"
+msgstr ""
+
+#: include/ip2nation.php:120
+msgid "ip2nation install: Database downloaded and installed successfully. %s queries executed."
+msgstr ""
+
+#: include/amazonSearch.php:165
+msgid "No matching image found"
+msgstr ""
+
+#: include/amazonSearch.php:168
+msgid "Images deleted"
+msgstr ""
+
+#: include/amazonSearch.php:241
+msgid "Could not retrieve remote image file"
+msgstr ""
+
+#: include/amazonSearch.php:266
+msgid "Could not read downloaded image"
+msgstr ""
+
+#: amazon.php:106
+msgid "Settings"
+msgstr ""
+
+#: amazon.php:114
+msgid "Manage Amazon Wishlist"
+msgstr ""
+
+#: amazon.php:114
+msgid "Amazon Link"
+msgstr ""
+
+#: amazon.php:185
+msgid "United Kingdom"
+msgstr ""
+
+#: amazon.php:186
+msgid "United States"
+msgstr ""
+
+#: amazon.php:187
+msgid "Germany"
+msgstr ""
+
+#: amazon.php:188
+msgid "France"
+msgstr ""
+
+#: amazon.php:189
+msgid "Japan"
+msgstr ""
+
+#: amazon.php:190
+msgid "Italy"
+msgstr ""
+
+#: amazon.php:191
+msgid "China"
+msgstr ""
+
+#: amazon.php:192
+msgid "Canada"
+msgstr ""
+
+#: amazon.php:196
+msgid "Amazon Link Plugin Options"
+msgstr ""
+
+#: amazon.php:201
+msgid "Default text to display if none specified"
+msgstr ""
+
+#: amazon.php:204
+msgid "Remote Images"
+msgstr ""
+
+#: amazon.php:204
+msgid "Use images from hosted on the Amazon site when creating shortcodes"
+msgstr ""
+
+#: amazon.php:205
+msgid "Image Class"
+msgstr ""
+
+#: amazon.php:205
+msgid "Style Sheet Class of image thumbnails "
+msgstr ""
+
+#: amazon.php:206
+msgid "Make the link point to the users local Amazon website, (you must have ip2nation installed for this to work)."
+msgstr ""
+
+#: amazon.php:208
+msgid "Default Country"
+msgstr ""
+
+#: amazon.php:208
+msgid "Which country's Amazon site to use by default"
+msgstr ""
+
+#: amazon.php:208
+msgid "AWS Public Key"
+msgstr ""
+
+#: amazon.php:208
+msgid "Public key provided by your AWS Account"
+msgstr ""
+
+#: amazon.php:209
+msgid "AWS Private key"
+msgstr ""
+
+#: amazon.php:209
+msgid "Private key provided by your AWS Account."
+msgstr ""
+
+#: amazon.php:217
+msgid "Affiliate Tag"
+msgstr ""
+
+#: amazon.php:219
+msgid "Enter your affiliate tag for %1$s."
+msgstr ""
+
+#: amazon.php:546
+msgid "No images available"
 msgstr ""
