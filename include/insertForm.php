@@ -15,26 +15,23 @@
    /* This is the template used for generating each line of the search results */
    $results_template = htmlspecialchars ('
 <div class="amazon_prod">
- <div class="amazon_img_container">
-  <A href="%URL%">
-   <IMG class="amazon_pic" src="%THUMB%">
-  </a>
- </div>
+ <div class="amazon_img_container">%THUMB_LINK%</div>
 
  <div class="amazon_text_container">
-  <p>
-   <a href="%URL%">%TITLE%</a>
-  </p>
+  <p>%LINK%</p>
 
   <div class="amazon_details">
      <div style="float:right">
-      <input style="float:left" type="button" title="'. __('Insert a text only link into the post','amazon-link'). '" onClick="return wpAmazonLinkAd.sendToEditor(this.form, {asin: \'%ASIN%\', thumb_url: \'%THUMB%\', image_url:\'%IMAGE%\'} );" value="'.__('Text', 'amazon-link').'" class="button-secondary">
-      <input style="float:right" type="button" title="'. __('Insert as a thumbnail link into the post','amazon-link'). '"onClick="return wpAmazonLinkAd.sendToEditor(this.form, {asin: \'%ASIN%\', thumb_override: \'1\', thumb_url: \'%THUMB%\', image_url:\'%IMAGE%\'} );" value="'.__('Thumbnail', 'amazon-link').'" class="button-secondary"></br>
-      <input style="float:left" type="button" title="'. __('Insert a fullsize image link into the post','amazon-link'). '"onClick="return wpAmazonLinkAd.sendToEditor(this.form, {asin: \'%ASIN%\', image_override: \'1\', thumb_url: \'%THUMB%\', image_url:\'%IMAGE%\'} );" value="'.__('Image', 'amazon-link').'" class="button-secondary">
+      <div style="width:100%">
+       <input style="float:left" type="button" title="'. __('Insert a text only link into the post','amazon-link'). '" onClick="return wpAmazonLinkAd.sendToEditor(this.form, {asin: \'%ASIN%\', thumb_url: \'%THUMB%\', image_url:\'%IMAGE%\'} );" value="'.__('Text', 'amazon-link').'" class="button-secondary">
+       <input style="float:right" type="button" title="'. __('Insert as a thumbnail link into the post','amazon-link'). '"onClick="return wpAmazonLinkAd.sendToEditor(this.form, {asin: \'%ASIN%\', thumb_override: \'1\', thumb_url: \'%THUMB%\', image_url:\'%IMAGE%\'} );" value="'.__('Thumbnail', 'amazon-link').'" class="button-secondary">
+      </div>
+      <div style="width:100%">
+       <input style="float:left" type="button" title="'. __('Insert a fullsize image link into the post','amazon-link'). '"onClick="return wpAmazonLinkAd.sendToEditor(this.form, {asin: \'%ASIN%\', image_override: \'1\', thumb_url: \'%THUMB%\', image_url:\'%IMAGE%\'} );" value="'.__('Image', 'amazon-link').'" class="button-secondary">
       <div style="float:right">
-       <img style="margin-left:auto;margin-right:auto" alt="" title="" id="upload-progress-%ASIN%" class="ajax-feedback" src="images/wpspin_light.gif" />
-       <input id="upload-button-%ASIN%" type="button" title="'. __('Upload cover image into media library','amazon-link'). '"onClick="return wpAmazonLinkSearch.grabMedia(this.form, {asin: \'%ASIN%\'} );" value="'.__('Upload', 'amazon-link').'" class="al_hide-%DOWNLOADED% button-secondary">
-       <input id="uploaded-button-%ASIN%" type="button" title="'. __('Remove image from media library','amazon-link'). '"onClick="return wpAmazonLinkSearch.removeMedia(this.form, {asin: \'%ASIN%\'} );" value="'.__('Delete', 'amazon-link').'" class="al_show-%DOWNLOADED% button-secondary">
+       <input style="float:right" id="upload-button-%ASIN%" type="button" title="'. __('Upload cover image into media library','amazon-link'). '"onClick="return wpAmazonLinkSearch.grabMedia(this.form, {asin: \'%ASIN%\'} );" value="'.__('Upload', 'amazon-link').'" class="al_hide-%DOWNLOADED% button-secondary">
+       <input style="float:right" id="uploaded-button-%ASIN%" type="button" title="'. __('Remove image from media library','amazon-link'). '"onClick="return wpAmazonLinkSearch.removeMedia(this.form, {asin: \'%ASIN%\'} );" value="'.__('Delete', 'amazon-link').'" class="al_show-%DOWNLOADED% button-secondary">
+      </div>
       </div>
      </div>
    
@@ -67,11 +64,10 @@
          'author' => array('Id' => 'amazon-link-search', 'Name' => __('Author', 'amazon-link'), 'Hint' => __('Author or Artist to search for', 'amazon-link'), 'Type' => 'text', 'Default' => ''),
          'title' => array('Id' => 'amazon-link-search', 'Name' => __('Title', 'amazon-link'), 'Hint' => __('Items Title to search for', 'amazon-link'), 'Type' => 'text', 'Default' => ''),
          'page' => array('Id' => 'amazon-link-search', 'Name' => __('Page', 'amazon-link'), 'Hint' => __('Page of Search Results', 'amazon-link'), 'Default' => '1', 'Type' => 'text',
-                         'Buttons' => array( 
-__('-', 'amazon-link' ) => array( 'Type' => 'button', 'Id' => 'amazon-link-search', 'Class' => 'button-secondary', 'Script' => 'return wpAmazonLinkSearch.decPage(this.form);'),
-__('+', 'amazon-link' ) => array( 'Type' => 'button', 'Id' => 'amazon-link-search', 'Class' => 'button-secondary', 'Script' => 'return wpAmazonLinkSearch.incPage(this.form);'),
-__('Search', 'amazon-link' ) => array( 'Type' => 'button', 'Id' => 'amazon-link-search', 'Class' => 'button-secondary', 'Script' => 'return wpAmazonLinkSearch.searchAmazon(this.form);'),
-__('x', 'amazon-link' ) => array( 'Type' => 'button', 'Id' => 'amazon-link-search', 'Class' => 'button-secondary', 'Script' => 'return wpAmazonLinkSearch.clearResults(this.form);') )),
+                         'Buttons' => array(__('-', 'amazon-link' ) => array( 'Type' => 'button', 'Id' => 'amazon-link-search', 'Class' => 'button-secondary', 'Script' => 'return wpAmazonLinkSearch.decPage(this.form);'),
+                                            __('+', 'amazon-link' ) => array( 'Type' => 'button', 'Id' => 'amazon-link-search', 'Class' => 'button-secondary', 'Script' => 'return wpAmazonLinkSearch.incPage(this.form);'),
+                                            __('Search', 'amazon-link' ) => array( 'Type' => 'button', 'Id' => 'amazon-link-search', 'Class' => 'button-secondary', 'Script' => 'return wpAmazonLinkSearch.searchAmazon(this.form);'),
+                                            __('x', 'amazon-link' ) => array( 'Type' => 'button', 'Id' => 'amazon-link-search', 'Class' => 'button-secondary', 'Script' => 'return wpAmazonLinkSearch.clearResults(this.form);') )),
          'results' => array ('Id' => 'amazon-link-results', 'Type' => 'title', 'Value' => $results_html, 'Class' => 'hide-if-js'),
          'error' => array ('Id' => 'amazon-link-error', 'Type' => 'title', 'Value' => __('Error - No results returned from your query.', 'amazon-link'), 'Class' => 'hide-if-js'),
 //         'endhd2' => array('Type' => 'end'),

@@ -43,6 +43,9 @@
  *    - %RATING%
  *    - %PRICE%
  *    - %DOWNLOADED% (1 if Images are in the local Wordpress media library)
+ *    - %LINK%
+ *    - %THUMB_LINK%
+ *    - %IMAGE_LINK%
  */
 
 if (!class_exists('AmazonLinkSearch')) {
@@ -99,9 +102,14 @@ if (!class_exists('AmazonLinkSearch')) {
             $results = array('success' => true);
             $Items=$pxml['Items']['Item'];
          }
- 
+         print json_encode($this->parse_results($Items, $Opts));
+         exit();
+      }
+
+      function parse_results ($Items, $Settings, $Count=100) {
+         $Template = $Settings['template'];
          if (count($Items) > 0) {
-            for ($counter = 0; $counter < count($Items) ; $counter++) {
+            for ($counter = 0; ($counter < count($Items)) || ($counter > $Count) ; $counter++) {
                $result = $Items[$counter];
                $data = array();
                $data['asin']   = $result['ASIN'];
@@ -128,10 +136,12 @@ if (!class_exists('AmazonLinkSearch')) {
                $data['price']   = $result['Offers']['Offer']['OfferListing']['Price']['FormattedPrice'];
                $data['id']      = $result['asin'];
                $data['type']    = 'Amazon';
+               $data['link']    = amazon_make_links('asin='.$data['asin'].'&text=' . $data['title']);
+               $data['image_link']    = amazon_make_links('image_class='. $Settings['image_class'].'&image='. $data['image'] . '&asin='.$data['asin'].'&text=' .$data['title']);
+               $data['thumb_link']    = amazon_make_links('image_class='. $Settings['image_class'].'&thumb='. $data['thumb'] . '&asin='.$data['asin'].'&text='. $data['title']);
 
-               $args = array( 'post_type' => 'attachment', 'numberposts' => 1, 
-                        'meta_key' => 'amazon-link-ASIN', 'meta_value' => $data['asin'] ); 
-               $media_ids = get_posts( $args );
+               $media_ids = $this->find_attachments( $data['asin'] );
+
                if ($media_ids) {
                   $data['media_id'] = $media_ids[0]->ID;
                   $data['downloaded'] = '1';
@@ -139,13 +149,12 @@ if (!class_exists('AmazonLinkSearch')) {
                   $data['media_id'] = 0;
                   $data['downloaded'] = '0';
                }
-               $data['template'] = $this->process_template($data, htmlspecialchars_decode (stripslashes($Opts['template'])));
+               $data['template'] = $this->process_template($data, htmlspecialchars_decode (stripslashes($Template)));
                $results['items'][$data['asin']] = $data;
             }
          }
-         print json_encode($results);
-         exit();
-      }
+         return $results;
+     }
 
       function process_template ($data, $template) {
          foreach ($data as $key => $string)
@@ -153,13 +162,25 @@ if (!class_exists('AmazonLinkSearch')) {
          return $template;
       }
 
+      function find_attachments ($asin, $number = '-1') {
+
+         // Do we already have a local image ? 
+         $args = array( 'post_type' => 'attachment', 'numberposts' => $number, 'post_status' => 'all', 'no_filters' => true,
+                        'meta_query' => array(array('key' => 'amazon-link-ASIN', 'value' => $asin)));
+         $query = new WP_Query( $args );
+         $media_ids = $query->posts;
+         if ($media_ids) {
+            return $media_ids;
+         } else {
+            new WP_Error(__('No images found','amazon-link'));
+         }
+      }
+
       function removeImage() {
          $Opts = $_POST;
 
          /* Do we have this image? */
-         $args = array( 'post_type' => 'attachment', 'numberposts' => 1, 
-                        'meta_key' => 'amazon-link-ASIN', 'meta_value' => $Opts['asin'] ); 
-         $media_ids = get_posts( $args );
+         $media_ids = $this->find_attachments( $Opts['asin'] );
 
          if (!$media_ids) {
             $results = array('in_library' => false, 'asin' => $Opts['asin'], 'error' => __('No matching image found', 'amazon-link'));
@@ -186,9 +207,8 @@ if (!class_exists('AmazonLinkSearch')) {
          $Opts = $_POST;
 
          /* Do not upload if we already have this image */
-         $args = array( 'post_type' => 'attachment', 'numberposts' => 1, 
-                        'meta_key' => 'amazon-link-ASIN', 'meta_value' => $Opts['asin'] ); 
-         $media_ids = get_posts( $args );
+         $media_ids = $this->find_attachments( $Opts['asin'] );
+
          if ($media_ids) {
             $results = array('in_library' => true, 'asin' => $Opts['asin'], 'id' => $media_ids[0]->ID);
          } else {
@@ -234,6 +254,9 @@ if (!class_exists('AmazonLinkSearch')) {
          $filename = $ASIN. '.JPG';
          $filename = '/' . wp_unique_filename( $uploads['path'], basename($filename));
          $filename_full = $uploads['path'] . $filename;
+
+         if( !class_exists( 'WP_Http' ) )
+            include_once( ABSPATH . WPINC. '/class-http.php' );
 
          $request = new WP_Http;
          $result = $request->request( $r_s_url );

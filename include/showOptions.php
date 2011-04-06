@@ -47,7 +47,7 @@
     */
    $Update=False;
    foreach ($this->optionList as $optName => $optDetails) {
-      if(!isset($Opts[$optName]) && isset($optDetails['Default'])) {
+      if(!isset($Opts[$optName]) && isset($optDetails['Default']) && (!$optDetails['Name'])) {
          $Opts[$optName] = $optDetails['Default'];
          $Update=True;
       }

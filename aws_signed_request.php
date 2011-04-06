@@ -52,6 +52,10 @@ function aws_signed_request($region, $params, $public_key, $private_key)
         $public_key - your "Access Key ID"
         $private_key - your "Secret Access Key"
     */
+    $regions = array('ca', 'com', 'co.uk', 'de', 'fr', 'jp');
+
+    if (!in_array($region, $regions))
+       $region = "com";
 
     // some paramters
     $method = "GET";

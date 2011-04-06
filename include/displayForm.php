@@ -32,32 +32,30 @@ if (!class_exists('AmazonWishlist_Options')) {
          wp_register_style('amazon-link-form', $stylesheet);
       }
 
-function displayForm($optionList, $Opts, $Open = True, $Body = True, $Close = True) {
+      function displayForm($optionList, $Opts, $Open = True, $Body = True, $Close = True) {
 
-   if ($Open) {
-
+         if ($Open) {
 ?>
 <div class="wrap">
  <form name="form1" method="post" action="<?php echo str_replace( '%7E', '~', $_SERVER['REQUEST_URI']); ?>">
 <?php
+         }
 
-   }
+         if ($Body) {
 
-   if ($Body) {
+            // Loop through the options table, display a row for each.
+            foreach ($optionList as $optName => $optDetails) {
+               if (!isset($Opts[$optName]) && isset($optDetails['Default']))
+                   $Opts[$optName] = $optDetails['Default'];
 
-      // Loop through the options table, display a row for each.
-      foreach ($optionList as $optName => $optDetails) {
-         if (!isset($Opts[$optName]) && isset($optDetails['Default']))
-             $Opts[$optName] = $optDetails['Default'];
+               if ($optDetails['Type'] == 'checkbox') {
 
-         if ($optDetails['Type'] == 'checkbox') {
-
-            // Insert a Check Box Item
-            //////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            $hint   = isset($optDetails['Hint']) ? $optDetails['Hint'] : '';
-            $id     = isset($optDetails['Id']) ? 'id="'.$optDetails['Id'].'"' : '';
-            $class  = isset($optDetails['Class']) ? 'class="'.$optDetails['Class'].' al_opt_container"' : 'class="al_opt_container"';
-            $script = isset($optDetails['Script']) ? ' onClick="'.$optDetails['Script'].'" ' : '';
+                  // Insert a Check Box Item
+                  //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                  $hint   = isset($optDetails['Hint']) ? $optDetails['Hint'] : '';
+                  $id     = isset($optDetails['Id']) ? 'id="'.$optDetails['Id'].'"' : '';
+                  $class  = isset($optDetails['Class']) ? 'class="'.$optDetails['Class'].' al_opt_container"' : 'class="al_opt_container"';
+                  $script = isset($optDetails['Script']) ? ' onClick="'.$optDetails['Script'].'" ' : '';
 
 ?>
    <dl <?php echo $class ?>>
@@ -69,11 +67,11 @@ function displayForm($optionList, $Opts, $Open = True, $Body = True, $Close = Tr
     </dd>
    </dl>
 <?php
-         } else if ($optDetails['Type'] == 'selection') {
+               } else if ($optDetails['Type'] == 'selection') {
 
-            // Insert a Dropdown Box Item
-            //////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            $id = isset($optDetails['Id']) ? 'id="'.$optDetails['Id'].'"' : '';
+                  // Insert a Dropdown Box Item
+                  //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                  $id = isset($optDetails['Id']) ? 'id="'.$optDetails['Id'].'"' : '';
 
 ?>
    <dl class="al_opt_container">
@@ -100,10 +98,10 @@ function displayForm($optionList, $Opts, $Open = True, $Body = True, $Close = Tr
    </dl>
 
 <?php
-         } else if ($optDetails['Type'] == 'radio') {
+               } else if ($optDetails['Type'] == 'radio') {
 
-            // Insert a Radio Selection
-            //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                  // Insert a Radio Selection
+                  //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ?>
    <dl class="al_opt_container">
@@ -136,10 +134,10 @@ function displayForm($optionList, $Opts, $Open = True, $Body = True, $Close = Tr
 <?php
 
 
-         } else if ($optDetails['Type'] == 'buttons') {
+               } else if ($optDetails['Type'] == 'buttons') {
 
-            // Insert a set of Buttons
-            //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                  // Insert a set of Buttons
+                  //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ?>
     <div class="al_opt_container">
        <?php $this->displayButtons($optDetails['Buttons']); ?><br />
@@ -147,23 +145,23 @@ function displayForm($optionList, $Opts, $Open = True, $Body = True, $Close = Tr
     </div>
 
 <?php
-         } else if ($optDetails['Type'] == 'hidden') {
+               } else if ($optDetails['Type'] == 'hidden') {
 
-            // Insert a hidden Item
-            //////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            $Value = isset($optDetails['Value']) ? $optDetails['Value'] : $Opts[$optName];
-            $id = isset($optDetails['Id']) ? 'id="'.$optDetails['Id'].'"' : '';
+                  // Insert a hidden Item
+                  //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                  $Value = isset($optDetails['Value']) ? $optDetails['Value'] : $Opts[$optName];
+                  $id = isset($optDetails['Id']) ? 'id="'.$optDetails['Id'].'"' : '';
 ?>
     <input <?php echo $id ?> name="<?php echo $optName; ?>" type="hidden" value="<?php echo $Value; ?>" />
 <?php
 
-         } else if ($optDetails['Type'] == 'text') {
+               } else if ($optDetails['Type'] == 'text') {
 
-            // Insert a Text Item
-            //////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            $size = isset($optDetails['Size']) ? $optDetails['Size'] : '20';
-            $hint = isset($optDetails['Hint']) ? $optDetails['Hint'] : '';
-            $id = isset($optDetails['Id']) ? 'id="'.$optDetails['Id'].'"' : '';
+                  // Insert a Text Item
+                  //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                  $size = isset($optDetails['Size']) ? $optDetails['Size'] : '20';
+                  $hint = isset($optDetails['Hint']) ? $optDetails['Hint'] : '';
+                  $id = isset($optDetails['Id']) ? 'id="'.$optDetails['Id'].'"' : '';
 ?>
    <dl class="al_opt_container">
     <dt class="al_label"><span><label for="<?php  echo $optName; ?>"> <?php echo $optDetails['Name']; ?></label></span></dt>
@@ -177,77 +175,77 @@ function displayForm($optionList, $Opts, $Open = True, $Body = True, $Close = Tr
    </dl>
 
 <?php
-         } else if ($optDetails['Type'] == 'nonce') {
+               } else if ($optDetails['Type'] == 'nonce') {
 
-            // Insert a Nonce Item
-            //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                  // Insert a Nonce Item
+                  //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-            wp_nonce_field($optDetails['Name']);
+                  wp_nonce_field($optDetails['Name']);
 
-         } else if ($optDetails['Type'] == 'title') {
-            $id = isset($optDetails['Id']) ? 'id="'.$optDetails['Id'].'"' : '';
+               } else if ($optDetails['Type'] == 'title') {
+                  $id = isset($optDetails['Id']) ? 'id="'.$optDetails['Id'].'"' : '';
 
-            // Insert a Title Item
-            //////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            if (isset($optDetails['Class'])) {
-               $Title = '<div '.$id.' class="' . $optDetails['Class'] . '">'. $optDetails['Value'] . '</div>';
-            } else {
-               $Title = '<h2 '.$id.'>'. $optDetails['Value'] . '</h2>';
-            }
+                  // Insert a Title Item
+                  //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                  if (isset($optDetails['Class'])) {
+                     $Title = '<div '.$id.' class="' . $optDetails['Class'] . '">'. $optDetails['Value'] . '</div>';
+                  } else {
+                     $Title = '<h2 '.$id.'>'. $optDetails['Value'] . '</h2>';
+                  }
 ?>
     <div class="al_opt_container">
       <?php echo $Title ?>
     </div>
 <?php
-         } else if ($optDetails['Type'] == 'section') {
-            $id = isset($optDetails['Id']) ? 'id="'.$optDetails['Id'].'"' : '';
+               } else if ($optDetails['Type'] == 'section') {
+                  $id = isset($optDetails['Id']) ? 'id="'.$optDetails['Id'].'"' : '';
 
-            // Insert a Section
-            //////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            $Title = '<h3 '.$id.'>'. $optDetails['Value'] . '</h3>';
+                  // Insert a Section
+                  //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                  $Title = '<h3 '.$id.'>'. $optDetails['Value'] . '</h3>';
 ?>
     <div style="al_description" class="<?php echo $optDetails['Class']; ?>">
       <?php echo $Title ?>
 <?php
-         } else if ($optDetails['Type'] == 'end') {
+               } else if ($optDetails['Type'] == 'end') {
 
-            // End a Section
-            //////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            echo "</div>";
+                  // End a Section
+                  //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                  echo "</div>";
+               }
+            }
          }
-      }
-   }
 
-   if ($Close) {
+         if ($Close) {
 ?>
 
  </form>
 </div>
 <?php
 
-   }
-}
+         }
+      }
 
-function displayButtons ($buttons) {
+      function displayButtons ($buttons) {
 
-   foreach ($buttons as $Value => $details) {
-      $type = isset($details['Type']) ? $details['Type'] : 'submit';
-      $script = isset($details['Script']) ? ' onClick="'.$details['Script'].'" ' : '';
-      $id = isset($details['Id']) ? 'id="'.$details['Id'].'"' : '';
+         foreach ($buttons as $Value => $details) {
+            $type = isset($details['Type']) ? $details['Type'] : 'submit';
+            $script = isset($details['Script']) ? ' onClick="'.$details['Script'].'" ' : '';
+            $id = isset($details['Id']) ? 'id="'.$details['Id'].'"' : '';
 ?>
    <input <?php echo $id;?> type="<?php echo $type;?>" <?php echo $script; ?> class="<?php echo $details['Class']; ?>" name="<?php echo $details['Action'] ?>" value="<?php echo $Value; ?>" />
 <?php
-   }
-}
+         }
+      }
 
-function displayInput ($optDetails, $optName, $Opts) {
-   $size = isset($optDetails['Size']) ? $optDetails['Size'] : '20';
+      function displayInput ($optDetails, $optName, $Opts) {
+         $size = isset($optDetails['Size']) ? $optDetails['Size'] : '20';
 ?>
      <input name="<?php echo $optName; ?>" type="text" value="<?php echo $Opts[$optName]; ?>" size="<?php echo $size ?>" />
      <?php if (isset($optDetails['Buttons'])) $this->displayButtons($optDetails['Buttons']); ?>
      <?php echo $optDetails['Description']; ?>
 <?php
-}
+      }
 
    }
 }

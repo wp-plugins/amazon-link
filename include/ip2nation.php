@@ -1,9 +1,5 @@
 <?php
 
-
-if( !class_exists( 'WP_Http' ) ) 
-    include_once( ABSPATH . WPINC. '/class-http.php' );
-
 if (!class_exists('AmazonWishlist_ip2nation')) {
    class AmazonWishlist_ip2nation {
 
@@ -36,6 +32,9 @@ if (!class_exists('AmazonWishlist_ip2nation')) {
          } else {
             $ip2nationdb_ts = False;
          }
+
+         if( !class_exists( 'WP_Http' ) ) 
+            include_once( ABSPATH . WPINC. '/class-http.php' );
 
          $request = new WP_Http;
          $result = $request->head( $this->remote_file, array('timeout' => 5));
@@ -80,6 +79,9 @@ if (!class_exists('AmazonWishlist_ip2nation')) {
          global $wpdb;
 
           // Download zip file...
+         if( !class_exists( 'WP_Http' ) ) 
+            include_once( ABSPATH . WPINC. '/class-http.php' );
+
           $request = new WP_Http;
           $result = $request->request( $this->remote_file );
           if ($result instanceof WP_Error )

@@ -45,7 +45,7 @@ wpAmazonLinkSearcher.prototype = {
 
         if (options != undefined) {
            jQuery.extend($ths['options'], options); 
-        jQuery('#upload-button-'+options['asin']).addClass('al_hide-1');
+        jQuery('#upload-button-'+options['asin']).attr("disabled", true);
         jQuery('#upload-progress-'+options['asin']).removeClass('ajax-feedback');
         jQuery.post('admin-ajax.php', $ths['options'] , $ths.mediaDone, 'json');
 	}
@@ -62,7 +62,7 @@ wpAmazonLinkSearcher.prototype = {
 
         if (options != undefined) {
            jQuery.extend($ths['options'], options); 
-        jQuery('#uploaded-button-'+options['asin']).addClass('al_show-0');
+        jQuery('#uploaded-button-'+options['asin']).attr("disabled", true);
         jQuery('#upload-progress-'+options['asin']).removeClass('ajax-feedback');
         jQuery.post('admin-ajax.php', $ths['options'] , $ths.mediaDone, 'json');
 	}
@@ -70,10 +70,18 @@ wpAmazonLinkSearcher.prototype = {
 
    mediaDone: function (response, status){
       if( response["in_library"] == false ) {
+         // Hide Delete button, Show Upload button
          jQuery('#upload-progress-'+response['asin']).addClass('ajax-feedback');
+         jQuery('#uploaded-button-'+response['asin']).addClass('al_show-0');
+         jQuery('#uploaded-button-'+response['asin']).attr("disabled", false);
+         jQuery('#upload-button-'+response['asin']).attr("disabled", false);
          jQuery('#upload-button-'+response['asin']).removeClass('al_hide-1');
       } else {
+         // Hide Upload button, Show Delete button
          jQuery('#upload-progress-'+response['asin']).addClass('ajax-feedback');
+         jQuery('#upload-button-'+response['asin']).addClass('al_hide-1');
+         jQuery('#upload-button-'+response['asin']).attr("disabled", false);
+         jQuery('#uploaded-button-'+response['asin']).attr("disabled", false);
          jQuery('#uploaded-button-'+response['asin']).removeClass('al_show-0');
       }
    },

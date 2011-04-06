@@ -58,9 +58,6 @@ if (!class_exists('AmazonWishlist_ip2nation'))
 if (!class_exists('AmazonLinkSearch'))
    include_once ( 'include/amazonSearch.php');
 
-if( !class_exists( 'WP_Http' ) )
-    include_once( ABSPATH . WPINC. '/class-http.php' );
-
 if (!class_exists('AmazonWishlist_For_WordPress')) {
    class AmazonWishlist_For_WordPress {
 
@@ -192,6 +189,23 @@ function al_gen_multi (id, asin, def) {
                                      'ca' => array('name' => __('Canada', 'amazon-link'), 'flag' => 'images/flag_ca.gif', 'tld' => 'ca', 'site' => 'https://associates.amazon.ca', 'default_tag' => 'lipas-20'));
 
 
+         // Default wishlist template
+         $wishlist_template = htmlspecialchars ('
+<div class="amazon_prod">
+ <div class="amazon_img_container">
+  %THUMB_LINK%
+ </div>
+ <div class="amazon_text_container">
+  <p>%LINK%</p>
+  <div class="amazon_details">
+    <p>'. __('by %ARTIST% [%MANUFACTURER%]', 'amazon-link') .'<br />
+    '. __('Rank/Rating: %RANK%/%RATING%', 'amazon-link').'<br />
+    <b>' .__('Price', 'amazon-link').': <span class="amazon_price">%PRICE%</span></b>
+   </p>
+  </div>
+ </div>
+</div>');
+
          $this->optionList = array(
          'title' => array ( 'Type' => 'title', 'Value' => __('Amazon Link Plugin Options')),
          'nonce' => array ( 'Type' => 'nonce', 'Name' => 'update-AmazonLink-options' ),
@@ -201,12 +215,14 @@ function al_gen_multi (id, asin, def) {
          'text' => array( 'Name' => __('Link Text', 'amazon-link'), 'Description' => __('Default text to display if none specified', 'amazon-link'), 'Default' => 'www.amazon.co.uk', 'Type' => 'text', 'Size' => '40'),
          'thumb' => array (  'Default' => '0', 'Type' => 'hidden' ),
          'image' => array (  'Default' => '0', 'Type' => 'hidden' ),
-         'remote_images' => array ( 'Name' => __('Remote Images', 'wish-pics'), 'Description' => __('Use images from hosted on the Amazon site when creating shortcodes', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox' ),
+         'remote_images' => array ( 'Name' => __('Remote Images', 'wish-pics'), 'Description' => __('Use images hosted on the Amazon site when creating shortcodes', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox' ),
          'image_class' => array ( 'Name' => __('Image Class', 'amazon-link'), 'Description' => __('Style Sheet Class of image thumbnails ', 'amazon-link'), 'Default' => 'wishlist_image', 'Type' => 'text', 'Size' => '40' ),
          'localise' => array('Name' => __('Localise Amazon Link', 'wish-pics'), 'Description' => __('Make the link point to the users local Amazon website, (you must have ip2nation installed for this to work).', 'amazon-link'), 'Default' => '1', 'Type' => 'checkbox'),
          'multi_cc' => array('Name' => __('Multinational Link', 'wish-pics'), 'Description' => __('Insert links to all other Amazon sites after primary link.', 'amazon-link'), 'Default' => '1', 'Type' => 'checkbox'),
          'default_cc' => array( 'Name' => __('Default Country', 'amazon-link'), 'Description' => __('Which country\'s Amazon site to use by default', 'amazon-link'), 'Default' => 'uk', 'Type' => 'radio'),         'pub_key' => array( 'Name' => __('AWS Public Key', 'amazon-link'), 'Description' => __('Public key provided by your AWS Account', 'amazon-link'), 'Default' => '', 'Type' => 'text', 'Size' => '40'),
          'priv_key' => array( 'Name' => __('AWS Private key', 'amazon-link'), 'Description' => __('Private key provided by your AWS Account.', 'amazon-link'), 'Default' => "", 'Type' => 'text', 'Size' => '40'),
+         'wishlist_template' => array (  'Default' => $wishlist_template, 'Type' => 'hidden' ),
+         'wishlist_items' => array (  'Default' => 8, 'Type' => 'hidden' ),
          'button' => array( 'Type' => 'buttons', 'Buttons' => array( __('Update Options', 'amazon-link' ) => array( 'Class' => 'button-primary', 'Action' => 'AmazonLinkAction'))));
 
          // Populate Country related options
@@ -258,7 +274,7 @@ function al_gen_multi (id, asin, def) {
        
          $this->stylesNeeded = False;
          foreach ($posts as $post) {
-            $this->contentFilter($post->post_content, False, False);
+            $post->post_content = $this->contentFilter($post->post_content, False, False);
             if ($this->stylesNeeded) {
                $this->amazon_styles();
                $this->amazon_scripts();
@@ -275,7 +291,11 @@ function al_gen_multi (id, asin, def) {
 
       function getOptions() {
          if (null === $this->Opts) {
-            $this->Opts= get_option($this->optionName, array());
+            $this->Opts = get_option($this->optionName, array());
+            // Ensure hidden items are not stored in the database
+            foreach ( $this->optionList as $optName => $optDetails ) {
+               if ($optDetails['Type'] == 'hidden') unset($this->Opts[$optName]);
+            }
          }
          return $this->Opts;
       }
@@ -390,9 +410,12 @@ function al_gen_multi (id, asin, def) {
                if (isset($this->Settings['cat']) && isset($this->Settings['last'])) {
                   if ($doRecs) {
                      $output = $this->showRecommendations($this->Settings['cat'],$this->Settings['last']);
+                  } elseif (!$this->stylesNeeded) {
+                     $output = '<span id="al_popup" onmouseover="al_div_in()" onmouseout="al_div_out()"></span>' .
+                               substr($content, $found, ($tagEnd - $found) + strlen($this->TagTail));
+                     $this->stylesNeeded = True;
                   } else {
                      $output = substr($content, $found, ($tagEnd - $found) + strlen($this->TagTail));
-                     $this->stylesNeeded = True;
                   }
                } else if ($doLinks) {
                   // Generate Amazon Link
@@ -400,8 +423,13 @@ function al_gen_multi (id, asin, def) {
                   $output = $this->make_links($this->Settings['asin'], $this->Settings['text']);
                } else {
                   $this->tags[] = $this->Settings['asin'];
-                  if ($this->Settings['multi_cc']) $this->stylesNeeded = True;
-                  $output = substr($content, $found, ($tagEnd - $found) + strlen($this->TagTail));
+                  if ($this->Settings['multi_cc'] && !$this->stylesNeeded) {
+                     $this->stylesNeeded = True;
+                     $output = '<span id="al_popup" onmouseover="al_div_in()" onmouseout="al_div_out()"></span>' .
+                               substr($content, $found, ($tagEnd - $found) + strlen($this->TagTail));
+                  } else {
+                     $output = substr($content, $found, ($tagEnd - $found) + strlen($this->TagTail));
+                  }
                }
 
                $newContent = $newContent . substr($content, $index, ($found-$index));
@@ -456,85 +484,15 @@ function al_gen_multi (id, asin, def) {
 
       function doQuery($request)
       {
-         return aws_signed_request($this->country_data[$this->Settings['default_cc']]['tld'], $request, $this->Settings['pub_key'], $this->Settings['priv_key']);
-      }
-/*
-      function performSearch() 
-      {
-         $Opts = $_POST;
+         $cc = $this->country_data[$this->Settings['default_cc']]['tld'];
+         if ($cc == 'it')
+            $cc = "fr";
+         if ($cc == 'cn')
+            $cc = 'com';
 
-         if ($Opts['index'] == 'Books') {
-            $Term = "Author";
-         } else if ($Opts['index'] == 'Music') {
-            $Term = "Artist";
-         } else if ($Opts['index'] == 'DVD') {
-            $Term = "Publisher";
-         } else {
-            $Term = "Manufacturer";
-         }
-
-         // Create query to retrieve the first 10 matching items
-         $request = array("Operation" => "ItemSearch",
-                          "ResponseGroup" => "Small,Reviews,Images,Offers,SalesRank",
-                          $Term=>$Opts['author'],
-                          "Title"=>$Opts['title'],
-                          "SearchIndex"=>$Opts['index'],
-                          "Sort"=>"salesrank",
-                          "MerchantId"=>"Amazon",
-                          "ItemPage"=>$Opts['page']);
-
-         $pxml = amazon_query($request);
-
-         if (($pxml === False) || !isset($pxml['Items']['Item'])) {
-            $results = array('success' => false);
-            $Items = array();
-         } else {
-            $results = array('success' => true);
-            $Items=$pxml['Items']['Item'];
-         }
- 
-         if (count($Items) > 0) {
-            for ($counter = 0; $counter < count($Items) ; $counter++) {
-               $result = $Items[$counter];
-               $data = array();
-               $data['asin']   = $result['ASIN'];
-               $data['title']  = $result['ItemAttributes']['Title'];
-               $data['artist'] = isset($result['ItemAttributes']['Artist']) ? $result['ItemAttributes']['Artist'] :
-                           (isset($result['ItemAttributes']['Author']) ? $result['ItemAttributes']['Author'] :
-                            (isset($result['ItemAttributes']['Creator']) ? $result['ItemAttributes']['Creator'] : '-'));
-               $data['manufacturer'] = isset($result['ItemAttributes']['Manufacturer']) ? $result['ItemAttributes']['Manufacturer'] : '-';
-
-               if (isset($result['MediumImage']))
-                 $data['thumb'] = $result['MediumImage']['URL'];
-               else
-                 $data['thumb'] = "http://images-eu.amazon.com/images/G/02/misc/no-img-lg-uk.gif";
-
-               if (isset($result['LargeImage']))
-                  $data['image'] = $result['LargeImage']['URL'];
-               else
-                  $data['image'] = $r_s_url;
-
-               $data['url']     = $result['DetailPageURL'];
-               $data['rank']    = $result['SalesRank'];
-               $data['rating']  = isset($result['CustomerReviews']['AverageRating']) ? $result['CustomerReviews']['AverageRating'] : '-';
-               $data['price']   = $result['Offers']['Offer']['OfferListing']['Price']['FormattedPrice'];
-               $data['id']      = $ASIN;
-               $data['type']    = 'Amazon';
-               $data['template'] = $this->process_template($data, htmlspecialchars_decode (stripslashes($Opts['template'])));
-               $results['items'][$data['asin']] = $data;
-            }
-         }
-         print json_encode($results);
-         exit();
+         return aws_signed_request($cc, $request, $this->Settings['pub_key'], $this->Settings['priv_key']);
       }
 
-
-      function process_template ($data, $template) {
-         foreach ($data as $key => $string)
-            $template = str_replace('%'. strtoupper($key) . '%', $string, $template);
-         return $template;
-      }
-*/
       function make_links($asin, $link_text)
       {
          global $post;
@@ -543,24 +501,20 @@ function al_gen_multi (id, asin, def) {
          // Do we need to display or link to an image ?
          if ($this->Settings['image'] || $this->Settings['thumb']) {
 
-            $media_id = new WP_Error(__('No images available','amazon-link'));
-            // Do we already have a local image ?
-            $args = array( 'post_type' => 'attachment', 'numberposts' => 1, 
-                           'meta_key' => 'amazon-link-ASIN', 'meta_value' => $asin ); 
-            $media_ids = get_posts( $args );
-            if ($media_ids) {
+            $media_ids = $this->search->find_attachments($asin);
+            if (!is_wp_error($media_ids)) {
                $media_id = $media_ids[0]->ID;
-            } 
+            }
 
             if ($this->Settings['thumb']) {
-               if (!is_wp_error($media_id)) {
+               if (isset($media_id)) {
                   $thumb = wp_get_attachment_thumb_url($media_id);
                } elseif (strlen($this->Settings['thumb']) > 4) {
                   $thumb = $this->Settings['thumb'];
                }
             }
             if ($this->Settings['image']) {
-               if (!is_wp_error($media_id)) {
+               if (isset($media_id)) {
                   $image = wp_get_attachment_url($media_id);
                } elseif (strlen($this->Settings['image']) > 4) {
                   $image = $this->Settings['image'];
@@ -579,15 +533,18 @@ function al_gen_multi (id, asin, def) {
          if (isset($thumb))
             $object = '<img class="'. $this->Settings['image_class'] .'" src="'. $thumb . '" alt="'. $link_text .'">';
 
+/*
+ * Template for Multi Link
+ */
+ $multi_template = htmlspecialchars ('
+<a onMouseOut="al_link_out()" href="%URL%" onMouseOver="al_gen_multi(%MULTI_ID%, \'%ASIN%\', \'%DEFAULT_CC%\');">
+ %OBJECT%
+</a>');
          $URL = $this->getURL($asin);
          if ($this->Settings['multi_cc']) {
             $def = $this->get_country();
             $text='<a onMouseOut="al_link_out()" href="' . $URL .'" onMouseOver="al_gen_multi('. $this->multi_id . ', \'' . $asin . '\', \''. $def .'\');">';
             $text .= $object. '</a>';
-            if ($this->multi_id == 0) {
-               $text .= '<span id="al_popup" onmouseover="al_div_in()" onmouseout="al_div_out()"></span>';
-               $this->done_div = True;
-            }
             $this->multi_id++;
          } else {
             $text='<a href="' . $URL .'">' . $object . '</a>';
@@ -616,6 +573,13 @@ function amazon_get_links($args)
   global $awlfw;
   $awlfw->parseArgs($args);       // Get the default settings
   return $awlfw->getURLs($awlfw->Settings['asin']);        // Return an array of URLs
+}
+
+function amazon_make_links($args)
+{
+  global $awlfw;
+  $awlfw->parseArgs($args);       // Get the default settings
+  return $awlfw->make_links($awlfw->Settings['asin'], $awlfw->Settings['text']);        // Return html
 }
 
 function amazon_query($request)

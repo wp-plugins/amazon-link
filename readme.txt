@@ -2,9 +2,9 @@
 Contributors: paulstuttard
 Donate link: http://www.houseindorset.co.uk/plugins/
 Tags: Amazon, links, wishlist, recommend, shortcode, ip2nation, localise, images, media library
-Requires at least: 3.0.1
-Tested up to: 3.0.1
-Stable tag: 1.8
+Requires at least: 3.1
+Tested up to: 3.1
+Stable tag: 1.8.1
 
 Provides a shortcode for inserting links to Amazon products and also generate a short list (e.g. a wishlist) of related items into your site. 
 
@@ -87,6 +87,9 @@ are only 6 major Amazon sites (UK, France, Germany, US, Japan Italy, China and C
 
 == Changelog ==
 
+= 1.8.1 =
+Default to using .com for aws requests when user has configured Italian or Chinese as the default domain. Note requires Wordpress version 3.1 for this release.
+
 = 1.8 =
 Add support for images into the shortcode, as well as the ability to add images to the Wordpress media library.
 
@@ -117,6 +120,10 @@ Add internationalisation hooks into plugin.
 First Release
 
 == Upgrade Notice ==
+
+= 1.8.1 =
+Upgrade if you want partial support for China and Italy for the product search widget.
+
 = 1.8 =
 Upgrade to this release to add support for image links, and downloading of cover images to the Wordpress media library.
 
