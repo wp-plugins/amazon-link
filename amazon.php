@@ -4,7 +4,7 @@
 Plugin Name: Amazon Link
 Plugin URI: http://www.houseindorset.co.uk/plugins/amazon-link
 Description: Insert a link to Amazon using the passed ASIN number, with the required affiliate info.
-Version: 1.8.1
+Version: 1.8.2
 Text Domain: amazon-link
 Author: Paul Stuttard
 Author URI: http://www.houseindorset.co.uk
@@ -142,6 +142,12 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
 
       function generate_multi_script() {
          $Settings= $this->getOptions();
+         if ($Settings['new_window']) {
+            $TARGET = 'target="_blank"';
+         } else {
+            $TARGET = '';
+         }
+
          ?>
 
 <script type='text/javascript'> 
@@ -156,7 +162,7 @@ function al_gen_multi (id, asin, def) {
    for (var cc in country_data) {
       if (cc != def) {
          var url = 'http://www.amazon.' + country_data[cc].tld + '/gp/product/' + asin + '?ie=UTF8&tag=' + country_data[cc].tag + '&linkCode=as2&camp=1634&creative=6738&creativeASIN='+ asin;
-         content = content +'<a href="' + url + '"><img src="' + country_data[cc].flag + '"></a>';
+         content = content +'<a <?php echo $TARGET; ?> href="' + url + '"><img src="' + country_data[cc].flag + '"></a>';
       }
    }
    al_link_in (id, content);
@@ -215,10 +221,11 @@ function al_gen_multi (id, asin, def) {
          'text' => array( 'Name' => __('Link Text', 'amazon-link'), 'Description' => __('Default text to display if none specified', 'amazon-link'), 'Default' => 'www.amazon.co.uk', 'Type' => 'text', 'Size' => '40'),
          'thumb' => array (  'Default' => '0', 'Type' => 'hidden' ),
          'image' => array (  'Default' => '0', 'Type' => 'hidden' ),
-         'remote_images' => array ( 'Name' => __('Remote Images', 'wish-pics'), 'Description' => __('Use images hosted on the Amazon site when creating shortcodes', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox' ),
-         'image_class' => array ( 'Name' => __('Image Class', 'amazon-link'), 'Description' => __('Style Sheet Class of image thumbnails ', 'amazon-link'), 'Default' => 'wishlist_image', 'Type' => 'text', 'Size' => '40' ),
-         'localise' => array('Name' => __('Localise Amazon Link', 'wish-pics'), 'Description' => __('Make the link point to the users local Amazon website, (you must have ip2nation installed for this to work).', 'amazon-link'), 'Default' => '1', 'Type' => 'checkbox'),
-         'multi_cc' => array('Name' => __('Multinational Link', 'wish-pics'), 'Description' => __('Insert links to all other Amazon sites after primary link.', 'amazon-link'), 'Default' => '1', 'Type' => 'checkbox'),
+         'remote_images' => array ( 'Name' => __('Remote Images', 'amazon-link'), 'Description' => __('Use images hosted on the Amazon site when creating shortcodes', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox' ),
+         'new_window' => array('Name' => __('New Window Link', 'amazon-link'), 'Description' => __('When link is clicked on open it in a new browser window', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox'),
+         'image_class' => array ( 'Name' => __('Image Class', 'amazon-link'), 'Description' => __('Style Sheet Class of image thumbnails', 'amazon-link'), 'Default' => 'wishlist_image', 'Type' => 'text', 'Size' => '40' ),
+         'localise' => array('Name' => __('Localise Amazon Link', 'amazon-link'), 'Description' => __('Make the link point to the users local Amazon website, (you must have ip2nation installed for this to work).', 'amazon-link'), 'Default' => '1', 'Type' => 'checkbox'),
+         'multi_cc' => array('Name' => __('Multinational Link', 'amazon-link'), 'Description' => __('Insert links to all other Amazon sites after primary link.', 'amazon-link'), 'Default' => '1', 'Type' => 'checkbox'),
          'default_cc' => array( 'Name' => __('Default Country', 'amazon-link'), 'Description' => __('Which country\'s Amazon site to use by default', 'amazon-link'), 'Default' => 'uk', 'Type' => 'radio'),         'pub_key' => array( 'Name' => __('AWS Public Key', 'amazon-link'), 'Description' => __('Public key provided by your AWS Account', 'amazon-link'), 'Default' => '', 'Type' => 'text', 'Size' => '40'),
          'priv_key' => array( 'Name' => __('AWS Private key', 'amazon-link'), 'Description' => __('Private key provided by your AWS Account.', 'amazon-link'), 'Default' => "", 'Type' => 'text', 'Size' => '40'),
          'wishlist_template' => array (  'Default' => $wishlist_template, 'Type' => 'hidden' ),
@@ -540,14 +547,19 @@ function al_gen_multi (id, asin, def) {
 <a onMouseOut="al_link_out()" href="%URL%" onMouseOver="al_gen_multi(%MULTI_ID%, \'%ASIN%\', \'%DEFAULT_CC%\');">
  %OBJECT%
 </a>');
+         if ($this->Settings['new_window']) {
+            $TARGET = 'target="_blank"';
+         } else {
+            $TARGET = '';
+         }
          $URL = $this->getURL($asin);
          if ($this->Settings['multi_cc']) {
             $def = $this->get_country();
-            $text='<a onMouseOut="al_link_out()" href="' . $URL .'" onMouseOver="al_gen_multi('. $this->multi_id . ', \'' . $asin . '\', \''. $def .'\');">';
+            $text='<a '. $TARGET .' onMouseOut="al_link_out()" href="' . $URL .'" onMouseOver="al_gen_multi('. $this->multi_id . ', \'' . $asin . '\', \''. $def .'\');">';
             $text .= $object. '</a>';
             $this->multi_id++;
          } else {
-            $text='<a href="' . $URL .'">' . $object . '</a>';
+            $text='<a '. $TARGET .' href="' . $URL .'">' . $object . '</a>';
          }
          return $text;
       }
