@@ -23,6 +23,8 @@ margin: 1px;
 }
 
 .amazon_container {
+ min-width: 320px;
+ margin-right:10px;
 }
 
 .amazon_prod {
@@ -37,7 +39,6 @@ margin: 1px;
  float:right;
  border:1px dotted;
  padding:5px;
- margin-right:10px;
  width:100px;
 }
 

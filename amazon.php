@@ -142,12 +142,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
 
       function generate_multi_script() {
          $Settings= $this->getOptions();
-         if ($Settings['new_window']) {
-            $TARGET = 'target="_blank"';
-         } else {
-            $TARGET = '';
-         }
-
+         $TARGET = $Settings['new_window'] ? 'target="_blank"' : '';
          ?>
 
 <script type='text/javascript'> 
@@ -214,22 +209,39 @@ function al_gen_multi (id, asin, def) {
 
          $this->optionList = array(
          'title' => array ( 'Type' => 'title', 'Value' => __('Amazon Link Plugin Options')),
+
+/* Hidden Options - not saved in Settings */
+
          'nonce' => array ( 'Type' => 'nonce', 'Name' => 'update-AmazonLink-options' ),
          'cat' => array ( 'Type' => 'hidden' ),
          'last' => array ( 'Type' => 'hidden' ),
          'asin' => array( 'Default' => '0', 'Type' => 'hidden'),
-         'text' => array( 'Name' => __('Link Text', 'amazon-link'), 'Description' => __('Default text to display if none specified', 'amazon-link'), 'Default' => 'www.amazon.co.uk', 'Type' => 'text', 'Size' => '40'),
          'thumb' => array (  'Default' => '0', 'Type' => 'hidden' ),
          'image' => array (  'Default' => '0', 'Type' => 'hidden' ),
+
+/* Options that change how the items are displayed */
+         'hd1s' => array ( 'Type' => 'section', 'Value' => __('Display Options')),
+
+         'text' => array( 'Name' => __('Link Text', 'amazon-link'), 'Description' => __('Default text to display if none specified', 'amazon-link'), 'Default' => 'www.amazon.co.uk', 'Type' => 'text', 'Size' => '40'),
+         'image_class' => array ( 'Name' => __('Image Class', 'amazon-link'), 'Description' => __('Style Sheet Class of image thumbnails', 'amazon-link'), 'Default' => 'wishlist_image', 'Type' => 'text', 'Size' => '40' ),
+         'wishlist_template' => array (  'Default' => $wishlist_template, 'Type' => 'hidden' ),
+         'wishlist_items' => array (  'Name' => __('Wishlist Length', 'amazon-link'), 'Description' => __('Maximum number of items to display in a wishlist [1-5] (Amazon only returns a maximum of 5)', 'amazon-link'), 'Default' => 5, 'Type' => 'text' ),
+         'hd1e' => array ( 'Type' => 'end'),
+
+/* Options that change the behaviour of the links */
+
+         'multi_cc' => array('Name' => __('Multinational Link', 'amazon-link'), 'Description' => __('Insert links to all other Amazon sites after primary link.', 'amazon-link'), 'Default' => '1', 'Type' => 'checkbox'),
+         'localise' => array('Name' => __('Localise Amazon Link', 'amazon-link'), 'Description' => __('Make the link point to the users local Amazon website, (you must have ip2nation installed for this to work).', 'amazon-link'), 'Default' => '1', 'Type' => 'checkbox'),
          'remote_images' => array ( 'Name' => __('Remote Images', 'amazon-link'), 'Description' => __('Use images hosted on the Amazon site when creating shortcodes', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox' ),
          'new_window' => array('Name' => __('New Window Link', 'amazon-link'), 'Description' => __('When link is clicked on open it in a new browser window', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox'),
-         'image_class' => array ( 'Name' => __('Image Class', 'amazon-link'), 'Description' => __('Style Sheet Class of image thumbnails', 'amazon-link'), 'Default' => 'wishlist_image', 'Type' => 'text', 'Size' => '40' ),
-         'localise' => array('Name' => __('Localise Amazon Link', 'amazon-link'), 'Description' => __('Make the link point to the users local Amazon website, (you must have ip2nation installed for this to work).', 'amazon-link'), 'Default' => '1', 'Type' => 'checkbox'),
-         'multi_cc' => array('Name' => __('Multinational Link', 'amazon-link'), 'Description' => __('Insert links to all other Amazon sites after primary link.', 'amazon-link'), 'Default' => '1', 'Type' => 'checkbox'),
+
+/* Options related to the Amazon backend */
+
+         'hd2s' => array ( 'Type' => 'section', 'Value' => __('Amazon Associate Information')),
          'default_cc' => array( 'Name' => __('Default Country', 'amazon-link'), 'Description' => __('Which country\'s Amazon site to use by default', 'amazon-link'), 'Default' => 'uk', 'Type' => 'radio'),         'pub_key' => array( 'Name' => __('AWS Public Key', 'amazon-link'), 'Description' => __('Public key provided by your AWS Account', 'amazon-link'), 'Default' => '', 'Type' => 'text', 'Size' => '40'),
          'priv_key' => array( 'Name' => __('AWS Private key', 'amazon-link'), 'Description' => __('Private key provided by your AWS Account.', 'amazon-link'), 'Default' => "", 'Type' => 'text', 'Size' => '40'),
-         'wishlist_template' => array (  'Default' => $wishlist_template, 'Type' => 'hidden' ),
-         'wishlist_items' => array (  'Default' => 8, 'Type' => 'hidden' ),
+         'hd2e' => array ( 'Type' => 'end'),
+
          'button' => array( 'Type' => 'buttons', 'Buttons' => array( __('Update Options', 'amazon-link' ) => array( 'Class' => 'button-primary', 'Action' => 'AmazonLinkAction'))));
 
          // Populate Country related options
@@ -547,12 +559,9 @@ function al_gen_multi (id, asin, def) {
 <a onMouseOut="al_link_out()" href="%URL%" onMouseOver="al_gen_multi(%MULTI_ID%, \'%ASIN%\', \'%DEFAULT_CC%\');">
  %OBJECT%
 </a>');
-         if ($this->Settings['new_window']) {
-            $TARGET = 'target="_blank"';
-         } else {
-            $TARGET = '';
-         }
-         $URL = $this->getURL($asin);
+         $TARGET = $this->Settings['new_window'] ? 'target="_blank"' : '';
+         $URL    = $this->getURL($asin);
+
          if ($this->Settings['multi_cc']) {
             $def = $this->get_country();
             $text='<a '. $TARGET .' onMouseOut="al_link_out()" href="' . $URL .'" onMouseOver="al_gen_multi('. $this->multi_id . ', \'' . $asin . '\', \''. $def .'\');">';

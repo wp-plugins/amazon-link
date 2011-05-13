@@ -89,6 +89,7 @@ are only 6 major Amazon sites (UK, France, Germany, US, Japan Italy, China and C
 
 = 1.8.2 =
 Add an option to make the links open in a new window when clicked on by a reader.
+Add an option to set the length of the wishlist displayed
 
 = 1.8.1 =
 Default to using .com for aws requests when user has configured Italian or Chinese as the default domain. Note requires Wordpress version 3.1 for this release.
