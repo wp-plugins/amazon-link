@@ -23,13 +23,16 @@ Body  = True if want to process options
 if (!class_exists('AmazonWishlist_Options')) {
    class AmazonWishlist_Options {
 
-      function __construct() {
-          add_action('init', array($this,'init'));
-      }
-
+      /* 
+       * Must be called by the client's init function
+       */
       function init() {
          $stylesheet = plugins_url("form.css", __FILE__);
          wp_register_style('amazon-link-form', $stylesheet);
+      }
+
+      function enqueue_styles() {
+         wp_enqueue_style('amazon-link-form');
       }
 
       function displayForm($optionList, $Opts, $Open = True, $Body = True, $Close = True) {
@@ -52,6 +55,7 @@ if (!class_exists('AmazonWishlist_Options')) {
 
                   // Insert a Check Box Item
                   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
                   $hint   = isset($optDetails['Hint']) ? $optDetails['Hint'] : '';
                   $id     = isset($optDetails['Id']) ? 'id="'.$optDetails['Id'].'"' : '';
                   $class  = isset($optDetails['Class']) ? 'class="'.$optDetails['Class'].' al_opt_container"' : 'class="al_opt_container"';
@@ -59,9 +63,9 @@ if (!class_exists('AmazonWishlist_Options')) {
 
 ?>
    <dl <?php echo $class ?>>
-    <dt class="al_label"><label for="<?php echo $optName; ?>"><?php echo $optDetails['Name']; ?></label><dt>
+    <dt class="al_label"><label for="<?php echo $optName; ?>"><?php echo $optDetails['Name']; ?></label></dt>
     <dd class="al_opt_details">
-      <input style="float:left" <?php echo $id. ' '. $script ?> name="<?php echo $optName; ?>" title="<?php echo stripslashes($hint); ?>" type="checkbox" value="1" <?php checked($Opts[$optName] == '1') ?>/>&nbsp;
+      <input style="float:left" <?php echo $id. ' '. $script ?> name="<?php echo $optName; ?>" title="<?php echo stripslashes($hint); ?>" type="checkbox" value="<?php echo ($Opts[$optName] >=1)+1 ?>" <?php checked($Opts[$optName] >= 1) ?>/>&nbsp;
       <?php if (isset($optDetails['Buttons'])) displayButtons($optDetails['Buttons']); ?>
       <?php if (isset($optDetails['Description'])) echo '<div class="al_description">'.$optDetails['Description'].'</div>'; ?>
     </dd>
@@ -71,14 +75,17 @@ if (!class_exists('AmazonWishlist_Options')) {
 
                   // Insert a Dropdown Box Item
                   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
                   $id = isset($optDetails['Id']) ? 'id="'.$optDetails['Id'].'"' : '';
+                  $class  = isset($optDetails['Class']) ? 'class="'.$optDetails['Class'].' al_opt_container"' : 'class="al_opt_container"';
+                  $hint   = isset($optDetails['Hint']) ? ' title = "'.$optDetails['Hint'].'"' : '';
 
 ?>
-   <dl class="al_opt_container">
+   <dl <?php echo $class ?>>
     <dt class="al_label"><label for="<?php echo $optName; ?>"><?php echo $optDetails['Name']; ?></label></dt>
     <dd class="al_opt_details">
      <div class="al_input">
-      <select <?php echo $id; ?> style="width:200px;" name="<?php echo $optName; ?>" class='postform'>
+      <select <?php echo $id. $hint; ?> style="width:200px;" name="<?php echo $optName; ?>" class='postform'>
         <?php
          foreach ($optDetails['Options'] as $Value => $Details) {
             if (is_array($Details)) {
@@ -98,13 +105,37 @@ if (!class_exists('AmazonWishlist_Options')) {
    </dl>
 
 <?php
+               } else if ($optDetails['Type'] == 'textbox') {
+
+                  // Insert a Text Edit Box Item
+                  //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+                  $id = isset($optDetails['Id']) ? ' id="'.$optDetails['Id'].'" ' : '';
+                  $class  = isset($optDetails['Class']) ? 'class="'.$optDetails['Class'].' al_opt_container"' : 'class="al_opt_container"';
+                  $rows = isset($optDetails['Rows']) ? ' rows="'.$optDetails['Rows'].'" ' : '';
+
+?>
+   <dl <?php echo $class ?>>
+    <dt class="al_label"><label for="<?php echo $optName; ?>"><?php echo $optName; ?></label></dt>
+    <dd class="al_opt_details">
+     <div class="al_input">
+      <textarea <?php echo $id . $rows ?> style="width:400px;" name="<?php echo $optName; ?>" class='postform'><?php echo $Opts[$optName]; ?></textarea>
+     </div>
+     <?php if (isset($optDetails['Buttons'])) $this->displayButtons($optDetails['Buttons']); ?>
+     <?php if (isset($optDetails['Description'])) echo '<div class="al_description">'.$optDetails['Description'].'</div>'; ?>
+    </dd>
+   </dl>
+
+<?php
                } else if ($optDetails['Type'] == 'radio') {
 
                   // Insert a Radio Selection
                   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+                  $class  = isset($optDetails['Class']) ? 'class="'.$optDetails['Class'].' al_opt_container"' : 'class="al_opt_container"';
+
 ?>
-   <dl class="al_opt_container">
+   <dl <?php echo $class ?>>
     <dt class="al_label"><label for="<?php echo $optName; ?>"><?php echo $optDetails['Name']; ?></label>
     <dd class="al_opt_details">
        <div class="al_input">
@@ -138,8 +169,11 @@ if (!class_exists('AmazonWishlist_Options')) {
 
                   // Insert a set of Buttons
                   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+                  $class  = isset($optDetails['Class']) ? 'class="'.$optDetails['Class'].' al_opt_container"' : 'class="al_opt_container"';
+
 ?>
-    <div class="al_opt_container">
+    <div <?php echo $class ?>>
        <?php $this->displayButtons($optDetails['Buttons']); ?><br />
       <?php if (isset($optDetails['Description'])) echo '<div style="font-size:80%;clear:both">'.$optDetails['Description'].'</div>'; ?>
     </div>
@@ -149,6 +183,7 @@ if (!class_exists('AmazonWishlist_Options')) {
 
                   // Insert a hidden Item
                   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
                   $Value = isset($optDetails['Value']) ? $optDetails['Value'] : $Opts[$optName];
                   $id = isset($optDetails['Id']) ? 'id="'.$optDetails['Id'].'"' : '';
 ?>
@@ -159,11 +194,14 @@ if (!class_exists('AmazonWishlist_Options')) {
 
                   // Insert a Text Item
                   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
                   $size = isset($optDetails['Size']) ? $optDetails['Size'] : '20';
                   $hint = isset($optDetails['Hint']) ? $optDetails['Hint'] : '';
                   $id = isset($optDetails['Id']) ? 'id="'.$optDetails['Id'].'"' : '';
+                  $class  = isset($optDetails['Class']) ? 'class="'.$optDetails['Class'].' al_opt_container"' : 'class="al_opt_container"';
+
 ?>
-   <dl class="al_opt_container">
+   <dl <?php echo $class ?>>
     <dt class="al_label"><span><label for="<?php  echo $optName; ?>"> <?php echo $optDetails['Name']; ?></label></span></dt>
     <dd class="al_opt_details">
      <div class="al_input">
@@ -180,20 +218,34 @@ if (!class_exists('AmazonWishlist_Options')) {
                   // Insert a Nonce Item
                   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-                  wp_nonce_field($optDetails['Name']);
+                  if (isset($optDetails['Action'])) {
+                     $action = $optDetails['Action'];
+                     $name = $optDetails['Name'];
+                  }  else {
+                     $action = $optDetails['Name'];
+                     $name = '_wpnonce';
+                  }
+                  $referer = isset($optDetails['Referer']) ? $optDetails['Referer'] : true;
+                  $echo = isset($optDetails['Echo']) ? $optDetails['Echo'] : true;
+
+                  wp_nonce_field($action, $name, $referer, $echo);
 
                } else if ($optDetails['Type'] == 'title') {
                   $id = isset($optDetails['Id']) ? 'id="'.$optDetails['Id'].'"' : '';
 
                   // Insert a Title Item
                   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
-                  if (isset($optDetails['Class'])) {
-                     $Title = '<div '.$id.' class="' . $optDetails['Class'] . '">'. $optDetails['Value'] . '</div>';
+
+                  $class  = isset($optDetails['Class']) ? 'class="'.$optDetails['Class'].' al_opt_container"' : 'class="al_opt_container"';
+
+                  if (isset($optDetails['Title_Class'])) {
+                     $Title = '<div '.$id.' class="' . $optDetails['Title_Class'] . '">'. $icon. $optDetails['Value'] . '</div>';
                   } else {
-                     $Title = '<h2 '.$id.'>'. $optDetails['Value'] . '</h2>';
+                     $Title = '<h2 '.$id.'>'. $icon. $optDetails['Value'] . '</h2>';
                   }
 ?>
-    <div class="al_opt_container">
+    <div <?php echo $class ?>>
+      <?php if (isset($optDetails['Icon'])) screen_icon($optDetails['Icon']); ?>
       <?php echo $Title ?>
     </div>
 <?php
@@ -202,16 +254,25 @@ if (!class_exists('AmazonWishlist_Options')) {
 
                   // Insert a Section
                   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
-                  $Title = '<h3 '.$id.'>'. $optDetails['Value'] . '</h3>';
+
+                  $Title = '<h4 '.$id.'>'. $optDetails['Value'] . '</h4>';
+                  $class  = isset($optDetails['Class']) ? 'class="'.$optDetails['Class'].' al_options"' : 'class="al_options"';
+
 ?>
-    <div style="al_description" class="<?php echo $optDetails['Class']; ?>">
-      <?php echo $Title ?>
+    <div class="al_section">
+     <div class="<?php echo $optDetails['Section_Class']; ?>"><?php echo $Title ?></div>
+      <div <?php echo $class ?>>
 <?php
                } else if ($optDetails['Type'] == 'end') {
 
                   // End a Section
                   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
-                  echo "</div>";
+                  echo "</div></div>";
+               } else {
+
+                  // Unknown
+                  //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                 // echo "<pre>UNKNOWN:"; print_r ($optDetails); echo "</pre>";
                }
             }
          }
@@ -232,8 +293,9 @@ if (!class_exists('AmazonWishlist_Options')) {
             $type = isset($details['Type']) ? $details['Type'] : 'submit';
             $script = isset($details['Script']) ? ' onClick="'.$details['Script'].'" ' : '';
             $id = isset($details['Id']) ? 'id="'.$details['Id'].'"' : '';
+            $value = isset($details['Value']) ? 'value="'.$details['Value'].'"' : '';
 ?>
-   <input <?php echo $id;?> type="<?php echo $type;?>" <?php echo $script; ?> class="<?php echo $details['Class']; ?>" name="<?php echo $details['Action'] ?>" value="<?php echo $Value; ?>" />
+   <input <?php echo $id;?> <?php echo $value;?> type="<?php echo $type;?>" <?php echo $script; ?> class="<?php echo $details['Class']; ?>" name="<?php echo $details['Action'] ?>" value="<?php echo $Value; ?>" />
 <?php
          }
       }

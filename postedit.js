@@ -11,9 +11,11 @@ var wpAmazonLinkAdmin = function () {}
 
 wpAmazonLinkAdmin.prototype = {
     options           : {},
+    default_options   : {},
+    list_options      : {},
 
     toggleAdvanced : function(event) {
-        var collection = jQuery(event).find("input[name='multi_cc'], input[name='localise'], input[name='image'], input[name='thumb'], input[name='remote_images']");
+        var collection = jQuery(event).find("input[name='multi_cc'], input[name='localise'], input[name='live'], input[name='remote_images']");
         var defaults   = jQuery(event).find("input[name='defaults']:checked").length;
         if (defaults) {
            jQuery(collection).parent().parent().hide();
@@ -22,50 +24,73 @@ wpAmazonLinkAdmin.prototype = {
         }
     },
 
+    addASIN : function(event, options) {
+        var ASIN = jQuery(event).find("input[name='asin']");
+        if (ASIN.val() == "") {
+           ASIN.val(options['asin']);
+        } else {
+           ASIN.val( ASIN.val()+"," + options['asin']);
+        }
+    },
+
     generateShortCode : function() {
         var content = this['options']['content'];
-        delete this['options']['content'];
+        var options = this['options'];
+        var list_options = this['list_options'];
+        var d_options = this['default_options'];
+        var keywords = this['template_user_keywords'].concat(',',this['template_live_keywords']).split(',');
+        var live_keywords = new String(this['template_live_keywords']);
+        var template_keywords = new String(this['template_keywords']);
 
-        /* If use 'defaults' is set then do not force these options */
-        if (this['options']['defaults'] == "1") {
-           delete this['options']['multi_cc'];
-           delete this['options']['localise'];
-           delete this['options']['image'];
-           delete this['options']['thumb'];
+        delete options['content'];
+
+        /* If 'use defaults' is set then reset to the defaults */
+        if (options['defaults'] == "1") {
+           options['multi_cc'] = d_options['multi_cc'];
+           options['localise'] = d_options['localise'];
+           options['live'] = d_options['live'];
         }
 
-        delete this['options']['defaults'];
-
-        /* If user has selected the button to add images, then override global setting */
-        if (this['options']['image_override'] == "1") {
-           this['options']['image'] = "1";
+        /* If 'wishlist' is set then include wishlist specific options */
+        if (options['wishlist'] == "1") {
+           jQuery().extend(options, list_options);
+           options['live'] = 1;
+        } 
+ 
+        if (options['asin'].indexOf(',') != -1) {
+           options['live'] = 1;
         }
-        if (this['options']['thumb_override'] == "1") {
-           this['options']['thumb'] = "1";
-        }
 
-        /* If not using local images, then use the remote URL's for the images */
-        if (this['options']['remote_images'] == "1") {
-           if ((this['options']['image'] == "1") && (this['options']['image_url'] != undefined)) {
-              this['options']['image'] = this['options']['image_url'];
+        /* Only put keywords relevant to the selected template */
+        for(var i = 0; i < keywords.length; i++) {
+           if ((keywords[i] != "asin") &&                             // Not 'asin' - this is always inserted
+               ((template_keywords.indexOf(keywords[i]) == -1) ||     // and Not in the current template
+                ((options['live'] == "1") &&                          // or user wants live data and this is a live keyword
+                 (live_keywords.indexOf(keywords[i]) != -1)))) {
+              delete options[keywords[i]];
+           } else if (options[keywords[i]] == undefined) {
+              options[keywords[i]] = '-';
            }
-           if ((this['options']['thumb'] == "1") && (this['options']['thumb_url'] != undefined)){
-              this['options']['thumb'] = this['options']['thumb_url'];
-           }
+        }
+
+        /* If 'use defaults' is set then do not force these options */
+        if (options['defaults'] == "1") {
+           delete options['multi_cc'];
+           delete options['localise'];
+           delete options['live'];
         }
 
         /* Delete temporary options only used by the java exchange */
-        delete this['options']['remote_images'];
-        delete this['options']['image_override'];
-        delete this['options']['thumb_override'];
-        delete this['options']['image_url'];
-        delete this['options']['thumb_url'];
-        
+        delete options['image_url'];
+        delete options['thumb_url'];
+        delete options['defaults'];
+        delete options['wishlist'];
+
         /* Now generate the short code with what is left */
         var attrs = '';
         var sep = '';
-        jQuery.each(this['options'], function(name, value){
-            if (value != '') {
+        jQuery.each(options, function(name, value){
+            if (value != 'ignore') {
                 attrs += sep + name + '=' + value;
                 sep = '&';
             }
@@ -74,15 +99,37 @@ wpAmazonLinkAdmin.prototype = {
     },
 
     sendToEditor      : function(f, options) {
-        var collection = jQuery(f).find("input[id^=AmazonLinkOpt]");
+        var link_options = jQuery(f).find("input[id^=AmazonLinkOpt], select[id^=AmazonLinkOpt]");
+        var list_options = jQuery(f).find("input[id^=AmazonListOpt], select[id^=AmazonListOpt]");
         var $this = this;
-        collection.each(function () {
+        $this['options'] = {};
+        $this['list_options'] = {};
+        $this['default_options'] = {};
+        link_options.each(function () {
             if (this.type == 'checkbox') {
                $this['options'][this.name] = this.checked ? "1" : "0";
+               $this['default_options'][this.name] = (this.value != '1'? "1" : "0");
+            } else if (this.type == "select-one") {
+               $this['options'][this.name] = this[this.selectedIndex].value;
             } else {
                $this['options'][this.name] = this.value;
             }
         });
+
+        list_options.each(function () {
+            if (this.type == 'checkbox') {
+               $this['list_options'][this.name] = this.checked ? "1" : "0";
+            } else if (this.type == "select-one") {
+               $this['list_options'][this.name] = this[this.selectedIndex].value;
+            } else {
+               $this['list_options'][this.name] = this.value;
+            }
+        });
+
+        $this['template_user_keywords'] = jQuery(f).find('#amazonLinkID input[name="template_user_keywords"]').val();
+        $this['template_live_keywords'] = jQuery(f).find('#amazonLinkID input[name="template_live_keywords"]').val();
+        $this['template_keywords']      = jQuery(f).find('input[name="T_' + $this['options']['template'] + '"]').val();
+
         if (options != undefined) {
            jQuery.extend($this['options'], options);
         }

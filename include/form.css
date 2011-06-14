@@ -2,10 +2,15 @@
  clear:both;
 }
 
+.al_border {
+ border-bottom: 1px solid #ddd;
+}
+
 .al_label {
  display:inline;
  float:left;
  width:30%;
+ padding-left: 4px;
 }
 
 .al_opt_details {
@@ -28,3 +33,24 @@
 .al_show-0 {
  display:none;
 }
+
+.al_section {
+    border: 1px solid #ddd;
+    padding:0px;  
+    margin:0px;  
+}
+
+.al_subhead1 h4, .al_subhead h4  {  
+    cursor:pointer;  
+    font-weight:normal;  
+//    width:80%;  
+    padding:0px;  
+    margin:2px;  
+}  
+.al_subhead1, .al_subhead {  
+    cursor:pointer;  
+    border-bottom:1px solid #ddd;  
+    background:#eee;  
+    padding:2px;  
+    margin-bottom:1px;  
+}  

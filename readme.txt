@@ -88,6 +88,9 @@ are only 6 major Amazon sites (UK, France, Germany, US, Japan Italy, China and C
 == Changelog ==
 
 = 1.8.2 =
+Add template facility, with pre-designed templates for most Amazon widgets
+Add ability to create multiple links from one shortcode
+Add shortcode processing in widgets
 Add an option to make the links open in a new window when clicked on by a reader.
 Add an option to set the length of the wishlist displayed
 
@@ -174,25 +177,55 @@ The plugin relies upon the php script aws_signed_request kindly crafted by [Ulri
 
 The plugin has two utility classes that might be of use to other plugin designers. The first is one for generating the options page (as well as the 'Add Amazon Link' meta box). The second is an AJAX facility for performing Amazon product searches and returning an array of product details, including a facility to fill in a HTML template with various attributes of the product using the patterns %TITLE%, %PRICE%, %AUTHOR%, etc. See the plugin source files for more details on how to utilise them.
 
-== Settings ==
+== Template Design ==
 
-= Link Text =
-If you do not specify the 'text' argument in your [amazon] shortcode, then this text will be used by default.
-= Remote Images =
-If this option is selected then when generating shortcodes for image links to insert into your posts, the plugin will point to ones hosted on Amazon, rather than ones in the media library.
-= Image Class =
-This is the class used for images displayed in Amazon image links.
-= Localise Amazon Link =
-If this option is selected and the [ip2nation](http://www.ip2nation.com/) database has been installed then the plugin will attempt to use the most appropriate Amazon site when creating the link, currently supports <a href="http://www.amazon.co.uk">www.amazon.co.uk</a>, <a href="http://www.amazon.com">www.amazon.com</a>, <a href="http://www.amazon.ca">www.amazon.ca</a>, <a href="http://www.amazon.de">www.amazon.de</a>, <a href="http://www.amazon.fr">www.amazon.fr</a> and <a href="http://www.amazon.jp">www.amazon.jp</a>.
-= Multinational Link =
-If this option is selected then the plugin will enable a small popup menu of country specific links whenever the user's mouse rolls over the Amazon link, enabling them to select the site they feel is most appropriate.
-= Default Country =
-If localisation is not enabled, or has failed for some reason, then this is the default Amazon site to use for the link.
-= AWS Public Key =
-If you wish to use the wishlist/recommendations part of the plugin then you must have the appropriate AWS public and private key pair and enter them in these two settings. To get these keys simply register with the <a href="http://aws.amazon.com/">Amazon Web Service</a> site and this will provide you with the appropriate strings.
-= AWS Private Key =
-See above.
+There is a settings page dedicated to the creation of new templates. Use this to create, delete and copy templates. The template content is based on standard html with additional keywords that are surrounded by '%' characters.
+See the Template Help on the same page for a description of each of the keywords that can be used.
+
+Most of the keywords are self explanatory: '%TITLE%' will expand to be the product's title, '%PRICE%' the formatted product's price, etc.
+
+However links can be using the keyword pair '%LINK_START%' and '%LINK_END%' with the subject of the link being placed between them, for example '%LINK_START%Amazon Product%LINK_END%'. The link produced will comply with whatever settings you have used, i.e. localised to the users country, produce multinational popup, with the appropriate Amazon associate ID inserted.
+
+There are a number of keywords that are also localised these include: '%LINK_START%' - as described above, '%TLD%' the Top Level Domain to be used '.co.uk', '.it', '.com', etc.; '%MPLACE%' - the Amazon Market place to use 'GB', 'IT', 'US', etc.; '%CC%' - the localised country code 'uk', 'it', 'us'; '%TAG%' - The amazon associate tag to use.
+
+By specifying the 'live' - Live Data setting either in the settings page or within the amazon shortcode the data used to fill the template can be generated when the link is displayed. Or if you prefer to use static data or override some of the template content the template keywords can be specified in the shortcode.
+
+There are a number of keywords that are only used for static data, these are '%TEXT%', '%TEXT1%', '%TEXT2%, '%TEXT3%', '%TEXT4%'.
+
+The keyword '%ASINS%' can be used to indicate that this template will accept a string of comma separated ASINs to generate its output, for example the Amazon Carousel widget. Normally putting a list of ASINs in the shortcode will cause multiple links to be generated.
+
+Browse the default included templates to see some examples of how the keywords can be used.
+
+Note: the Amazon widgets are currently not supported in some locales (e.g. Canada).
+
+== Post / Page Edit Helper ==
+
+The plugin adds a box to the post edit and page edit section of your Wordpress site, that can be used to generate shortcodes easily and quickly. Use this to find the product you wish to link to on your site, then select the appropriate template and other settings and press the 'Insert' button. This will insert the shortcode into your post, with all the settings prefilled. 
+If you are using 'live' data then it will only include keywords for user required data 'text', 'text1', etc. If you are using static data then it will also prefill the keywords with the product information retrieved from the Amazon site.
+
 == Shortcode ==
+
+The Amazon links are inserted onto your site by using shortcodes of the form `[amazon Link Options]`, when they are displayed on your Wordpress posts and pages, the plugin will automatically expand them into the appropriate link. The shortcodes can be used in pages, posts and text widgets.
+Links can be simple text links to products, images or thumbnails, or complex javascript widgets using the template facility. The options in the shortcode are a combination of keywords used in the templates and options as set in the settings page.
+
+The simplest shortcode is of the form `[amazon asin=0123456789]` this will insert a simple text link in your post. The 'asin' option is the only one that is mandatory as it tells the plugin which product to display and link to on the Amazon site. By entering a list of ASINs the plugin will generate a sequence of links, one for each product.
+
+To produce more complex items there is a template facility with a number of pre-defined templates, these are populated using data entered in the shortcode or by grabbing the information from the Amazon site when the link is displayed. For example:
+
+`[amazon asin=0340993766&template=thumbnail&title=My Favourite Le Carre&thumbnail=http://ecx.images-amazon.com/images/I/51ytv2iNEtL._SL160_.jpg]`, will generate a thumbnail image which links to the Amazon site, with the specified title.
+
+The option 'live=1' can be used so that the standard product information is requested from the Amazon site to populate the template. `[amazon asin=0340993766&template=thumbnail&live=1]` will generate a similar thumbnail, options specified in the shortcode will always override the data extracted from the Amazon site, so if you want your own title this can be specified in the shortcode.
+
+The default behaviour of the shortcode can be changed using the settings page - be aware that changes made in the settings page are site wide, so any shortcodes written previous to the settings change will also be affected.
+
+If the keyword 'cat' (Category) is used then the plugin will automatically generate a list of products for you. This list either be based on items found within a particular post category or categories (cat=3,4,7) or based on items found in the content so far displayed on the current page (cat=local).
+The list of items can either be a random selection of the ones found (wishlist_type=random), a short list (maximum of 5 products) of items related to the ones found (wishlist_type=similar), or a sorted list (wishlist_type=multi). The number of items in the list can be changed using the settings 'wishlist_items'.
+
+For example putting the shortcode `[amazon cat=local&template=carousel&wishlist_type=random]` in a text widget in the sidebar will generate an Amazon Carousel widget showing random products featured in content of the current displayed page.
+
+The products used to generate the wishlist do not need to have explicit links, by entering the shortcode `[amazon text=&asin=0340993766,0340993766,0340993766]` in the post content will provide the plugin with extra products to insert in the wishlist without cluttering the main post content with external links.
+
+Shortcode Options:
 
 = text =
 The text used to generate the amazon link, Enter any plain string e.g. 'text=My Text'.
@@ -208,7 +241,7 @@ the shortcode will cause a thumbnail image to be displayed in the post which lin
 The css class used when displaying the image in the post.
 
 = asin =
-The unique Amazon product ID, of the form '1405235675'. Enter as 'asin=1405235675'.
+The unique Amazon product ID or IDs, of the form '1405235675'. Enter as 'asin=1405235675,0001118892'.
 
 = cat =
 When creating a wishlist you must specify the post category(s) through which to search for other Amazon links. Enter as 'cat=4,7'.
@@ -232,6 +265,25 @@ Overides the 'AWS Public Key' setting.
 
 = priv_key =
 Overides the 'AWS Private Key' setting.
+
+== Settings ==
+
+= Link Text =
+If you do not specify the 'text' argument in your [amazon] shortcode, then this text will be used by default.
+= Remote Images =
+If this option is selected then when generating shortcodes for image links to insert into your posts, the plugin will point to ones hosted on Amazon, rather than ones in the media library.
+= Image Class =
+This is the class used for images displayed in Amazon image links.
+= Localise Amazon Link =
+If this option is selected and the [ip2nation](http://www.ip2nation.com/) database has been installed then the plugin will attempt to use the most appropriate Amazon site when creating the link, currently supports <a href="http://www.amazon.co.uk">www.amazon.co.uk</a>, <a href="http://www.amazon.com">www.amazon.com</a>, <a href="http://www.amazon.ca">www.amazon.ca</a>, <a href="http://www.amazon.de">www.amazon.de</a>, <a href="http://www.amazon.fr">www.amazon.fr</a> , <a href="http://www.amazon.it">www.amazon.it</a>, <a href="http://www.amazon.cn">www.amazon.cn</a>  and <a href="http://www.amazon.jp">www.amazon.jp</a>.
+= Multinational Link =
+If this option is selected then the plugin will enable a small popup menu of country specific links whenever the user's mouse rolls over the Amazon link, enabling them to select the site they feel is most appropriate.
+= Default Country =
+If localisation is not enabled, or has failed for some reason, then this is the default Amazon site to use for the link.
+= AWS Public Key =
+If you wish to use the wishlist/recommendations part of the plugin then you must have the appropriate AWS public and private key pair and enter them in these two settings. To get these keys simply register with the <a href="http://aws.amazon.com/">Amazon Web Service</a> site and this will provide you with the appropriate strings.
+= AWS Private Key =
+See above.
 
 == Disclosure ==
 

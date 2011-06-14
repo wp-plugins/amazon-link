@@ -16,6 +16,9 @@ if (!class_exists('AmazonWishlist_ip2nation')) {
 
       }
 
+      function init() {
+         // Not currently needed
+      }
 /*****************************************************************************************/
 
       /// Check if the database is install and if it is up-to-date, and

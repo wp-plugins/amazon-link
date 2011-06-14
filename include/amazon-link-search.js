@@ -13,7 +13,7 @@ wpAmazonLinkSearcher.prototype = {
     sendingAmazonRequest : false,
 
     incPage : function(event) {
-      var page = jQuery(event).find("#amazon-link-search[name='page']");
+      var page = jQuery(event).find("#amazon-link-search[name='s_page']");
 	if( !this['sendingAmazonRequest'] ) {
            jQuery(page).val(parseInt(jQuery(page).val())+1);
           this.searchAmazon(event);
@@ -22,7 +22,7 @@ wpAmazonLinkSearcher.prototype = {
 
     decPage : function(event) {
 	if( !this['sendingAmazonRequest'] ) {
-          var page = jQuery(event).find("#amazon-link-search[name='page']");
+          var page = jQuery(event).find("#amazon-link-search[name='s_page']");
           var p = parseInt(jQuery(page).val())-1;
           if (p == 0) p =1;
           jQuery(page).val(p);
@@ -95,7 +95,7 @@ wpAmazonLinkSearcher.prototype = {
               $ths['search_options'][this.name] = jQuery(this).val();
            });
            $ths['search_options']['action'] = 'amazon-link-search';
-
+           $ths['search_options']['template'] = $ths['search_options']['s_template']
            jQuery('#amazon-link-result-list').empty();
            jQuery('#amazon-link-error').hide();
            jQuery('#amazon-link-results').show();

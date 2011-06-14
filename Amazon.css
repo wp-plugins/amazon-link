@@ -38,8 +38,9 @@ margin: 1px;
  height:100px;
  float:right;
  border:1px dotted;
- padding:5px;
+ margin:3px;
  width:100px;
+ overflow:hidden;
 }
 
 .amazon_img_container a {

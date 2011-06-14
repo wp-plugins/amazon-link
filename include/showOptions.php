@@ -5,8 +5,8 @@
  * Admin Panel Processing
  *
  */
-   global $wpdb;
-   $Opts = $this->getOptions();
+   $Opts       = $this->getOptions();
+   $optionList = $this->get_option_list();
 
 /*****************************************************************************************/
 
@@ -20,7 +20,7 @@
 
       // Update Current Wishlist settings
 
-      foreach ($this->optionList as $optName => $optDetails) {
+      foreach ($optionList as $optName => $optDetails) {
          if (isset($optDetails['Name'])) {
             // Read their posted value
             $Opts[$optName] = stripslashes($_POST[$optName]);
@@ -46,7 +46,7 @@
     * If first run need to create a default settings
     */
    $Update=False;
-   foreach ($this->optionList as $optName => $optDetails) {
+   foreach ($optionList as $optName => $optDetails) {
       if(!isset($Opts[$optName]) && isset($optDetails['Default']) && (!$optDetails['Name'])) {
          $Opts[$optName] = $optDetails['Default'];
          $Update=True;
@@ -75,21 +75,28 @@
    $ip2n_status = $this->ip2n->status();
   
    if ($ip2n_status['Install'] == True) {
-      $this->optionList['ip2n_message']['Type'] = 'buttons';
-      $this->optionList['ip2n_message']['Description'] = $ip2n_status['Message'];
-      $this->optionList['ip2n_message']['Buttons'][__('Install Database','amazon-link')] = 
+      $optionList['ip2n_message']['Type'] = 'buttons';
+      $optionList['ip2n_message']['Description'] = $ip2n_status['Message'];
+      $optionList['ip2n_message']['Buttons'][__('Install Database','amazon-link')] = 
                     array('Class' => 'button-secondary', 'Action' => 'AmazonLinkAction');
    } else {
-      $this->optionList['ip2n_message']['Type'] = 'title';
-      $this->optionList['ip2n_message']['Value'] = $ip2n_status['Message'];
-      $this->optionList['ip2n_message']['Class'] = 'sub-head';
+      $optionList['ip2n_message']['Type'] = 'title';
+      $optionList['ip2n_message']['Value'] = $ip2n_status['Message'];
+      $optionList['ip2n_message']['Title_Class'] = 'sub-head';
    }
 
 /*****************************************************************************************/
 
+   unset($optionList['wishlist_template']['Options']);
+   $Templates = $this->getTemplates();
+   foreach ($Templates as $templateName => $Details) {
+      $optionList['wishlist_template']['Options'][] = $templateName;
+   }
+
+
    // **********************************************************
    // Now display the options editing screen
 
-   $this->form->displayForm($this->optionList, $Opts);
+   $this->form->displayForm($optionList, $Opts);
 
 ?>
