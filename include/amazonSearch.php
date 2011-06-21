@@ -100,7 +100,7 @@ if (!class_exists('AmazonLinkSearch')) {
                                   'cc'           => array( 'Description' => __('Localised Country Code (us, uk, etc.)', 'amazon-link')),
                                   'mplace'       => array( 'Description' => __('Localised Amazon Marketplace Code (US, GB, etc.)', 'amazon-link')),
                                   'tld'          => array( 'Description' => __('Localised Top Level Domain (.com, .co.uk, etc.)', 'amazon-link')),
-                                  'downloaded'   => array( 'Description' => __('1 if Images are in the local Wordpress media library)', 'amazon-link')),
+                                  'downloaded'   => array( 'Description' => __('1 if Images are in the local Wordpress media library', 'amazon-link')),
                                   'link_open'    => array( 'Description' => __('Create a Amazon link with user defined content, of the form %LINK_OPEN%My Content%LINK_CLOSE%', 'amazon-link')),
                                   'link_close'   => array( 'Description' => __('Must follow a LINK_OPEN (translates to "</a>").', 'amazon-link')));
       }

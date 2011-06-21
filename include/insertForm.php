@@ -57,7 +57,7 @@
          'asin' => array( 'Id' => 'AmazonLinkOpt', 'Name' => __('ASIN', 'amazon-link'), 'Default' => '', 'Type' => 'text', 'Hint' => __('Amazon product ASIN', 'amazon-link'), 'Size' => '30', 
                            'Buttons' => array( __('Insert Link', 'amazon-link' ) => array( 'Type' => 'button', 'Class' => 'button-primary', 'Script' => 'return wpAmazonLinkAd.sendToEditor(this.form);'))),
          'text' => array( 'Id' => 'AmazonLinkOpt', 'Name' => __('Link Text', 'amazon-link'), 'Hint' => __('Amazon Link text', 'amazon-link'), 'Default' => 'Amazon', 'Type' => 'text', 'Size' => '40'),
-         'template' => array( 'Id' => 'AmazonLinkOpt', 'Name' => __('Template', 'amazon-link'), 'Hint' => __('Choose which template is used to display the item.', 'amazon-link'), 'Default' => '', 'Type' => 'selection'),
+         'template' => array( 'Id' => 'AmazonLinkOpt', 'Name' => __('Template', 'amazon-link'), 'Hint' => __('Choose which template is used to display the item.', 'amazon-link'), 'Default' => ' ', 'Type' => 'selection'),
          'subhd2' => array ( 'Type' => 'title', 'Value' => __('Search Amazon for Products', 'amazon-link'), 'Title_Class' => 'sub-head'),
 
 
@@ -90,7 +90,7 @@
          'live' => array( 'Id' => 'AmazonLinkOpt', 'Name' => __('Live Data', 'amazon-link'), 'Hint' => __('When displaying the link, use live data from amazon to populate the template', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox', 'Class' => 'hide-if-js'),
          );
 
-   $optionList['template']['Options'] = array('');
+   $optionList['template']['Options'] = array(' ');
    $Templates = $this->getTemplates();
    foreach ($Templates as $templateName => $Details) {
       $optionList['template']['Options'][$templateName]['Name'] = $templateName . '  -  ' . $Details['Description'];

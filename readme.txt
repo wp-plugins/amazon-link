@@ -49,6 +49,27 @@ To generate a list of products relevant to the content of your site use the 'cat
 
 This is created by either putting the line `amazon_recommends(<Category>,<Number of Posts>)` in your template. Or putting the line `[amazon cat=<Category>&last=<Number of Posts>]` within a post or page. Where 'Category' is a list of category ids to search within (e.g. as expected by the 'cat' argument of [query_posts](http://codex.wordpress.org/Template_Tags/query_posts#Parameters) function. The 'last' parameter is the number of posts to search through.
 
+= Latest Version - 2.0 =
+
+
+
+* Add template facility, with pre-designed templates for most Amazon widgets
+* Add ability to create multiple links from one shortcode
+* Add shortcode processing in widgets
+* Add an option to make the links open in a new window when clicked on by a reader.
+* Add an option to set the length of the wishlist displayed
+
+
+= Development Version =
+
+
+
+* Tidy up options so that default affiliate ID's are not displayed and removed redundant 'remote_images' option.
+* Fix bug with plugin activation outputting characters - Thanks to Viktor for highlight
+
+
+
+
 == Installation ==
 
 
@@ -334,9 +355,19 @@ Features I will be adding to the plugin in the future:
 
 
 * Allow the wishlist to search for legacy amazon links not just ones embedded in the shortcode.
+* Cache product queries to the Amazon sites (by locality).
+
 
 
 == Changelog ==
+
+
+= Development Version =
+
+
+
+* Tidy up options so that default affiliate ID's are not displayed and removed redundant 'remote_images' option.
+
 
 
 = 2.0 =

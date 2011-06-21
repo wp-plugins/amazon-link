@@ -218,7 +218,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
       }
 
       function generate_multi_script() {
-         $Settings     = $this->getOptions();
+         $Settings     = $this->getSettings();
          $country_data = $this->get_country_data();
 
          $TARGET = $Settings['new_window'] ? 'target="_blank"' : '';
@@ -292,8 +292,8 @@ function al_gen_multi (id, asin, def) {
             $this->country_data = array('uk' => array('name' => __('United Kingdom', 'amazon-link'), 'flag' => 'images/flag_uk.gif', 'market' => 'GB', 'tld' => 'co.uk', 'site' => 'https://affiliate-program.amazon.co.uk', 'default_tag' => 'livpauls-21'),
                                         'us' => array('name' => __('United States', 'amazon-link'), 'flag' => 'images/flag_us.gif', 'market' => 'US', 'tld' => 'com', 'site' => 'https://affiliate-program.amazon.com', 'default_tag' => 'lipawe-20'),
                                         'de' => array('name' => __('Germany', 'amazon-link'), 'flag' => 'images/flag_de.gif', 'market' => 'DE', 'tld' => 'de', 'site' => 'https://partnernet.amazon.de', 'default_tag' => 'lipas03-21'),
-                                        'fr' => array('name' => __('France', 'amazon-link'), 'flag' => 'images/flag_fr.gif', 'market' => 'FR', 'tld' => 'fr', 'site' => 'https://partenaires.amazon.fr', 'default_tag' => 'lipas03-21'),
-                                        'jp' => array('name' => __('Japan', 'amazon-link'), 'flag' => 'images/flag_jp.gif', 'market' => 'JP', 'tld' => 'jp', 'site' => 'https://affiliate.amazon.co.jp', 'default_tag' => 'Livpaul21-22'),
+                                        'fr' => array('name' => __('France', 'amazon-link'), 'flag' => 'images/flag_fr.gif', 'market' => 'FR', 'tld' => 'fr', 'site' => 'https://partenaires.amazon.fr', 'default_tag' => 'lipas-21'),
+                                        'jp' => array('name' => __('Japan', 'amazon-link'), 'flag' => 'images/flag_jp.gif', 'market' => 'JP', 'tld' => 'jp', 'site' => 'https://affiliate.amazon.co.jp', 'default_tag' => 'livpaul21-22'),
                                         'it' => array('name' => __('Italy', 'amazon-link'), 'flag' => 'images/flag_it.gif', 'market' => 'IT', 'tld' => 'it', 'site' => 'https://programma-affiliazione.amazon.it', 'default_tag' => 'livpaul-21'),
                                         'cn' => array('name' => __('China', 'amazon-link'), 'flag' => 'images/flag_cn.gif', 'market' => 'CN', 'tld' => 'cn', 'site' => 'https://associates.amazon.cn', 'default_tag' => 'livpaul-21'),
                                         'ca' => array('name' => __('Canada', 'amazon-link'), 'flag' => 'images/flag_ca.gif', 'market' => 'CA', 'tld' => 'ca', 'site' => 'https://associates.amazon.ca', 'default_tag' => 'lipas-20'));
@@ -336,7 +336,6 @@ function al_gen_multi (id, asin, def) {
 
             'multi_cc' => array('Name' => __('Multinational Link', 'amazon-link'), 'Description' => __('Insert links to all other Amazon sites after primary link.', 'amazon-link'), 'Default' => '1', 'Type' => 'checkbox', 'Class' => 'alternate al_border'),
             'localise' => array('Name' => __('Localise Amazon Link', 'amazon-link'), 'Description' => __('Make the link point to the users local Amazon website, (you must have ip2nation installed for this to work).', 'amazon-link'), 'Default' => '1', 'Type' => 'checkbox', 'Class' => 'al_border' ),
-            'remote_images' => array ( 'Name' => __('Remote Images', 'amazon-link'), 'Description' => __('Use images hosted on the Amazon site when creating shortcodes', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox', 'Class' => 'alternate al_border' ),
             'live' => array ( 'Name' => __('Live Data', 'amazon-link'), 'Description' => __('When creating Amazon links, use live data from the Amazon site, otherwise populate the shortcode with static information.', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox', 'Class' => 'al_border' ),
             'new_window' => array('Name' => __('New Window Link', 'amazon-link'), 'Description' => __('When link is clicked on open it in a new browser window', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox', 'Class' => 'alternate' ),
    
@@ -344,7 +343,7 @@ function al_gen_multi (id, asin, def) {
    
             /* Options related to the Amazon backend */
 
-            'hd2s' => array ( 'Type' => 'section', 'Value' => __('Amazon Associate Information'), 'Section_Class' => 'al_subhead1'),
+            'hd2s' => array ( 'Type' => 'section', 'Value' => __('Amazon Associate Information','amazon-link'), 'Section_Class' => 'al_subhead1'),
             'default_cc' => array( 'Name' => __('Default Country', 'amazon-link'), 'Description' => __('Which country\'s Amazon site to use by default', 'amazon-link'), 'Default' => 'uk', 'Type' => 'radio', 'Class' => 'al_border' ),
             'pub_key' => array( 'Name' => __('AWS Public Key', 'amazon-link'), 'Description' => __('Public key provided by your AWS Account', 'amazon-link'), 'Default' => '', 'Type' => 'text', 'Size' => '40', 'Class' => 'alternate al_border' ),
             'priv_key' => array( 'Name' => __('AWS Private key', 'amazon-link'), 'Description' => __('Private key provided by your AWS Account.', 'amazon-link'), 'Default' => "", 'Type' => 'text', 'Size' => '40' ),
@@ -357,36 +356,36 @@ function al_gen_multi (id, asin, def) {
             foreach ($country_data as $cc => $data) {
                $this->optionList['default_cc']['Options'][$cc]['Name'] = '<img style="height:14px;" src="'. $this->URLRoot. '/'. $data['flag'] . '">';
                $this->optionList['default_cc']['Options'][$cc]['Input'] = 'tag_' . $cc;
-               $this->optionList['tag_' . $cc]['Type'] = 'option';
-               $this->optionList['tag_' . $cc]['Name'] = $data['name'] . __('Affiliate Tag', 'amazon-link');
-               $this->optionList['tag_' . $cc]['Default'] = $data['default_tag'];
-               $this->optionList['tag_' . $cc]['Description'] = sprintf(__('Enter your affiliate tag for %1$s.', 'amazon-link'), '<a href="'. $data['site']. '">'.$data['name'].'</a>' );
+               $this->optionList['tag_' . $cc] = array('Type' => 'option', 'OverrideBlank' => $data['default_tag'], 'Name' => $data['name'] . __(' Affiliate Tag', 'amazon-link'),
+                                                       'Description' => sprintf(__('Enter your affiliate tag for %1$s.', 'amazon-link'), '<a href="'. $data['site']. '">'.$data['name'].'</a>' ));
             }
 
-            // Populate the hidden Template Keywords
-            foreach ($this->search->keywords as $keyword => $details) {
-               if (!isset($this->optionList[$keyword]))
-                  $this->optionList[$keyword] = array( 'Type' => 'hidden' );
+            if (isset($this->search->keywords)) {
+               // Populate the hidden Template Keywords
+               foreach ($this->search->keywords as $keyword => $details) {
+                  if (!isset($this->optionList[$keyword]))
+                     $this->optionList[$keyword] = array( 'Type' => 'hidden' );
+               }
             }
          }
          return $this->optionList;
       }
 
       function getOptions() {
-         $optionList = $this->get_option_list();
          if (null === $this->Opts) {
             $this->Opts = get_option($this->optionName, array());
-            // Ensure hidden items are not stored in the database
-            foreach ( $optionList as $optName => $optDetails ) {
-               if ($optDetails['Type'] == 'hidden') unset($this->Opts[$optName]);
-            }
          }
          return $this->Opts;
       }
 
       function saveOptions($Opts) {
+         $optionList = $this->get_option_list();
          if (!is_array($Opts)) {
             return;
+         }
+         // Ensure hidden items are not stored in the database
+         foreach ( $optionList as $optName => $optDetails ) {
+            if ($optDetails['Type'] == 'hidden') unset($Opts[$optName]);
          }
          update_option($this->optionName, $Opts);
          $this->Opts = $Opts;
@@ -434,8 +433,13 @@ function al_gen_multi (id, asin, def) {
                $this->Settings[$key] = trim(stripslashes($args[$key]),"\x22\x27");              // Local setting
             } else if (isset($Opts[$key])) {
                $this->Settings[$key] = $Opts[$key];   // Global setting
+               if (isset($details['OverrideBlank']) && ($Opts[$key] == '')) {
+                  $this->Settings[$key] = $details['OverrideBlank'];      // Use default if Global Setting is blank
+               }
             } else if (isset ($details['Default'])) {
                $this->Settings[$key] = $details['Default'];      // Use default
+            } else if (isset ($details['OverrideBlank'])) {
+               $this->Settings[$key] = $details['OverrideBlank'];      // Use default
             }
          }
          $this->Settings['asin'] = explode (',', $this->Settings['asin']);
@@ -449,6 +453,12 @@ function al_gen_multi (id, asin, def) {
       function getSettings() {
          if (null === $this->Settings) {
             $this->Settings = $this->getOptions();
+         }
+         $optionList = $this->get_option_list();
+         foreach ($optionList as $key => $details) {
+            if ((!isset($this->Settings[$key]) || ($this->Settings[$key] == '')) && isset($details['OverrideBlank'])) {
+               $this->Settings[$key] = $details['OverrideBlank'];      // Use default
+            }
          }
          return $this->Settings;
       }

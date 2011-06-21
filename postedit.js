@@ -90,7 +90,7 @@ wpAmazonLinkAdmin.prototype = {
         var attrs = '';
         var sep = '';
         jQuery.each(options, function(name, value){
-            if (value != 'ignore') {
+            if (value != ' ') {
                 attrs += sep + name + '=' + value;
                 sep = '&';
             }
