@@ -4,7 +4,7 @@ Donate link: http://www.houseindorset.co.uk/plugins
 Tags: Amazon, links, wishlist, recommend, shortcode, ip2nation, localise, images, media library, affiliate, product, template
 Requires at least: 3.1
 Tested up to: 3.1.3
-Stable tag: 2.0
+Stable tag: 2.0.1
 
 
 Provides a facility to insert Amazon product links directly into your site's Pages, Posts and Widgets and Templates.
@@ -55,7 +55,7 @@ This is created by either putting the line `amazon_recommends(<Category>,<Number
 
 * Tidy up options so that default affiliate ID's are not displayed and removed redundant 'remote_images' option.
 * Fix bug with plugin activation outputting characters - Thanks to [Viktor Leberecht](http://viktor-leberecht.com) for highlighting.
-* Fix bug when creating the default templates - Thanks to [Tobias Hartmann](http://www.tobias-hartmann.net)) for spotting.
+* Fix bug when creating the default templates - Thanks to [Tobias Hartmann](http://www.tobias-hartmann.net))for spotting.
 
 
 == Installation ==
@@ -356,7 +356,7 @@ Features I will be adding to the plugin in the future:
 
 * Tidy up options so that default affiliate ID's are not displayed and removed redundant 'remote_images' option.
 * Fix bug with plugin activation outputting characters - Thanks to [Viktor Leberecht](http://viktor-leberecht.com) for highlighting.
-* Fix bug when creating the default templates - Thanks to [Tobias Hartmann](http://www.tobias-hartmann.net)) for spotting.
+* Fix bug when creating the default templates - Thanks to [Tobias Hartmann](http://www.tobias-hartmann.net) for spotting.
 
 
 = 2.0 =
