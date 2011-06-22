@@ -83,7 +83,7 @@ $thumbnail_template = htmlspecialchars ('
 %LINK_OPEN%<img alt="%TITLE%" title="%TITLE%" src="%THUMB%" class="%IMAGE_CLASS%">%LINK_CLOSE%');
 
 
-         $this->DefaultTemplates = array (
+         $this->default_templates = array (
             'Carousel' => array ( 'Name' => 'Carousel', 'Description' => __('Amazon Carousel Widget', 'amazon-link'), 
                                   'Content' => $carousel_template ),
             'Iframe Image' => array ( 'Name' => 'Iframe Image', 'Description' => __('Standard Amazon Image Link', 'amazon-link'), 
