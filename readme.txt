@@ -49,13 +49,17 @@ To generate a list of products relevant to the content of your site use the 'cat
 
 This is created by either putting the line `amazon_recommends(<Category>,<Number of Posts>)` in your template. Or putting the line `[amazon cat=<Category>&last=<Number of Posts>]` within a post or page. Where 'Category' is a list of category ids to search within (e.g. as expected by the 'cat' argument of [query_posts](http://codex.wordpress.org/Template_Tags/query_posts#Parameters) function. The 'last' parameter is the number of posts to search through.
 
-= Latest Version - 2.0.1 =
+= Latest Version - 2.0.2 =
 
 
 
-* Tidy up options so that default affiliate ID's are not displayed and removed redundant 'remote_images' option.
-* Fix bug with plugin activation outputting characters - Thanks to [Viktor Leberecht](http://viktor-leberecht.com) for highlighting.
-* Fix bug when creating the default templates - Thanks to [Tobias Hartmann](http://www.tobias-hartmann.net))for spotting.
+* Make template names case insensitive
+* Added debug output option to help diagnosis of problems
+* Bug Fix - Only do 'live' data lookups when activated
+* Bug Fix - Improve ability of shortcode settings to override global settings when generating template links
+* Bug Fix - If product not available in locale, use authors locale.
+* Bug Fix - Improve handling of failed ASIN lookups
+* Bug Fix - Correct usage of activation hook, and add upgrade checks
 
 
 == Installation ==
@@ -252,7 +256,7 @@ The 'Wishlist' template is the default template used for any lists created by sh
 Will produce a text link to an Amazon Product page:
 
 
-`[amazon asin=B001L4GBXY&title=Guns n' Roses CD&template=Thumbnail]`
+`[amazon asin=B001L4GBXY&title=Guns n' Roses CD&template=Thumbnail&live=1]`
 Will produce a thumbnail image link to an Amazon Product page.
 
 

@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  \n"
 "Report-Msgid-Bugs-To: http://wordpress.org/tag/amazon-link\n"
-"POT-Creation-Date: 2011-06-22 06:13:58+00:00\n"
+"POT-Creation-Date: 2011-07-13 08:06:38+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -11,7 +11,7 @@ msgstr ""
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 
-#: amazon.php:359
+#: amazon.php:395
 msgid " Affiliate Tag"
 msgstr ""
 
@@ -36,7 +36,7 @@ msgstr ""
 msgid "<b>WARNING!</b> You're <b>ip2nation</b> database is out of date. It was last updated on %1$s, the latest version available is dated: %2$s"
 msgstr ""
 
-#: amazon.php:628
+#: amazon.php:673
 msgid "<p>Hover the mouse pointer over the keywords for more information.</p>"
 msgstr ""
 
@@ -44,11 +44,11 @@ msgstr ""
 msgid "ASIN"
 msgstr ""
 
-#: amazon.php:349
+#: amazon.php:384
 msgid "AWS Private key"
 msgstr ""
 
-#: amazon.php:348
+#: amazon.php:383
 msgid "AWS Public Key"
 msgstr ""
 
@@ -56,11 +56,15 @@ msgstr ""
 msgid "Add ASIN to list of ASINs above"
 msgstr ""
 
+#: amazon.php:385
+msgid "Adds hidden debug output to the page source to aid debugging. <b>Do not enable on live sites</b>."
+msgstr ""
+
 #: include/insertForm.php:86
 msgid "Advanced settings"
 msgstr ""
 
-#: amazon.php:346
+#: amazon.php:381
 msgid "Amazon Associate Information"
 msgstr ""
 
@@ -68,11 +72,11 @@ msgstr ""
 msgid "Amazon Carousel Widget"
 msgstr ""
 
-#: amazon.php:163
+#: amazon.php:198
 msgid "Amazon Link"
 msgstr ""
 
-#: amazon.php:578
+#: amazon.php:623
 msgid "Amazon Link Options"
 msgstr ""
 
@@ -108,11 +112,11 @@ msgstr ""
 msgid "Author or Artist to search for"
 msgstr ""
 
-#: amazon.php:299
+#: amazon.php:334
 msgid "Canada"
 msgstr ""
 
-#: amazon.php:298
+#: amazon.php:333
 msgid "China"
 msgstr ""
 
@@ -128,16 +132,16 @@ msgstr ""
 msgid "Comma seperated list of ASINs"
 msgstr ""
 
-#: include/showTemplates.php:72
 #: include/showTemplates.php:21
+#: include/showTemplates.php:72
 msgid "Copy"
 msgstr ""
 
-#: include/amazonSearch.php:407
+#: include/amazonSearch.php:405
 msgid "Could not read downloaded image"
 msgstr ""
 
-#: include/amazonSearch.php:382
+#: include/amazonSearch.php:380
 msgid "Could not retrieve remote image file"
 msgstr ""
 
@@ -145,34 +149,38 @@ msgstr ""
 msgid "Create a Amazon link with user defined content, of the form %LINK_OPEN%My Content%LINK_CLOSE%"
 msgstr ""
 
-#: amazon.php:347
+#: amazon.php:385
+msgid "Debug Output"
+msgstr ""
+
+#: amazon.php:382
 msgid "Default Country"
 msgstr ""
 
 #: include/showTemplates.php:101
-msgid "Default Templates Created - Note: 'Wishlist' template must exist."
+msgid "Default Templates Created - Note: 'wishlist' template must exist."
 msgstr ""
 
-#: amazon.php:331
+#: amazon.php:366
 msgid "Default template to use for the wishlist"
 msgstr ""
 
-#: amazon.php:329
+#: amazon.php:364
 msgid "Default text to display if none specified"
 msgstr ""
 
-#: amazon.php:333
 #: include/insertForm.php:85
+#: amazon.php:368
 msgid "Default type of wishlist to display, 'Similar' shows items similar to the ones found, 'Random' shows a random selection of the ones found "
 msgstr ""
 
+#: include/showTemplates.php:24
 #: include/showTemplates.php:68
 #: include/insertForm.php:40
-#: include/showTemplates.php:24
 msgid "Delete"
 msgstr ""
 
-#: amazon.php:327
+#: amazon.php:362
 msgid "Display Options"
 msgstr ""
 
@@ -184,7 +192,7 @@ msgstr ""
 msgid "Enter the following settings for an Amazon Wishlist"
 msgstr ""
 
-#: amazon.php:360
+#: amazon.php:396
 msgid "Enter your affiliate tag for %1$s."
 msgstr ""
 
@@ -192,15 +200,15 @@ msgstr ""
 msgid "Error - No results returned from your query."
 msgstr ""
 
-#: amazon.php:295
+#: amazon.php:330
 msgid "France"
 msgstr ""
 
-#: amazon.php:294
+#: amazon.php:329
 msgid "Germany"
 msgstr ""
 
-#: amazon.php:330
+#: amazon.php:365
 msgid "Image Class"
 msgstr ""
 
@@ -224,8 +232,8 @@ msgstr ""
 msgid "Insert a link into the post, based on the selected template"
 msgstr ""
 
-#: amazon.php:337
 #: include/insertForm.php:89
+#: amazon.php:372
 msgid "Insert links to all other Amazon sites after primary link."
 msgstr ""
 
@@ -234,7 +242,7 @@ msgstr ""
 msgid "Install Database"
 msgstr ""
 
-#: amazon.php:297
+#: amazon.php:332
 msgid "Italy"
 msgstr ""
 
@@ -262,12 +270,12 @@ msgstr ""
 msgid "Items Title to search for"
 msgstr ""
 
-#: amazon.php:296
+#: amazon.php:331
 msgid "Japan"
 msgstr ""
 
+#: amazon.php:364
 #: include/insertForm.php:59
-#: amazon.php:329
 msgid "Link Text"
 msgstr ""
 
@@ -275,13 +283,13 @@ msgstr ""
 msgid "List of Categories to search through for amazon links"
 msgstr ""
 
-#: amazon.php:339
 #: include/insertForm.php:90
+#: amazon.php:374
 msgid "Live Data"
 msgstr ""
 
 #: include/insertForm.php:88
-#: amazon.php:338
+#: amazon.php:373
 msgid "Localise Amazon Link"
 msgstr ""
 
@@ -313,20 +321,20 @@ msgstr ""
 msgid "Make the link point to the users local Amazon website"
 msgstr ""
 
-#: amazon.php:338
+#: amazon.php:373
 msgid "Make the link point to the users local Amazon website, (you must have ip2nation installed for this to work."
 msgstr ""
 
-#: amazon.php:163
+#: amazon.php:198
 msgid "Manage Amazon Link Options"
 msgstr ""
 
-#: amazon.php:332
+#: amazon.php:367
 msgid "Maximum number of items to display in a wishlist (Amazon only returns a maximum of 5, for the 'Similar' type of list"
 msgstr ""
 
-#: amazon.php:337
 #: include/insertForm.php:89
+#: amazon.php:372
 msgid "Multinational Link"
 msgstr ""
 
@@ -334,12 +342,12 @@ msgstr ""
 msgid "Must follow a LINK_OPEN (translates to "</a>"."
 msgstr ""
 
-#: include/showTemplates.php:80
 #: include/showTemplates.php:23
+#: include/showTemplates.php:80
 msgid "New"
 msgstr ""
 
-#: amazon.php:340
+#: amazon.php:375
 msgid "New Window Link"
 msgstr ""
 
@@ -347,7 +355,7 @@ msgstr ""
 msgid "No [amazon] tags found in the last %1$s posts in categories %2$s"
 msgstr ""
 
-#: include/amazonSearch.php:341
+#: include/amazonSearch.php:343
 msgid "No images found"
 msgstr ""
 
@@ -367,7 +375,7 @@ msgstr ""
 msgid "Numeric User Rating - (No longer Available"
 msgstr ""
 
-#: amazon.php:188
+#: amazon.php:223
 msgid "Options"
 msgstr ""
 
@@ -395,7 +403,7 @@ msgstr ""
 msgid "Price of Item"
 msgstr ""
 
-#: amazon.php:349
+#: amazon.php:384
 msgid "Private key provided by your AWS Account."
 msgstr ""
 
@@ -403,7 +411,7 @@ msgstr ""
 msgid "Product Index"
 msgstr ""
 
-#: amazon.php:348
+#: amazon.php:383
 msgid "Public key provided by your AWS Account"
 msgstr ""
 
@@ -427,7 +435,7 @@ msgstr ""
 msgid "Search Amazon for Products"
 msgstr ""
 
-#: amazon.php:252
+#: amazon.php:287
 msgid "Settings"
 msgstr ""
 
@@ -435,15 +443,12 @@ msgstr ""
 msgid "Standard Amazon Image Link"
 msgstr ""
 
-#: amazon.php:330
+#: amazon.php:365
 msgid "Style Sheet Class of image thumbnails"
 msgstr ""
 
-#: include/showTemplates.php:84
-#: include/showTemplates.php:84
-#: include/showTemplates.php:82
-#: include/showTemplates.php:86
 #: include/insertForm.php:60
+#: include/showTemplates.php:84
 msgid "Template"
 msgstr ""
 
@@ -467,12 +472,12 @@ msgstr ""
 msgid "Template Content"
 msgstr ""
 
-#: include/showTemplates.php:84
 #: include/showTemplates.php:18
+#: include/showTemplates.php:84
 msgid "Template Description"
 msgstr ""
 
-#: amazon.php:189
+#: amazon.php:224
 msgid "Template Help"
 msgstr ""
 
@@ -480,7 +485,7 @@ msgstr ""
 msgid "Template Name"
 msgstr ""
 
-#: amazon.php:190
+#: amazon.php:225
 msgid "Templates"
 msgstr ""
 
@@ -504,21 +509,21 @@ msgstr ""
 msgid "URL to Thumbnail Image"
 msgstr ""
 
-#: amazon.php:292
+#: amazon.php:327
 msgid "United Kingdom"
 msgstr ""
 
-#: amazon.php:293
+#: amazon.php:328
 msgid "United States"
 msgstr ""
 
-#: include/showTemplates.php:22
 #: include/showTemplates.php:43
+#: include/showTemplates.php:22
 msgid "Update"
 msgstr ""
 
+#: amazon.php:388
 #: include/showOptions.php:19
-#: amazon.php:352
 msgid "Update Options"
 msgstr ""
 
@@ -544,13 +549,13 @@ msgstr ""
 
 #: include/amazonSearch.php:89
 #: include/amazonSearch.php:88
-#: include/amazonSearch.php:86
 #: include/amazonSearch.php:87
+#: include/amazonSearch.php:86
 #: include/amazonSearch.php:85
 msgid "User Defined Text string"
 msgstr ""
 
-#: amazon.php:339
+#: amazon.php:374
 msgid "When creating Amazon links, use live data from the Amazon site, otherwise populate the shortcode with static information."
 msgstr ""
 
@@ -558,7 +563,7 @@ msgstr ""
 msgid "When displaying the link, use live data from amazon to populate the template"
 msgstr ""
 
-#: amazon.php:340
+#: amazon.php:375
 msgid "When link is clicked on open it in a new browser window"
 msgstr ""
 
@@ -566,19 +571,19 @@ msgstr ""
 msgid "Which Amazon Product Index to Search through"
 msgstr ""
 
-#: amazon.php:347
+#: amazon.php:382
 msgid "Which country's Amazon site to use by default"
 msgstr ""
 
-#: amazon.php:332
+#: amazon.php:367
 msgid "Wishlist Length"
 msgstr ""
 
-#: amazon.php:331
+#: amazon.php:366
 msgid "Wishlist Template"
 msgstr ""
 
-#: amazon.php:333
+#: amazon.php:368
 #: include/insertForm.php:85
 msgid "Wishlist Type"
 msgstr ""
@@ -625,6 +630,12 @@ msgstr ""
 
 #: include/ip2nation.php:97
 msgid "ip2nation install: Failed to open temporary  file (%s."
+msgstr ""
+
+#: include/showTemplates.php:84
+#: include/showTemplates.php:86
+#: include/showTemplates.php:82
+msgid "template"
 msgstr ""
 
 #: include/insertForm.php:77

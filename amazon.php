@@ -4,7 +4,7 @@
 Plugin Name: Amazon Link
 Plugin URI: http://www.houseindorset.co.uk/plugins/amazon-link
 Description: Insert a link to Amazon using the passed ASIN number, with the required affiliate info.
-Version: 2.0.1
+Version: 2.0.2
 Text Domain: amazon-link
 Author: Paul Stuttard
 Author URI: http://www.houseindorset.co.uk
@@ -69,7 +69,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
       var $TagHead       = '[amazon';
       var $TagTail       = ']';
 
-      var $optionVer     = 1;
+      var $option_version= 2;
       var $optionName    = 'AmazonLinkOptions';
       var $templatesName = 'AmazonLinkTemplates';
       var $settings_slug = 'amazon-link-options';
@@ -107,12 +107,16 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
 
       // Functions for the above hooks
  
-      // On activation of plugin - used to upgrade settings of previous versions
+      // On activation of plugin - used to create default settings
       function activate() {
 
-         // Options structure changed so need to add the 'version' option and upgrade as appropriate...
          $Opts = $this->getOptions();
+         $this->saveOptions($Opts);
+      }
 
+      function upgrade_settings($Opts) {
+
+         // Options structure changed so need to update the 'version' option and upgrade as appropriate...
          if (!isset($Opts['version'])) {
 
             $cc_map = array('co.uk' => 'uk', 'com' => 'us', 'fr' => fr, 'de' => 'de', 'ca' => 'ca', 'jp' => 'jp');
@@ -127,6 +131,37 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
             unset($Opts['tag']);
             $Opts['version'] = 1;
             $this->saveOptions($Opts);
+         }
+
+         if ($Opts['version'] == 1) {
+
+            /* Upgrade from 1 to 2:
+             * force Template ids to lower case & update 'wishlist_template'.
+             */
+            $Templates = $this->getTemplates();
+            foreach ($Templates as $Name => $value)
+            {
+               $renamed_templates[strtolower($Name)] = $value;
+            }
+            $this->saveTemplates($renamed_templates);
+            $Templates = $renamed_templates;
+            if (isset($Opts['wishlist_template'])) 
+               $Opts['wishlist_template'] = strtolower($Opts['wishlist_template']);
+            $Opts['version'] = 2;
+            $this->saveOptions($Opts);
+         }
+
+         /*
+          * If first run need to create a default templates
+          */
+         if(!isset($Templates['wishlist'])) {
+            $default_templates = $this->get_default_templates();
+            foreach ($default_templates as $templateName => $templateDetails) {
+               if(!isset($Templates[$templateName])) {
+                  $Templates[$templateName] = $templateDetails;
+               }
+            }
+            $this->saveTemplates($Templates);
          }
       }
 
@@ -346,7 +381,8 @@ function al_gen_multi (id, asin, def) {
             'hd2s' => array ( 'Type' => 'section', 'Value' => __('Amazon Associate Information','amazon-link'), 'Section_Class' => 'al_subhead1'),
             'default_cc' => array( 'Name' => __('Default Country', 'amazon-link'), 'Description' => __('Which country\'s Amazon site to use by default', 'amazon-link'), 'Default' => 'uk', 'Type' => 'radio', 'Class' => 'al_border' ),
             'pub_key' => array( 'Name' => __('AWS Public Key', 'amazon-link'), 'Description' => __('Public key provided by your AWS Account', 'amazon-link'), 'Default' => '', 'Type' => 'text', 'Size' => '40', 'Class' => 'alternate al_border' ),
-            'priv_key' => array( 'Name' => __('AWS Private key', 'amazon-link'), 'Description' => __('Private key provided by your AWS Account.', 'amazon-link'), 'Default' => "", 'Type' => 'text', 'Size' => '40' ),
+            'priv_key' => array( 'Name' => __('AWS Private key', 'amazon-link'), 'Description' => __('Private key provided by your AWS Account.', 'amazon-link'), 'Default' => '', 'Type' => 'text', 'Size' => '40' ),
+            'debug' => array( 'Name' => __('Debug Output', 'amazon-link'), 'Description' => __('Adds hidden debug output to the page source to aid debugging. <b>Do not enable on live sites</b>.', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox', 'Size' => '40' ),
             'hd2e' => array ( 'Type' => 'end'),
 
             'button' => array( 'Type' => 'buttons', 'Buttons' => array( __('Update Options', 'amazon-link' ) => array( 'Class' => 'button-primary', 'Action' => 'AmazonLinkAction'))));
@@ -374,6 +410,11 @@ function al_gen_multi (id, asin, def) {
       function getOptions() {
          if (null === $this->Opts) {
             $this->Opts = get_option($this->optionName, array());
+            if (!isset($this->Opts['version']) || ($this->Opts['version'] < $this->option_version))
+            {
+               $this->upgrade_settings($this->Opts);
+               $this->Opts = get_option($this->optionName, array());
+            }
          }
          return $this->Opts;
       }
@@ -400,7 +441,6 @@ function al_gen_multi (id, asin, def) {
          if (null === $this->Templates) {
             $this->Templates = get_option($this->templatesName, array());
             ksort($this->Templates);
-
          }
          return $this->Templates;
       }
@@ -468,40 +508,38 @@ function al_gen_multi (id, asin, def) {
 
       function get_country() {
 
-        // Pretty arbitrary mapping of domains to Amazon sites, default to 'com' - the 'international' site.
-        $country_map = array('uk' => array('uk', 'ie', 'gi', 'gl', 'nl', 'vg', 'cy', 'gb'),
-                             'fr' => array('fr', 'be', 'bj', 'bf', 'bi', 'cm', 'cf', 'td', 'km', 'cg', 'dj', 'ga', 'gp',
-                                           'gf', 'gr', 'pf', 'tf', 'ht', 'ci', 'lu', 'mg', 'ml', 'mq', 'yt', 'mc', 'nc',
-                                           'ne', 're', 'sn', 'sc', 'tg', 'vu', 'wf', 'es'),
-                             'de' => array('de', 'at', 'ch', 'no', 'dn', 'li', 'sk'),
-                             'it' => array('it'),
-                             'cn' => array('cn'),
-                             'ca' => array('ca', 'pm'),
-                             'jp' => array('jp')
-                            );
+         // Pretty arbitrary mapping of domains to Amazon sites, default to 'com' - the 'international' site.
+         $country_map = array('uk' => array('uk', 'ie', 'gi', 'gl', 'nl', 'vg', 'cy', 'gb'),
+                              'fr' => array('fr', 'be', 'bj', 'bf', 'bi', 'cm', 'cf', 'td', 'km', 'cg', 'dj', 'ga', 'gp',
+                                            'gf', 'gr', 'pf', 'tf', 'ht', 'ci', 'lu', 'mg', 'ml', 'mq', 'yt', 'mc', 'nc',
+                                            'ne', 're', 'sn', 'sc', 'tg', 'vu', 'wf', 'es'),
+                              'de' => array('de', 'at', 'ch', 'no', 'dn', 'li', 'sk'),
+                              'it' => array('it'),
+                              'cn' => array('cn'),
+                              'ca' => array('ca', 'pm'),
+                              'jp' => array('jp')
+                             );
                           
-        $country = False;
+         $country = False;
 
-        if (!isset($this->country)) {
+         if ($this->Settings['localise'])
+         {
+            if (!isset($this->local_country)) {
+               $cc = $this->ip2n->get_cc();
+               $country = 'us';
+               foreach ($country_map as $key => $countries) {
+                  if (in_array($cc, $countries)) {
+                     $country = $key;
+                     continue;
+                  }
+               }
+               $this->local_country = $country;
+            }
 
-           if ($this->Settings['localise']) {
-              $cc = $this->ip2n->get_cc();
-              $country = 'us';
-              foreach ($country_map as $key => $countries) {
-                 if (in_array($cc, $countries)) {
-                    $country = $key;
-                    continue;
-                 }
-              }
-           }
+            return $this->local_country;
+         }
 
-           if ($country)
-              $this->country = $country;
-           else
-              $this->country = $this->Settings['default_cc'];
-         }	
-
-         return $this->country;
+         return $this->Settings['default_cc'];
       }
 
 /*****************************************************************************************/
@@ -526,34 +564,41 @@ function al_gen_multi (id, asin, def) {
                $newContent = $newContent . substr($content, $index);
                break;
             } else {
+               $output = '';
                // Need to parse any arguments
                $tagEnd = strpos($content, $this->TagTail, $found);
                $arguments = substr($content, $found + strlen($this->TagHead), ($tagEnd-$found-strlen($this->TagHead)));
-
                $this->parseArgs($arguments);
-
                if (isset($this->Settings['cat'])) {
                   if ($doRecs) {
-                     $output = $this->showRecommendations($this->Settings['cat'],$this->Settings['last']);
+                     if ($this->Settings['debug']) {
+                        $output .= '<!-- Amazon Link: ' . $this->version . ' - ' . substr($content, $found, $tagEnd - $found+1) . "\n";
+                        $output .= print_r($this->Settings, true) . ' -->';
+                     }
+                     $output .= $this->showRecommendations($this->Settings['cat'],$this->Settings['last']);
                   } elseif (!$this->stylesNeeded) {
-                     $output = '<span id="al_popup" onmouseover="al_div_in()" onmouseout="al_div_out()"></span>' .
+                     $output .= '<span id="al_popup" onmouseover="al_div_in()" onmouseout="al_div_out()"></span>' .
                                substr($content, $found, ($tagEnd - $found) + strlen($this->TagTail));
                      $this->stylesNeeded = True;
                   } else {
-                     $output = substr($content, $found, ($tagEnd - $found) + strlen($this->TagTail));
+                     $output .= substr($content, $found, ($tagEnd - $found) + strlen($this->TagTail));
                   }
                } else if ($doLinks) {
                   // Generate Amazon Link
                   $this->tags = array_merge($this->Settings['asin'], $this->tags);
-                  $output = $this->make_links($this->Settings['asin'], $this->Settings['text']);
+                     if ($this->Settings['debug']) {
+                        $output .= '<!-- Amazon Link: ' . $this->version . ' - ' . substr($content, $found, $tagEnd - $found+1) . "\n";
+                        $output .= print_r($this->Settings, true) . ' -->';
+                     }
+                  $output .= $this->make_links($this->Settings['asin'], $this->Settings['text']);
                } else {
                   $this->tags = array_merge($this->Settings['asin'], $this->tags);
                   if ($this->Settings['multi_cc'] && !$this->stylesNeeded) {
                      $this->stylesNeeded = True;
-                     $output = '<span id="al_popup" onmouseover="al_div_in()" onmouseout="al_div_out()"></span>' .
+                     $output .= '<span id="al_popup" onmouseover="al_div_in()" onmouseout="al_div_out()"></span>' .
                                substr($content, $found, ($tagEnd - $found) + strlen($this->TagTail));
                   } else {
-                     $output = substr($content, $found, ($tagEnd - $found) + strlen($this->TagTail));
+                     $output .= substr($content, $found, ($tagEnd - $found) + strlen($this->TagTail));
                   }
                }
 
@@ -694,7 +739,6 @@ function al_gen_multi (id, asin, def) {
             $cc = 'com';
          $tld = $country_data[$cc]['tld'];
          if (!isset($request['AssociateTag'])) $request['AssociateTag'] = $Settings['tag_' . $cc];
-
          return aws_signed_request($tld, $request, $Settings['pub_key'], $Settings['priv_key']);
       }
 
@@ -708,42 +752,52 @@ function al_gen_multi (id, asin, def) {
           * If a template is specified and exists then populate it
           */
          if (isset($Settings['template'])) {
+            $template = strtolower($Settings['template']);
             $Templates = $this->getTemplates();
-            if (isset($Templates[$Settings['template']])) {
+            if (isset($Templates[$template])) {
                $details = array();
                unset($Settings['asin']);
-               $Settings['template'] = $Templates[$this->Settings['template']]['Content'];
+               $Settings['template'] = $Templates[$template]['Content'];
                if (preg_match('/%ASINS%/i', $Settings['template'])) {
                   $details[] = array('ASINS' => implode(',', $asins));
                } else {
                   foreach ($asins as $asin) {
                      if (strlen($asin) > 8) {
-                        if (isset($Settings['live']) || (count($asins) > 1)) {
-                           $details[] = $this->search->itemLookup($asin);
+                        if (($Settings['live']) || (count($asins) > 1)) {
+                           $lookup = $this->search->itemLookup($asin);
+                           if (empty($lookup))
+                           {
+                              $this->Settings['localise'] = 0;
+                              $Settings['localise'] = 0;
+                              $lookup = $this->search->itemLookup($asin);
+                              if (empty($lookup))
+                                 $lookup = array('ASIN' => $asin );
+                           }
+                           $details[] = $lookup;
                         } else {
                            $details[] = array('ASIN' => $asin );
                         }
                      }
                   }
                }
-               $items = array_shift($this->search->parse_results($details, $Settings));
+               if (!empty($details))
+               {
+                  $items = array_shift($this->search->parse_results($details, $Settings));
 
-//             echo "<PRE>Items:"; print_r($items); echo "</pre>";
-               foreach ($items as $item => $details) {
-                  $output .= $details['template'];
+                  foreach ($items as $item => $details) {
+                     $output .= $details['template'];
+                  }
                }
             return $output;
             }
          }
 
-         foreach ($asins as $asin) { // PS
-//                  echo "<PRE>Details:"; print_r($this->Settings); echo "</pre>";
+         foreach ($asins as $asin) {
 
          /*
           * This code required to maintain backward compatibility
           */
          $object = stripslashes($link_text);
-
          // Do we need to display or link to an image ?
          if ($this->Settings['image'] || $this->Settings['thumb']) {
 
