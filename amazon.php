@@ -12,7 +12,7 @@ License: GPL2
 */
 
 /*
-Copyright 2005-2006 Paul Stuttard (email : wordpress_amazonlink@ redtom.co.uk)
+Copyright 2011-2012 Paul Stuttard (email : wordpress_amazonlink@ redtom.co.uk)
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -70,6 +70,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
       var $TagTail       = ']';
 
       var $option_version= 2;
+      var $plugin_version= '2.0.2';
       var $optionName    = 'AmazonLinkOptions';
       var $templatesName = 'AmazonLinkTemplates';
       var $settings_slug = 'amazon-link-options';
@@ -363,26 +364,26 @@ function al_gen_multi (id, asin, def) {
 
             'text' => array( 'Name' => __('Link Text', 'amazon-link'), 'Description' => __('Default text to display if none specified', 'amazon-link'), 'Default' => 'www.amazon.co.uk', 'Type' => 'text', 'Size' => '40', 'Class' => 'al_border' ),
             'image_class' => array ( 'Name' => __('Image Class', 'amazon-link'), 'Description' => __('Style Sheet Class of image thumbnails', 'amazon-link'), 'Default' => 'wishlist_image', 'Type' => 'text', 'Size' => '40', 'Class' => 'alternate al_border' ),
-            'wishlist_template' => array (  'Default' => 'Wishlist', 'Name' => __('Wishlist Template', 'amazon-link') , 'Description' => __('Default template to use for the wishlist', 'amazon-link'), 'Type' => 'selection', 'Class' => 'al_border'  ),
-            'wishlist_items' => array (  'Name' => __('Wishlist Length', 'amazon-link'), 'Description' => __('Maximum number of items to display in a wishlist (Amazon only returns a maximum of 5, for the \'Similar\' type of list)', 'amazon-link'), 'Default' => 5, 'Type' => 'text', 'Class' => 'alternate al_border' ),
-            'wishlist_type' => array (  'Name' => __('Wishlist Type', 'amazon-link'), 'Description' => __('Default type of wishlist to display, \'Similar\' shows items similar to the ones found, \'Random\' shows a random selection of the ones found ', 'amazon-link'), 'Default' => 'Similar', 'Options' => array('Similar', 'Random', 'Multi'), 'Type' => 'selection', 'Class' => 'al_border'  ),
+            'wishlist_template' => array (  'Default' => 'Wishlist', 'Name' => __('Wishlist Template', 'amazon-link') , 'Description' => __('Default template to use for the wishlist <em>* <a href="#aws_notes" title="AWS Access keys required for full functionality">AWS</a> *</em>', 'amazon-link'), 'Type' => 'selection', 'Class' => 'al_border'  ),
+            'wishlist_items' => array (  'Name' => __('Wishlist Length', 'amazon-link'), 'Description' => __('Maximum number of items to display in a wishlist (Amazon only returns a maximum of 5, for the \'Similar\' type of list) <em>* <a href="#aws_notes" title="AWS Access keys required for full functionality">AWS</a> *</em>', 'amazon-link'), 'Default' => 5, 'Type' => 'text', 'Class' => 'alternate al_border' ),
+            'wishlist_type' => array (  'Name' => __('Wishlist Type', 'amazon-link'), 'Description' => __('Default type of wishlist to display, \'Similar\' shows items similar to the ones found, \'Random\' shows a random selection of the ones found <em>* <a href="#aws_notes" title="AWS Access keys required for full functionality">AWS</a> *</em>', 'amazon-link'), 'Default' => 'Similar', 'Options' => array('Similar', 'Random', 'Multi'), 'Type' => 'selection', 'Class' => 'al_border'  ),
 
             /* Options that change the behaviour of the links */
 
             'multi_cc' => array('Name' => __('Multinational Link', 'amazon-link'), 'Description' => __('Insert links to all other Amazon sites after primary link.', 'amazon-link'), 'Default' => '1', 'Type' => 'checkbox', 'Class' => 'alternate al_border'),
             'localise' => array('Name' => __('Localise Amazon Link', 'amazon-link'), 'Description' => __('Make the link point to the users local Amazon website, (you must have ip2nation installed for this to work).', 'amazon-link'), 'Default' => '1', 'Type' => 'checkbox', 'Class' => 'al_border' ),
-            'live' => array ( 'Name' => __('Live Data', 'amazon-link'), 'Description' => __('When creating Amazon links, use live data from the Amazon site, otherwise populate the shortcode with static information.', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox', 'Class' => 'al_border' ),
+            'live' => array ( 'Name' => __('Live Data', 'amazon-link'), 'Description' => __('When creating Amazon links, use live data from the Amazon site, otherwise populate the shortcode with static information. <em>* <a href="#aws_notes" title="AWS Access keys required for full functionality">AWS</a> *</em>', 'amazon-link'), 'Default' => '1', 'Type' => 'checkbox', 'Class' => 'al_border' ),
             'new_window' => array('Name' => __('New Window Link', 'amazon-link'), 'Description' => __('When link is clicked on open it in a new browser window', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox', 'Class' => 'alternate' ),
    
             'hd1e' => array ( 'Type' => 'end'),
    
             /* Options related to the Amazon backend */
-
             'hd2s' => array ( 'Type' => 'section', 'Value' => __('Amazon Associate Information','amazon-link'), 'Section_Class' => 'al_subhead1'),
             'default_cc' => array( 'Name' => __('Default Country', 'amazon-link'), 'Description' => __('Which country\'s Amazon site to use by default', 'amazon-link'), 'Default' => 'uk', 'Type' => 'radio', 'Class' => 'al_border' ),
-            'pub_key' => array( 'Name' => __('AWS Public Key', 'amazon-link'), 'Description' => __('Public key provided by your AWS Account', 'amazon-link'), 'Default' => '', 'Type' => 'text', 'Size' => '40', 'Class' => 'alternate al_border' ),
-            'priv_key' => array( 'Name' => __('AWS Private key', 'amazon-link'), 'Description' => __('Private key provided by your AWS Account.', 'amazon-link'), 'Default' => '', 'Type' => 'text', 'Size' => '40' ),
-            'debug' => array( 'Name' => __('Debug Output', 'amazon-link'), 'Description' => __('Adds hidden debug output to the page source to aid debugging. <b>Do not enable on live sites</b>.', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox', 'Size' => '40' ),
+            'aws_help' => array( 'Name' => __('AWS Note', 'amazon-link'), 'Value' => __('AWS Access Keys', 'amazon-link'), 'Description' => __('The AWS Keys are required for some of the features of the plugin to work (The ones marked with AWS above), visit <a href="http://aws.amazon.com/">Amazon Web Services</a> to sign up to get your own keys.', 'amazon-link'), 'Title_Class' => 'al_subheading', 'Id' => 'aws_notes', 'Default' => '', 'Type' => 'title', 'Class' => 'alternate al_border' ),
+            'pub_key' => array( 'Name' => __('AWS Public Key', 'amazon-link'), 'Description' => __('Access Key ID provided by your AWS Account, found under Security Credentials/Access Keys of your AWS account', 'amazon-link'), 'Default' => '', 'Type' => 'text', 'Size' => '40', 'Class' => 'alternate al_border' ),
+            'priv_key' => array( 'Name' => __('AWS Private key', 'amazon-link'), 'Description' => __('Secret Access Key ID provided by your AWS Account.', 'amazon-link'), 'Default' => '', 'Type' => 'text', 'Size' => '40', 'Class' => 'al_border' ),
+            'debug' => array( 'Name' => __('Debug Output', 'amazon-link'), 'Description' => __('Adds hidden debug output to the page source to aid debugging. <b>Do not enable on live sites</b>.', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox', 'Size' => '40', 'Class' => 'al_border' ),
             'hd2e' => array ( 'Type' => 'end'),
 
             'button' => array( 'Type' => 'buttons', 'Buttons' => array( __('Update Options', 'amazon-link' ) => array( 'Class' => 'button-primary', 'Action' => 'AmazonLinkAction'))));
@@ -502,6 +503,15 @@ function al_gen_multi (id, asin, def) {
          }
          return $this->Settings;
       }
+
+      function valid_keys() {
+         $Settings = $this->getSettings();
+
+         if ( (strlen($Settings['pub_key']) > 10) && (strlen($Settings['priv_key']) > 10))
+            return True;
+         return False;
+      }
+
 /*****************************************************************************************/
       /// Localise Link Facility
 /*****************************************************************************************/
@@ -572,7 +582,7 @@ function al_gen_multi (id, asin, def) {
                if (isset($this->Settings['cat'])) {
                   if ($doRecs) {
                      if ($this->Settings['debug']) {
-                        $output .= '<!-- Amazon Link: ' . $this->version . ' - ' . substr($content, $found, $tagEnd - $found+1) . "\n";
+                        $output .= '<!-- Amazon Link: ' . $this->plugin_version . ' - ' . substr($content, $found, $tagEnd - $found+1) . "\n";
                         $output .= print_r($this->Settings, true) . ' -->';
                      }
                      $output .= $this->showRecommendations($this->Settings['cat'],$this->Settings['last']);
@@ -587,7 +597,7 @@ function al_gen_multi (id, asin, def) {
                   // Generate Amazon Link
                   $this->tags = array_merge($this->Settings['asin'], $this->tags);
                      if ($this->Settings['debug']) {
-                        $output .= '<!-- Amazon Link: ' . $this->version . ' - ' . substr($content, $found, $tagEnd - $found+1) . "\n";
+                        $output .= '<!-- Amazon Link: ' . $this->plugin_version . ' - ' . substr($content, $found, $tagEnd - $found+1) . "\n";
                         $output .= print_r($this->Settings, true) . ' -->';
                      }
                   $output .= $this->make_links($this->Settings['asin'], $this->Settings['text']);
@@ -677,10 +687,6 @@ function al_gen_multi (id, asin, def) {
          echo $text;
       }
 
-
-/*****************************************************************************************/
-
-
 /*****************************************************************************************/
 
       // Page/Post Edit Screen Widget
@@ -763,7 +769,7 @@ function al_gen_multi (id, asin, def) {
                } else {
                   foreach ($asins as $asin) {
                      if (strlen($asin) > 8) {
-                        if (($Settings['live']) || (count($asins) > 1)) {
+                        if ((($Settings['live']) || (count($asins) > 1)) && $this->valid_keys()) {
                            $lookup = $this->search->itemLookup($asin);
                            if (empty($lookup))
                            {

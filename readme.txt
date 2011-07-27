@@ -3,8 +3,8 @@ Contributors: paulstuttard
 Donate link: http://www.houseindorset.co.uk/plugins
 Tags: Amazon, links, wishlist, recommend, shortcode, ip2nation, localise, images, media library, affiliate, product, template
 Requires at least: 3.1
-Tested up to: 3.1.3
-Stable tag: 2.0.1
+Tested up to: 3.2.1
+Stable tag: 2.0.2
 
 
 Provides a facility to insert Amazon product links directly into your site's Pages, Posts and Widgets and Templates.
@@ -55,10 +55,12 @@ This is created by either putting the line `amazon_recommends(<Category>,<Number
 
 * Make template names case insensitive
 * Added debug output option to help diagnosis of problems
+* Add notes to options page to highlight AWS requirements
+* Disable Search options on page/post edit screens if AWS keys not entered
 * Bug Fix - Only do 'live' data lookups when activated
 * Bug Fix - Improve ability of shortcode settings to override global settings when generating template links
-* Bug Fix - If product not available in locale, use authors locale.
-* Bug Fix - Improve handling of failed ASIN lookups
+* Bug Fix - If product not available in locale, use author's locale. Thanks to [Sandie](http://www.gardeningwormcomposting.com/) for highlighting.
+* Bug Fix - Improve handling of failed ASIN lookups. Thanks to [Matt](http://www.brividogiallo.biz/) for bring to my attention.
 * Bug Fix - Correct usage of activation hook, and add upgrade checks
 
 
@@ -115,13 +117,9 @@ If this option is selected and the [ip2nation](http://www.ip2nation.com/) databa
 
 Note when generating live product links the Italian and Chinese sites do not yet support this capability and will generate content from 'amazon.fr' and 'amazon.com' respectively.
 
-= Remote Images =
-
-If this option is selected then when generating shortcodes for image links, the plugin will point to ones hosted on Amazon, rather than ones in the media library.
-
 = Live Data =
 
-If this option is enabled then the plugin will attempt to retrieve up to date (and localised) information on the product when generating the product link. If not enabled then the plugin will only use the information included in the shortcode. This option can be overridden in the shortcode by specifying the 'live=1' or 'live=0' argument.
+If this option is enabled then the plugin will attempt to retrieve up to date (and localised) information on the product when generating the product link. For this to work the AWS Access keys in the global settings must be configured with valid keys. If not enabled then the plugin will only use the information included in the shortcode. This option can be overridden in the shortcode by specifying the 'live=1' or 'live=0' argument.
 
 Note this option also changes the behaviour of the Amazon Search Tool. When the tool is used to insert shortcodes into the post it will automatically prefill the keywords needed for the selected template. It will only do this if live data is not enabled.
 
@@ -137,11 +135,19 @@ The author must enter their Amazon Associate IDs for any countries they have an 
 
 = AWS Public Key =
 
-If you wish to use the wishlist/recommendations part of the plugin then you must have the appropriate AWS public and private key pair and enter them in these two settings. To get these keys simply register with the [Amazon Web Service](http://aws.amazon.com/) site and this will provide you with the appropriate strings.
+There are a number of features of the plugin that require access to Amazon Web Services (AWS). These include the generation of live data when displaying the links, providing a product search facility on the post/page edit admin screen, and the ability to generate product wishlists & reccomendations. 
+
+If you wish to use any of these features then you must have the appropriate AWS Access IDs and enter them in these two settings. To get these keys simply register with the [Amazon Web Service](http://aws.amazon.com/) site and this will provide you with the appropriate strings.
 
 = AWS Private Key =
 
 See above.
+
+= Debug =
+
+If you are having problems with the plugin and need to contact me, it may be helpful if you could enable this option briefly. It causes the plugin to put extra hidden output in your sites pages that are displaying amazon links, which I can use to diagnose any problems.
+
+It is not recommended that this option is enabled for any length of time as it will show your AWS access keys in the page html source.
 
 == Shortcode ==
 
@@ -314,7 +320,28 @@ If you are using the default Wishlist template that came with the plugin then yo
 
 The links that are generated can optionally be localised to the Amazon store most likely to be used by the visitor to your site, this is achieved by installing the [ip2nation](http://www.ip2nation.com/) database and enabling 'localise links' option in the plugin settings.
 
-Obviously the database is not perfect and some people browse through proxies or through their company's firewall so it may get the wrong country of origin. Additionally there are only 8 major Amazon sites (UK, France, Germany, US, Japan, Italy, China and Canada). So the plugin has to guess where a country's residents are most likely to shop on-line. An alternative is to enable the 'Multinational Link' option, this will enable a small popup for each link allowing the site visitor to choose the most appropriate site (based on locale or language).
+*Link Localisation Limitations*
+
+The localisation process is far from perfect and authors should be aware of the following limitations:
+
+
+* Incorrect nationality detection -
+
+    The database is updated periodically so it will may be slightly out of date and incorrectly detect an visitor's locale. Additionally some people browse through proxies or through their company's firewall which again may confuse the plugin and get the wrong country of origin.
+
+* Incorrect Amazon site allocation -
+
+    There are only 8 major Amazon sites (UK, France, Germany, US, Japan, Italy, China and Canada). So the plugin has to guess where a country's residents are most likely to shop on-line. An alternative is to enable the 'Multinational Link' option, this will enable a small popup for each link allowing the site visitor to choose the most appropriate site (based on locale or language).
+* Partial Amazon support for Italy and China -
+
+    Amazon currently does not support data lookup for Italy and China, so we have to use a different Amazon site (.fr and .com) to retrieve live data for these locales.
+* Product Availability -
+
+    A product that is available in the author's locale may not be available on other Amazon sites. If the live data option is enabled the plugin will display a link to the Amazon site in the author's own locale if the product is not available at the visitor's Amazon store.
+* Product Localisation -
+
+    Some products such as books, DVDs and CDs have unique ASINs for each language, country or region. There currently no facility for the plugin to find the correct product for that visitor. If it is not obvious from the product picture, it is recommended that for these items a note should be displayed that recommends the visitor finds the most appropriate version of the item for their locale. They may be disappointed to buy a book in a language they can not understand!
+
 
 The plugin includes a tool to install and monitor the status of the ip2nation database. However the installation of the ip2nation database is not validated, it simply downloads the latest database file from ip2nation and zaps it into your wordpress mysql database.
 
@@ -336,7 +363,7 @@ contact me and I will add it to the plugin ready for the next update.
 == Disclosure ==
 
 
-Note: If you do not update the affiliate tags then I will earn the commission on any sales your links make! For which I would be very grateful, as soon as you change the settings this will ensure all links on your site will be credited to your affiliate account(s).
+Amazon requires that all access to the AWS system contain a valid affiliate tag. If you don't not have an affiliate account for all locales do not worry. If the setting is empty the plugin will automatically insert a valid one by default. However it is recommended that you enrol in the Amazon Affiliate program for all countries that your site targets.
 
 == Future Updates ==
 
@@ -352,6 +379,22 @@ Features I will be adding to the plugin in the future:
 
 
 == Changelog ==
+
+
+= Latest Version - 2.0.2 =
+
+
+
+* Make template names case insensitive
+* Added debug output option to help diagnosis of problems
+* Add notes to options page to highlight AWS requirements
+* Disable Search options on page/post edit screens if AWS keys not entered
+* Bug Fix - Only do 'live' data lookups when activated
+* Bug Fix - Improve ability of shortcode settings to override global settings when generating template links
+* Bug Fix - If product not available in locale, use author's locale. Thanks to [Sandie](http://www.gardeningwormcomposting.com/) for highlighting.
+* Bug Fix - Improve handling of failed ASIN lookups. Thanks to [Matt](http://www.brividogiallo.biz/) for bring to my attention.
+* Bug Fix - Correct usage of activation hook, and add upgrade checks
+
 
 
 = 2.0.1 =
@@ -418,6 +461,10 @@ First Release
 
 == Upgrade Notice ==
 
+
+= 2.0.2 =
+
+Upgrade to fix some bugs with live data retrieval, clear up some confusion over why AWS Access is required.
 
 = 2.0.1 =
 

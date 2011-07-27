@@ -34,6 +34,11 @@
  display:none;
 }
 
+.al_subheading {
+ font-size:120%;
+ padding-left: 4px;
+}
+
 .al_section {
     border: 1px solid #ddd;
     padding:0px;  
