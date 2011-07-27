@@ -45,14 +45,14 @@
       // Update Template settings
 
       // Check for clash of ID with other templates
-      $NewTemplateID = $_POST['Name'];
+      $NewTemplateID = strtolower($_POST['Name']);
       if ($templateID !== $NewTemplateID) {
          $NewID = '';
          while (isset($Templates[ $NewTemplateID . $NewID ]))
             $NewID++;
          unset($Templates[$templateID]);
          $templateID = $NewTemplateID . $NewID;
-         $_POST['Name'] = $templateID;
+         $_POST['Name'] = $_POST['Name']. $NewID;
       }
 
 
@@ -79,11 +79,11 @@
       $UpdateMessage = sprintf (__('Template "%s" created from "%s".','amazon-link'), $templateID. $NewID, $templateID);
    } else if (  $Action == __('New', 'amazon-link') ) {
       $NewID = '';
-      while (isset($Templates[ __('Template', 'amazon-link') . $NewID ]))
+      while (isset($Templates[ __('template', 'amazon-link') . $NewID ]))
          $NewID++;
-      $Templates[__('Template', 'amazon-link') . $NewID] = array('Name' => __('Template', 'amazon-link') . $NewID, 'Content' => '', 'Description' => __('Template Description', 'amazon-link'));
+      $Templates[__('template', 'amazon-link') . $NewID] = array('Name' => __('Template', 'amazon-link') . $NewID, 'Content' => '', 'Description' => __('Template Description', 'amazon-link'));
       $NotifyUpdate = True;
-      $UpdateMessage = sprintf (__('Template "%s" created.','amazon-link'), __('Template', 'amazon-link') . $NewID);
+      $UpdateMessage = sprintf (__('Template "%s" created.','amazon-link'), __('template', 'amazon-link') . $NewID);
    }
 
 
@@ -92,13 +92,13 @@
    /*
     * If first run need to create a default templates
     */
-   if(!isset($Templates['Wishlist'])) {
+   if(!isset($Templates['wishlist'])) {
       $default_templates = $this->get_default_templates();
       foreach ($default_templates as $templateName => $templateDetails) {
          if(!isset($Templates[$templateName])) {
             $Templates[$templateName] = $templateDetails;
             $NotifyUpdate = True;
-            $UpdateMessage = sprintf (__('Default Templates Created - Note: \'Wishlist\' template must exist.','amazon-link'));
+            $UpdateMessage = sprintf (__('Default Templates Created - Note: \'wishlist\' template must exist.','amazon-link'));
          }
       }
    }

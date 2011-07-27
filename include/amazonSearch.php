@@ -295,7 +295,10 @@ if (!class_exists('AmazonLinkSearch')) {
 
                $data['id']        = $data['asin'];
                for ($count = 0; $count <= 5; $count++) {
-                  $data['link_open'][$count] = substr(amazon_make_links('multi_cc='. $Settings['multi_cc'].'&asin='.$data['asin'].'&text='),0,-4);
+                  unset($this->alink->Settings['template']);
+                  unset($this->alink->Settings['image']);
+                  unset($this->alink->Settings['thumb']);
+                  $data['link_open'][$count] = substr($this->alink->make_links(array($data['asin']),''),0,-4);
                }
                $data['link_close'] = '</a>';
                $data['link']          = amazon_make_links('asin='.$data['asin'].'&text='.(isset($data['text']) ? $data['text'] : $data['title']));
@@ -308,7 +311,6 @@ if (!class_exists('AmazonLinkSearch')) {
                $data['template'] = $this->process_template($data, $Template);
                $results['items'][$data['asin']] = $data;
             }
-            //echo "<PRE>"; print_r($data); echo "</PRE>";
 
          }
          return $results;
@@ -346,10 +348,6 @@ if (!class_exists('AmazonLinkSearch')) {
 
          $ASIN = strtoupper($ASIN);
 
-        // $request = array("Operation"=>"ItemLookup","ItemId"=>$ASIN,"ResponseGroup"=>"Small,Images","IdType"=>"ASIN","MerchantId"=>"Amazon");
-
-         //$pxml = amazon_query($request);
-         //$result = $pxml['Items']['Item'];
          $result = $this->itemLookup($ASIN);
 
          $r_title  = $result['ItemAttributes']['Title'];

@@ -83,20 +83,20 @@ $thumbnail_template = htmlspecialchars ('
 %LINK_OPEN%<img alt="%TITLE%" title="%TITLE%" src="%THUMB%" class="%IMAGE_CLASS%">%LINK_CLOSE%');
 
 
-         $this->DefaultTemplates = array (
-            'Carousel' => array ( 'Name' => 'Carousel', 'Description' => __('Amazon Carousel Widget', 'amazon-link'), 
+         $this->default_templates = array (
+            'carousel' => array ( 'Name' => 'Carousel', 'Description' => __('Amazon Carousel Widget', 'amazon-link'), 
                                   'Content' => $carousel_template ),
-            'Iframe Image' => array ( 'Name' => 'Iframe Image', 'Description' => __('Standard Amazon Image Link', 'amazon-link'), 
+            'iframe image' => array ( 'Name' => 'Iframe Image', 'Description' => __('Standard Amazon Image Link', 'amazon-link'), 
                                   'Content' => $iframe_template ),
-            'Image' => array ( 'Name' => 'Image', 'Description' => __('Localised Image Link', 'amazon-link'), 
+            'image' => array ( 'Name' => 'Image', 'Description' => __('Localised Image Link', 'amazon-link'), 
                                   'Content' => $image_template ),
-            'MP3 Clips' => array ( 'Name' => 'MP3 Clips', 'Description' => __('Amazon MP3 Clips Widget', 'amazon-link'), 
+            'mp3 clips' => array ( 'Name' => 'MP3 Clips', 'Description' => __('Amazon MP3 Clips Widget', 'amazon-link'), 
                                   'Content' => $mp3_clips_template ),
-            'My Favourites' => array ( 'Name' => 'My Favourites', 'Description' => __('Amazon My Favourites Widget', 'amazon-link'), 
+            'my favourites' => array ( 'Name' => 'My Favourites', 'Description' => __('Amazon My Favourites Widget', 'amazon-link'), 
                                   'Content' => $my_favourites_template),
-            'Thumbnail' => array ( 'Name' => 'Thumbnail', 'Description' => __('Localised Thumb Link', 'amazon-link'), 
+            'thumbnail' => array ( 'Name' => 'Thumbnail', 'Description' => __('Localised Thumb Link', 'amazon-link'), 
                                   'Content' => $thumbnail_template),
-            'Wishlist' => array ( 'Name' => 'Wishlist', 'Description' => __('Used to generate the wishlist', 'amazon-link'), 
+            'wishlist' => array ( 'Name' => 'Wishlist', 'Description' => __('Used to generate the wishlist', 'amazon-link'), 
                                   'Content' => $wishlist_template)
          );
 
