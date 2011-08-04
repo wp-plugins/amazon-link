@@ -247,6 +247,7 @@ if (!class_exists('AmazonWishlist_Options')) {
     <div <?php echo $class ?>>
       <?php if (isset($optDetails['Icon'])) screen_icon($optDetails['Icon']); ?>
       <?php echo $Title ?>
+     <?php if (isset($optDetails['Description'])) echo '<div class="al_description">'.$optDetails['Description'].'</div>'; ?>
     </div>
 <?php
                } else if ($optDetails['Type'] == 'section') {

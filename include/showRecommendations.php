@@ -17,12 +17,12 @@
       $this->Settings = $Settings;                   // Reset settings as contentFilter will overwrite them
    }
 
-   $this->tags = array_unique($this->tags);
 
-   $output = '<div class="amazon_container">';
-
-   if (count($this->tags) != 0)
+   if ((count($this->tags) != 0) && is_array($this->tags))
    {
+
+      $this->tags = array_unique($this->tags);
+      $output = '<div class="amazon_container">';
 
       if (strcasecmp($Settings['wishlist_type'],'similar') == 0) {
  
@@ -66,14 +66,17 @@
 
       }
       
-      $ASINs = array_slice($ASINs,0,$Settings['wishlist_items']);
-      if (!isset($Settings['template'])) $this->Settings['template'] = $Settings['wishlist_template'];
-      $output .= $this->make_links($ASINs, $Settings['text']);
+      if ( is_array($ASINs) && !empty($ASINs)) {
+         $ASINs = array_slice($ASINs,0,$Settings['wishlist_items']);
+         if (!isset($Settings['template'])) $this->Settings['template'] = $Settings['wishlist_template'];
+         $output .= $this->make_links($ASINs, $Settings['text']);
+
+         $output .= "</div>";
+      }
 
    } else {
       $output .= "<!--". sprintf(__('No [amazon] tags found in the last %1$s posts in categories %2$s', 'amazon-link'), $last, $categories). "--!>";
    }
-   $output .= "</div>";
    if (isset($saved_tags)) {
       $this->tags = array_unique($saved_tags);
       unset($saved_tags);
