@@ -1,11 +1,16 @@
 #al_popup
 {
 position: absolute;
-display: hidden;
+display: none;
 z-index: 50;
 width: 25px;
 left: -100;
 top: 100;
+}
+
+.al_found0 
+{
+display: none;
 }
 
 #al_popup img {

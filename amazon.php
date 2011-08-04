@@ -4,7 +4,7 @@
 Plugin Name: Amazon Link
 Plugin URI: http://www.houseindorset.co.uk/plugins/amazon-link
 Description: Insert a link to Amazon using the passed ASIN number, with the required affiliate info.
-Version: 2.0.2
+Version: 2.0.3
 Text Domain: amazon-link
 Author: Paul Stuttard
 Author URI: http://www.houseindorset.co.uk
@@ -70,7 +70,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
       var $TagTail       = ']';
 
       var $option_version= 2;
-      var $plugin_version= '2.0.2';
+      var $plugin_version= '2.0.3';
       var $optionName    = 'AmazonLinkOptions';
       var $templatesName = 'AmazonLinkTemplates';
       var $settings_slug = 'amazon-link-options';
@@ -222,8 +222,9 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          wp_enqueue_script('postbox');
 
          add_meta_box( 'alOptions', __( 'Options', 'amazon-link' ), array (&$this, 'showOptions' ), $this->opts_page, 'normal', 'core' );
+         add_meta_box( 'alInfo', __( 'About', 'amazon-link' ), array (&$this, 'show_info' ), $this->opts_page, 'side', 'core' );
          add_meta_box( 'alTemplateHelp', __( 'Template Help', 'amazon-link' ), array (&$this, 'displayTemplateHelp' ), $this->opts_page, 'side', 'low' );
-         add_meta_box( 'alTemplates', __( 'Templates', 'amazon-link' ), array (&$this, 'showTemplates' ), $this->opts_page, 'advanced', 'core' );
+         add_meta_box( 'alTemplates', __( 'Templates', 'amazon-link' ), array (&$this, 'show_templates' ), $this->opts_page, 'advanced', 'core' );
       }
 
       function adminColumns($columns, $screen) {
@@ -669,8 +670,12 @@ function al_gen_multi (id, asin, def) {
 
 /*****************************************************************************************/
 
-      function showTemplates() {
+      function show_templates() {
          include('include/showTemplates.php');
+      }
+
+      function show_info() {
+         include('include/showInfo.php');
       }
 
 
@@ -732,27 +737,55 @@ function al_gen_multi (id, asin, def) {
          return $text;
       }
 
-      function doQuery($request)
+      function itemLookup($asin, $Settings = NULL ) {
+
+         if ($Settings === NULL)
+            $Settings = $this->getSettings();
+         else
+            $this->Settings = $Settings;
+
+         // Create query to retrieve the an item
+         $request = array("Operation" => "ItemLookup",
+                          "ResponseGroup" => "Offers,Small,Reviews,Images,SalesRank",
+                          "ItemId"=>$asin, "IdType"=>"ASIN","MerchantId"=>"Amazon");
+
+         $pxml = $this->doQuery($request, $Settings);
+
+         if (($pxml === False) || !isset($pxml['Items']['Item'])) {
+            $item = array('found' => 0, 'ASIN' => $asin);
+         } else {
+            $item =array_merge($pxml['Items']['Item'], array('found' => 1));
+         }
+         $item['Settings'] = $Settings;
+         return $item;
+      }
+
+      function doQuery($request, $Settings = NULL)
       {
-         $Settings     = $this->getSettings();
+         if ($Settings === NULL)
+            $Settings = $this->getSettings();
+         else
+            $this->Settings = $Settings;
+
          $country_data = $this->get_country_data();
          $li           = $this->get_local_info();
 
          $cc = $li['cc'];
-         if ($cc == 'it')
-            $cc = "fr";
-         if ($cc == 'cn')
-            $cc = 'com';
          $tld = $country_data[$cc]['tld'];
          if (!isset($request['AssociateTag'])) $request['AssociateTag'] = $Settings['tag_' . $cc];
+
          return aws_signed_request($tld, $request, $Settings['pub_key'], $Settings['priv_key']);
       }
 
-      function make_links($asins, $link_text)
+      function make_links($asins, $link_text, $Settings = NULL)
       {
          global $post;
          
-         $Settings = $this->getSettings();
+         if ($Settings === NULL)
+            $Settings = $this->getSettings();
+         else
+            $this->Settings = $Settings;
+
          $output = '';
          /*
           * If a template is specified and exists then populate it
@@ -763,32 +796,31 @@ function al_gen_multi (id, asin, def) {
             if (isset($Templates[$template])) {
                $details = array();
                unset($Settings['asin']);
-               $Settings['template'] = $Templates[$template]['Content'];
-               if (preg_match('/%ASINS%/i', $Settings['template'])) {
-                  $details[] = array('ASINS' => implode(',', $asins));
+               $Settings['template_content'] = $Templates[$template]['Content'];
+               if (preg_match('/%ASINS%/i', $Settings['template_content'])) {
+                  $details[] = array('ASINS' => implode(',', $asins), 'Settings' => $Settings);
                } else {
                   foreach ($asins as $asin) {
                      if (strlen($asin) > 8) {
                         if ((($Settings['live']) || (count($asins) > 1)) && $this->valid_keys()) {
-                           $lookup = $this->search->itemLookup($asin);
-                           if (empty($lookup))
+                           $lookup = $this->itemLookup($asin, $Settings);
+                           if (!$lookup['found'] && $Settings['localise'])
                            {
-                              $this->Settings['localise'] = 0;
+                              /* Not found - try the default locale */
                               $Settings['localise'] = 0;
-                              $lookup = $this->search->itemLookup($asin);
-                              if (empty($lookup))
-                                 $lookup = array('ASIN' => $asin );
+                              $lookup = $this->itemLookup($asin, $Settings);
+                              $Settings['localise'] = 1;
                            }
                            $details[] = $lookup;
                         } else {
-                           $details[] = array('ASIN' => $asin );
+                           $details[] = array('ASIN' => $asin, 'found' => 1, 'Settings' => $Settings );
                         }
                      }
                   }
                }
                if (!empty($details))
                {
-                  $items = array_shift($this->search->parse_results($details, $Settings));
+                  $items = array_shift($this->search->parse_results($details));
 
                   foreach ($items as $item => $details) {
                      $output .= $details['template'];

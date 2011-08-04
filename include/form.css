@@ -58,4 +58,22 @@
     background:#eee;  
     padding:2px;  
     margin-bottom:1px;  
-}  
+} 
+
+.amazon-link-info-heading {
+ padding: 2px;
+ margin-top: 2px;
+ margin-bottom: 6px;
+ font: italic normal normal 24px/29px Georgia,"Times New Roman","Bitstream Charter",Times,serif;
+ font-size: 1.5em;
+}
+.amazon-link-info dt{
+ display:inline;
+ float:left;
+ width:40%;
+ padding-left: 4px;
+}
+
+.amazon-link-info dd {
+ margin: 0px 0px 0px 41%;
+}

@@ -101,27 +101,11 @@ if (!class_exists('AmazonLinkSearch')) {
                                   'mplace'       => array( 'Description' => __('Localised Amazon Marketplace Code (US, GB, etc.)', 'amazon-link')),
                                   'tld'          => array( 'Description' => __('Localised Top Level Domain (.com, .co.uk, etc.)', 'amazon-link')),
                                   'downloaded'   => array( 'Description' => __('1 if Images are in the local Wordpress media library', 'amazon-link')),
+                                  'found'        => array( 'Description' => __('1 if product was found doing a live data request (also 1 if live not enabled).', 'amazon-link')),
                                   'link_open'    => array( 'Description' => __('Create a Amazon link with user defined content, of the form %LINK_OPEN%My Content%LINK_CLOSE%', 'amazon-link')),
                                   'link_close'   => array( 'Description' => __('Must follow a LINK_OPEN (translates to "</a>").', 'amazon-link')));
       }
 
-
-      function itemLookup($asin) {
-
-         // Create query to retrieve the an item
-         $request = array("Operation" => "ItemLookup",
-                          "ResponseGroup" => "Small,Reviews,Images,Offers,SalesRank",
-                          "ItemId"=>$asin, "IdType"=>"ASIN","MerchantId"=>"Amazon");
-
-         $pxml = $this->alink->doQuery($request);
-
-         if (($pxml === False) || !isset($pxml['Items']['Item'])) {
-            $Items = array();
-         } else {
-            $Items=$pxml['Items']['Item'];
-         }
-         return $Items;
-      }
 
 /*****************************************************************************************/
       /// AJAX Call Handlers
@@ -130,6 +114,11 @@ if (!class_exists('AmazonLinkSearch')) {
       function performSearch() {
          $Opts = $_POST;
 
+         $Settings = array_merge($this->alink->getSettings(), $Opts);
+         $Settings['multi_cc'] = '0';
+         $Settings['found'] = 1;
+         $Settings['localise'] = 0;
+ 
          if ($Opts['s_index'] == 'Books') {
             $Term = "Author";
          } else if ($Opts['s_index'] == 'Music') {
@@ -142,7 +131,7 @@ if (!class_exists('AmazonLinkSearch')) {
 
          // Create query to retrieve the first 10 matching items
          $request = array("Operation" => "ItemSearch",
-                          "ResponseGroup" => "Small,Reviews,Images,Offers,SalesRank",
+                          "ResponseGroup" => "Offers,Small,Reviews,Images,SalesRank",
                           $Term=>$Opts['s_author'],
                           "Title"=>$Opts['s_title'],
                           "SearchIndex"=>$Opts['s_index'],
@@ -150,7 +139,7 @@ if (!class_exists('AmazonLinkSearch')) {
                           "MerchantId"=>"Amazon",
                           "ItemPage"=>$Opts['s_page']);
 
-         $pxml = $this->alink->doQuery($request);
+         $pxml = $this->alink->doQuery($request, $Settings);
 
          if (($pxml === False) || !isset($pxml['Items']['Item'])) {
             $results = array('success' => false);
@@ -159,8 +148,7 @@ if (!class_exists('AmazonLinkSearch')) {
             $results = array('success' => true);
             $Items=$pxml['Items']['Item'];
          }
-         $Opts['multi_cc'] = '0';
-         print json_encode($this->parse_results($Items, $Opts));
+        print json_encode($this->parse_results($Items, $Settings));
          exit();
       }
 
@@ -219,13 +207,15 @@ if (!class_exists('AmazonLinkSearch')) {
       /// Helper Functions
 /*****************************************************************************************/
 
-      function parse_results ($Items, $Settings, $Count=100) {
-         $Template = htmlspecialchars_decode (stripslashes($Settings['template']));
-         unset($Settings['template']);
+      function parse_results ($Items, $Global_Settings=NULL, $Count=100) {
          if (count($Items) > 0) {
             for ($counter = 0; ($counter < count($Items)) || ($counter > $Count) ; $counter++) {
 
                $result = $Items[$counter];
+               $Settings = isset($result['Settings']) ? $result['Settings'] : $Global_Settings;
+               $Template = htmlspecialchars_decode (stripslashes($Settings['template_content']));
+               unset($Settings['template']);
+
            // echo "<PRE>"; print_r($result); echo "</PRE>";
                $data = array();
                foreach ($this->keywords as $keyword => $desc) $data[$keyword] = '';
@@ -250,7 +240,8 @@ if (!class_exists('AmazonLinkSearch')) {
                $data['price']   = (isset($result['Offers']['Offer']['OfferListing']['Price']['FormattedPrice']) ? $result['Offers']['Offer']['OfferListing']['Price']['FormattedPrice'] : '');
                $data['type']    = 'Amazon';
                $data['product'] = (isset($result['ItemAttributes']['ProductGroup']) ? $result['ItemAttributes']['ProductGroup'] : '-');
-               /*
+               $data['found']   = (isset($result['found']) ? $result['found'] : 0);
+              /*
                 * Image and Thumb URL's can have 3 sources:
                 *  - passed as arguments in Settings (thumb, image if longer than 1 character)
                 *  - stored in the local media library (local_thumb, local_image)
@@ -295,9 +286,7 @@ if (!class_exists('AmazonLinkSearch')) {
 
                $data['id']        = $data['asin'];
                for ($count = 0; $count <= 5; $count++) {
-                  unset($this->alink->Settings['template']);
-                  unset($this->alink->Settings['image']);
-                  unset($this->alink->Settings['thumb']);
+                  $this->alink->Settings = $Settings;
                   $data['link_open'][$count] = substr($this->alink->make_links(array($data['asin']),''),0,-4);
                }
                $data['link_close'] = '</a>';
@@ -316,15 +305,18 @@ if (!class_exists('AmazonLinkSearch')) {
          return $results;
      }
 
+      function preg_replacement_quote($str) {
+         return preg_replace('/(\$|\\\\)(?=\d)/', '\\\\\1', $str);
+      }
       function process_template ($data, $template) {
          $count = 1;
          foreach ($data as $key => $string) {
             if (is_array($string)) {
                foreach ($string as $part_string) {
-                  $template = preg_replace('/%'. $key . '%/i',($part_string), $template, 1);
+                  $template = preg_replace('/%'. $key . '%/i',$this->preg_replacement_quote($part_string), $template, 1);
                }
             } else {
-               $template = preg_replace('/%'. $key . '%/i',($string), $template);
+               $template = preg_replace('/%'. $key . '%/i',$this->preg_replacement_quote($string), $template);
             }
          }
          return $template;
@@ -348,7 +340,7 @@ if (!class_exists('AmazonLinkSearch')) {
 
          $ASIN = strtoupper($ASIN);
 
-         $result = $this->itemLookup($ASIN);
+         $result = $this->alink->itemLookup($ASIN);
 
          $r_title  = $result['ItemAttributes']['Title'];
          $r_artist = isset($result['ItemAttributes']['Artist'])  ? $result['ItemAttributes']['Artist'] :

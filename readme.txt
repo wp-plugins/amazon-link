@@ -4,7 +4,7 @@ Donate link: http://www.houseindorset.co.uk/plugins
 Tags: Amazon, links, wishlist, recommend, shortcode, ip2nation, localise, images, media library, affiliate, product, template
 Requires at least: 3.1
 Tested up to: 3.2.1
-Stable tag: 2.0.2
+Stable tag: 2.0.3
 
 
 Provides a facility to insert Amazon product links directly into your site's Pages, Posts and Widgets and Templates.
@@ -12,7 +12,7 @@ Provides a facility to insert Amazon product links directly into your site's Pag
 == Description ==
 
 
-This plugin is used to quickly add Amazon products to your Wordpress posts and pages. The products can be simple text links, thumbnail images, fullsize images, complex templates or full-blown Amazon flash widgets.
+This plugin is used to quickly add Amazon products to your WordPress posts and pages. The products can be simple text links, thumbnail images, fullsize images, complex templates or full-blown Amazon flash widgets.
 
 The product links that the plugin generates can be for any of the Amazon domains ([www.amazon.co.uk](http://www.amazon.co.uk), [www.amazon.com](http://www.amazon.com), [www.amazon.ca](http://www.amazon.ca), [www.amazon.cn](http://www.amazon.cn), [www.amazon.de](http://www.amazon.de), [www.amazon.fr](http://www.amazon.fr), [www.amazon.it](http://www.amazon.it) and [www.amazon.jp](http://www.amazon.co.jp/)).
 
@@ -49,19 +49,15 @@ To generate a list of products relevant to the content of your site use the 'cat
 
 This is created by either putting the line `amazon_recommends(<Category>,<Number of Posts>)` in your template. Or putting the line `[amazon cat=<Category>&last=<Number of Posts>]` within a post or page. Where 'Category' is a list of category ids to search within (e.g. as expected by the 'cat' argument of [query_posts](http://codex.wordpress.org/Template_Tags/query_posts#Parameters) function. The 'last' parameter is the number of posts to search through.
 
-= Latest Version - 2.0.2 =
+= Latest Version - 2.0.3 =
 
 
 
-* Make template names case insensitive
-* Added debug output option to help diagnosis of problems
-* Add notes to options page to highlight AWS requirements
-* Disable Search options on page/post edit screens if AWS keys not entered
-* Bug Fix - Only do 'live' data lookups when activated
-* Bug Fix - Improve ability of shortcode settings to override global settings when generating template links
-* Bug Fix - If product not available in locale, use author's locale. Thanks to [Sandie](http://www.gardeningwormcomposting.com/) for highlighting.
-* Bug Fix - Improve handling of failed ASIN lookups. Thanks to [Matt](http://www.brividogiallo.biz/) for bring to my attention.
-* Bug Fix - Correct usage of activation hook, and add upgrade checks
+* Add extra support for www.amazon.it and www.amazon.cn
+* Add 'found' tag to templates to indicate if product is listed on Amazon, and updated default templates to make use of this.
+* Bug fix - not displaying '$' prices correctly
+* Bug fix - not linking to default locale correctly
+
 
 
 == Installation ==
@@ -114,8 +110,6 @@ If this option is selected then the plugin will enable a small popup menu of cou
 = Localise Amazon Link =
 
 If this option is selected and the [ip2nation](http://www.ip2nation.com/) database has been installed then the plugin will attempt to use the most appropriate Amazon site when creating the link, currently supports [www.amazon.co.uk](http://www.amazon.co.uk), [www.amazon.com](http://www.amazon.com), [www.amazon.ca](http://www.amazon.ca), [www.amazon.cn](http://www.amazon.cn), [www.amazon.de](http://www.amazon.de), [www.amazon.fr](http://www.amazon.fr), [www.amazon.it](http://www.amazon.it) and [www.amazon.jp](http://www.amazon.co.jp/).
-
-Note when generating live product links the Italian and Chinese sites do not yet support this capability and will generate content from 'amazon.fr' and 'amazon.com' respectively.
 
 = Live Data =
 
@@ -266,7 +260,7 @@ Will produce a text link to an Amazon Product page:
 Will produce a thumbnail image link to an Amazon Product page.
 
 
-`[amazon asin=B001L4GBXY,B001L2EZNY,B001LR3576,B001KSJNWC,B001LWZCKY,B001GTPI7O,B001GTAGS0&template=Iframe Image]`
+`[amazon asin=B001L4GBXY,B001L2EZNY,B001LR3576&template=Iframe Image]`
 Will produce 3 classic Amazon product links to the specified products.
 
 `[amazon asin=B001L4GBXY,B001L2EZNY,B001LR3576,B001KSJNWC,B001LWZCKY,B001GTPI7O,B001GTAGS0&template=Carousel]`
@@ -332,9 +326,6 @@ The localisation process is far from perfect and authors should be aware of the 
 * Incorrect Amazon site allocation -
 
     There are only 8 major Amazon sites (UK, France, Germany, US, Japan, Italy, China and Canada). So the plugin has to guess where a country's residents are most likely to shop on-line. An alternative is to enable the 'Multinational Link' option, this will enable a small popup for each link allowing the site visitor to choose the most appropriate site (based on locale or language).
-* Partial Amazon support for Italy and China -
-
-    Amazon currently does not support data lookup for Italy and China, so we have to use a different Amazon site (.fr and .com) to retrieve live data for these locales.
 * Product Availability -
 
     A product that is available in the author's locale may not be available on other Amazon sites. If the live data option is enabled the plugin will display a link to the Amazon site in the author's own locale if the product is not available at the visitor's Amazon store.
@@ -381,7 +372,17 @@ Features I will be adding to the plugin in the future:
 == Changelog ==
 
 
-= Latest Version - 2.0.2 =
+= 2.0.3 =
+
+
+
+* Add extra support for www.amazon.it and www.amazon.cn
+* Add 'found' tag to templates to indicate if product is listed on Amazon, and updated default templates to make use of this.
+* Bug fix - not displaying '$' prices correctly
+* Bug fix - not linking to default locale correctly
+
+
+= 2.0.2 =
 
 
 
@@ -461,6 +462,10 @@ First Release
 
 == Upgrade Notice ==
 
+
+= 2.0.3 =
+
+Upgrade to enable full support for the Amazon.it an Amazon.cn locales
 
 = 2.0.2 =
 

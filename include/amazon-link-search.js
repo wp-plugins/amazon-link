@@ -95,7 +95,6 @@ wpAmazonLinkSearcher.prototype = {
               $ths['search_options'][this.name] = jQuery(this).val();
            });
            $ths['search_options']['action'] = 'amazon-link-search';
-           $ths['search_options']['template'] = $ths['search_options']['s_template']
            jQuery('#amazon-link-result-list').empty();
            jQuery('#amazon-link-error').hide();
            jQuery('#amazon-link-results').show();

@@ -66,11 +66,13 @@
 
       }
       
-      $ASINs = array_slice($ASINs,0,$Settings['wishlist_items']);
-      if (!isset($Settings['template'])) $this->Settings['template'] = $Settings['wishlist_template'];
-      $output .= $this->make_links($ASINs, $Settings['text']);
+      if ( is_array($ASINs) && !empty($ASINs)) {
+         $ASINs = array_slice($ASINs,0,$Settings['wishlist_items']);
+         if (!isset($Settings['template'])) $this->Settings['template'] = $Settings['wishlist_template'];
+         $output .= $this->make_links($ASINs, $Settings['text']);
 
-      $output .= "</div>";
+         $output .= "</div>";
+      }
 
    } else {
       $output .= "<!--". sprintf(__('No [amazon] tags found in the last %1$s posts in categories %2$s', 'amazon-link'), $last, $categories). "--!>";

@@ -1,17 +1,19 @@
 <?php
 
 $wishlist_template = htmlspecialchars ('
-<div class="amazon_prod">
- <div class="amazon_img_container">
-  %LINK_OPEN%<img class="%IMAGE_CLASS%" src="%THUMB%">%LINK_CLOSE%
- </div>
- <div class="amazon_text_container">
-  <p>%LINK_OPEN%%TITLE%%LINK_CLOSE%</p>
-  <div class="amazon_details">
-    <p>by %ARTIST% [%MANUFACTURER%]<br />
-    Rank/Rating: %RANK%/%RATING%<br />
-    <b>Price: <span class="amazon_price">%PRICE%</span></b>
-   </p>
+<div class="al_found%FOUND%">
+ <div class="amazon_prod">
+  <div class="amazon_img_container">
+   %LINK_OPEN%<img class="%IMAGE_CLASS%" src="%THUMB%">%LINK_CLOSE%
+  </div>
+  <div class="amazon_text_container">
+   <p>%LINK_OPEN%%TITLE%%LINK_CLOSE%</p>
+   <div class="amazon_details">
+     <p>by %ARTIST% [%MANUFACTURER%]<br />
+     Rank/Rating: %RANK%/%RATING%<br />
+     <b>Price: <span class="amazon_price">%PRICE%</span></b>
+    </p>
+   </div>
   </div>
  </div>
 </div>');
@@ -38,7 +40,9 @@ $iframe_template = htmlspecialchars ('
 
 
 $image_template = htmlspecialchars ('
-%LINK_OPEN%<img alt="%TITLE%" title="%TITLE%" src="%IMAGE%" class="%IMAGE_CLASS%">%LINK_CLOSE%
+<div class="al_found%FOUND%">
+ %LINK_OPEN%<img alt="%TITLE%" title="%TITLE%" src="%IMAGE%" class="%IMAGE_CLASS%">%LINK_CLOSE%
+</div>
 ');
 
 
@@ -80,7 +84,9 @@ amzn_wdgt.marketPlace=\'%MPLACE%\';
 
 
 $thumbnail_template = htmlspecialchars ('
-%LINK_OPEN%<img alt="%TITLE%" title="%TITLE%" src="%THUMB%" class="%IMAGE_CLASS%">%LINK_CLOSE%');
+<div class="al_found%FOUND%">
+ %LINK_OPEN%<img alt="%TITLE%" title="%TITLE%" src="%THUMB%" class="%IMAGE_CLASS%">%LINK_CLOSE%
+</div>');
 
 
          $this->default_templates = array (
