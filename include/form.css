@@ -1,0 +1,79 @@
+.al_opt_container {
+ clear:both;
+}
+
+.al_border {
+ border-bottom: 1px solid #ddd;
+}
+
+.al_label {
+ display:inline;
+ float:left;
+ width:30%;
+ padding-left: 4px;
+}
+
+.al_opt_details {
+ margin: 0px 0px 0px 31%;
+}
+
+.al_input {
+ float:left; 
+ margin-right:10px;
+}
+
+.al_description {
+ font-size:80%;
+ clear:both;
+}
+
+.al_hide-1 {
+ display:none;
+}
+.al_show-0 {
+ display:none;
+}
+
+.al_subheading {
+ font-size:120%;
+ padding-left: 4px;
+}
+
+.al_section {
+    border: 1px solid #ddd;
+    padding:0px;  
+    margin:0px;  
+}
+
+.al_subhead1 h4, .al_subhead h4  {  
+    cursor:pointer;  
+    font-weight:normal;  
+//    width:80%;  
+    padding:0px;  
+    margin:2px;  
+}  
+.al_subhead1, .al_subhead {  
+    cursor:pointer;  
+    border-bottom:1px solid #ddd;  
+    background:#eee;  
+    padding:2px;  
+    margin-bottom:1px;  
+} 
+
+.amazon-link-info-heading {
+ padding: 2px;
+ margin-top: 2px;
+ margin-bottom: 6px;
+ font: italic normal normal 24px/29px Georgia,"Times New Roman","Bitstream Charter",Times,serif;
+ font-size: 1.5em;
+}
+.amazon-link-info dt{
+ display:inline;
+ float:left;
+ width:40%;
+ padding-left: 4px;
+}
+
+.amazon-link-info dd {
+ margin: 0px 0px 0px 41%;
+}
