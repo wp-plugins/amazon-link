@@ -75,7 +75,7 @@ function aws_signed_request($region, $params, $public_key, $private_key)
     // GMT timestamp
     $params["Timestamp"] = gmdate("Y-m-d\TH:i:s\Z");
     // API version
-    $params["Version"] = "2011-04-01";
+    $params["Version"] = "2011-08-01";
     
     // sort the parameters
     ksort($params);
