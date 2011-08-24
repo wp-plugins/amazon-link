@@ -148,7 +148,7 @@ if (!class_exists('AmazonLinkSearch')) {
             $results = array('success' => true);
             $Items=$pxml['Items']['Item'];
          }
-        print json_encode($this->parse_results($Items, $Settings));
+         print json_encode($this->parse_results($Items, $Settings));
          exit();
       }
 
