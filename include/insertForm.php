@@ -131,7 +131,7 @@
 
    // **********************************************************
    // Now display the options editing screen
-   $Settings['asin'] = is_array($Settings['asin']) ? implode(',', $Settings['asin']): '';
+   $Settings['asin'] = (isset($Settings['asin']) && is_array($Settings['asin'])) ? implode(',', $Settings['asin']): '';
    $this->form->displayForm($optionList, $Settings, True, True);
 
 ?>

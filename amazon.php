@@ -566,7 +566,7 @@ function al_gen_multi (id, asin, def, chan) {
                $this->Settings[$key] = $details['OverrideBlank'];      // Use default
             }
          }
-         $this->Settings['asin'] = explode (',', $this->Settings['asin']);
+         $this->Settings['asin'] = isset($this->Settings['asin']) ? explode (',', $this->Settings['asin']) : array();
       }
 
       /*
@@ -626,7 +626,7 @@ function al_gen_multi (id, asin, def, chan) {
          // Need $GLOBALS & Channels
          $settings = $this->getSettings();
          $channels = $this->get_channels(True, True);
-         if ($settings['in_post']) {
+         if (isset($settings['in_post']) && $settings['in_post']) {
             $post = $GLOBALS['post'];
          } else {
             $post = '';
@@ -738,9 +738,6 @@ function al_gen_multi (id, asin, def, chan) {
          $index=0;
          $found = 0;
 
-         $post = $GLOBALS['post'];
-         //echo "<!-- FILTER: "; print_r($post); echo "-->";
-
          while ($found !== FALSE) {
             $found = strpos($content, $this->TagHead, $index);
             if ($found === FALSE) {
@@ -760,7 +757,7 @@ function al_gen_multi (id, asin, def, chan) {
                         $output .= '<!-- Amazon Link: ' . $this->plugin_version . ' - ' . substr($content, $found, $tagEnd - $found+1) . "\n";
                         $output .= print_r($this->Settings, true) . ' -->';
                      }
-                     $output .= $this->showRecommendations($this->Settings['cat'],$this->Settings['last']);
+                     $output .= $this->showRecommendations($this->Settings['cat'], isset($this->Settings['last']) ? $this->Settings['last'] : 30);
                   } elseif (!$this->stylesNeeded) {
                      $output .= '<span id="al_popup" onmouseover="al_div_in()" onmouseout="al_div_out()"></span>' .
                                substr($content, $found, ($tagEnd - $found) + strlen($this->TagTail));
@@ -1008,21 +1005,20 @@ function al_gen_multi (id, asin, def, chan) {
           */
          $object = stripslashes($link_text);
          // Do we need to display or link to an image ?
-         if ($this->Settings['image'] || $this->Settings['thumb']) {
-
+         if (!empty($this->Settings['image']) || !empty($this->Settings['thumb'])) {
             $media_ids = $this->search->find_attachments($asin);
             if (!is_wp_error($media_ids)) {
                $media_id = $media_ids[0]->ID;
             }
 
-            if ($this->Settings['thumb']) {
+            if (!empty($this->Settings['thumb'])) {
                if (isset($media_id)) {
                   $thumb = wp_get_attachment_thumb_url($media_id);
                } elseif (strlen($this->Settings['thumb']) > 4) {
                   $thumb = $this->Settings['thumb'];
                }
             }
-            if ($this->Settings['image']) {
+            if (!empty($this->Settings['image'])) {
                if (isset($media_id)) {
                   $image = wp_get_attachment_url($media_id);
                } elseif (strlen($this->Settings['image']) > 4) {

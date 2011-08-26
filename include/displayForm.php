@@ -35,6 +35,7 @@ if (!class_exists('AmazonWishlist_Options')) {
          wp_enqueue_style('amazon-link-form');
       }
 
+
       function displayForm($optionList, $Opts, $Open = True, $Body = True, $Close = True, $NoTable = True) {
 
          if ($Open) {
@@ -54,8 +55,8 @@ if (!class_exists('AmazonWishlist_Options')) {
 
             // Loop through the options table, display a row for each.
             foreach ($optionList as $optName => $optDetails) {
-               if (!isset($Opts[$optName]) && isset($optDetails['Default']))
-                   $Opts[$optName] = $optDetails['Default'];
+               if (!isset($Opts[$optName]))
+                   $Opts[$optName] = isset($optDetails['Default']) ? $optDetails['Default'] : '';
 
                if ($optDetails['Type'] == 'checkbox') {
 
@@ -190,7 +191,7 @@ if (!class_exists('AmazonWishlist_Options')) {
                   // Insert a hidden Item
                   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-                  $Value = isset($optDetails['Value']) ? $optDetails['Value'] : $Opts[$optName];
+                  $Value = isset($optDetails['Value']) ? $optDetails['Value'] : $Opts[$optName] ;
                   $id = isset($optDetails['Id']) ? 'id="'.$optDetails['Id'].'"' : '';
 ?>
     <input <?php echo $id ?> name="<?php echo $optName; ?>" type="hidden" value="<?php echo $Value; ?>" />
@@ -256,9 +257,9 @@ if (!class_exists('AmazonWishlist_Options')) {
                   $class  = isset($optDetails['Class']) ? 'class="'.$optDetails['Class'].' al_opt_container"' : 'class="al_opt_container"';
 
                   if (isset($optDetails['Title_Class'])) {
-                     $Title = '<div '.$id.' class="' . $optDetails['Title_Class'] . '">'. $icon. $optDetails['Value'] . '</div>';
+                     $Title = '<div '.$id.' class="' . $optDetails['Title_Class'] . '">'. $optDetails['Value'] . '</div>';
                   } else {
-                     $Title = '<h2 '.$id.'>'. $icon. $optDetails['Value'] . '</h2>';
+                     $Title = '<h2 '.$id.'>'. $optDetails['Value'] . '</h2>';
                   }
 ?>
     <div <?php echo $class ?>>

@@ -30,8 +30,7 @@
                           "MergeCart" => "True",
                           "ResponseGroup" => "CartSimilarities",
                           "IdType"=>"ASIN",
-                          "MerchantId"=>"Amazon",
-                          "AssociateTag"=>$Settings['tag']);
+                          "MerchantId"=>"Amazon");
          // Get the Cart Similarities for the items found
          $counter=1;
          foreach ($this->tags as $asin)
