@@ -148,7 +148,7 @@ if (!class_exists('AmazonLinkSearch')) {
             $results = array('success' => true);
             $Items=$pxml['Items']['Item'];
          }
-        print json_encode($this->parse_results($Items, $Settings));
+         print json_encode($this->parse_results($Items, $Settings));
          exit();
       }
 
@@ -158,7 +158,7 @@ if (!class_exists('AmazonLinkSearch')) {
          /* Do we have this image? */
          $media_ids = $this->find_attachments( $Opts['asin'] );
 
-         if (!$media_ids) {
+         if (is_wp_error($media_ids)) {
             $results = array('in_library' => false, 'asin' => $Opts['asin'], 'error' => __('No matching image found', 'amazon-link'));
          } else {
 
@@ -185,7 +185,7 @@ if (!class_exists('AmazonLinkSearch')) {
          /* Do not upload if we already have this image */
          $media_ids = $this->find_attachments( $Opts['asin'] );
 
-         if ($media_ids) {
+         if (!is_wp_error($media_ids)) {
             $results = array('in_library' => true, 'asin' => $Opts['asin'], 'id' => $media_ids[0]->ID);
          } else {
 
@@ -251,7 +251,7 @@ if (!class_exists('AmazonLinkSearch')) {
                 */
 
                $media_ids = $this->find_attachments( $data['asin'] );
-               if ($media_ids) {
+               if (!is_wp_error($media_ids)) {
                   $data['media_id'] = $media_ids[0]->ID;
                   $data['downloaded'] = '1';
                   $data['local_thumb'] = wp_get_attachment_thumb_url($data['media_id']);
@@ -295,7 +295,7 @@ if (!class_exists('AmazonLinkSearch')) {
                $data['thumb_link']    = amazon_make_links('image_class='. $Settings['image_class'].'&thumb='. $data['thumb'] . '&asin='.$data['asin'].'&text='. $data['title']);
 
                foreach($data as $keyword => $details)
-                  $data[$keyword . '_S'] = addslashes($details);
+                  $data[$keyword . '_S'] = is_array($details) ? $details : addslashes($details);
 
                $data['template'] = $this->process_template($data, $Template);
                $results['items'][$data['asin']] = $data;
@@ -332,7 +332,7 @@ if (!class_exists('AmazonLinkSearch')) {
          if ($media_ids) {
             return $media_ids;
          } else {
-            new WP_Error(__('No images found','amazon-link'));
+            return new WP_Error(__('No images found','amazon-link'));
          }
       }
 
