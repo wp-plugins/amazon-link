@@ -4,7 +4,7 @@ Donate link: http://www.houseindorset.co.uk/plugins
 Tags: Amazon, links, wishlist, recommend, shortcode, ip2nation, localise, images, media library, affiliate, product, template
 Requires at least: 3.1
 Tested up to: 3.2.1
-Stable tag: 2.0.3
+Stable tag: 2.0.4
 
 
 Provides a facility to insert Amazon product links directly into your site's Pages, Posts and Widgets and Templates.
@@ -46,17 +46,19 @@ Where ASIN Number is the unique amazon number used to identify products e.g. "14
 
 To utilise one of the templates simply specify the template option with the name of the template to use. For example: `[amazon asin=<ASIN Number>&title=<link text>&template=thumbnail]`.
 
-To generate a list of products relevant to the content of your site use the 'cat' option, to specify where the plugin should search for Amazon product links. This option can be either 'local' to search the current content or a list of category ids to search specific sections of your site. For example I use this feature to provide friends and family some ideas for presents This feature is based on the Amazon Web Service API and uses the 'CartSimilarities' feature to generate the list of items.
+To generate a list of products relevant to the content of your site use the 'cat' option, to specify where the plugin should search for Amazon product links. This option can be either 'local' to search the current content or a list of category ids to search specific sections of your site. For example I use this feature to provide friends and family some ideas for presents. This feature is based on the Amazon Web Service API and uses the 'CartSimilarities' feature to generate the list of items.
 
 This is created by either putting the line `amazon_recommends(<Category>,<Number of Posts>)` in your template. Or putting the line `[amazon cat=<Category>&last=<Number of Posts>]` within a post or page. Where 'Category' is a list of category ids to search within (e.g. as expected by the 'cat' argument of [query_posts](http://codex.wordpress.org/Template_Tags/query_posts#Parameters) function. The 'last' parameter is the number of posts to search through.
 
-= Development Version =
+= Latest Version - 2.0.4 =
 
 
 
 * Add Affiliate ID channels and User Affiliate ID settings
 * Facility to set Affiliate channel by Author or manually in each shortcode.
 * Bug fix - Italian AWS API Version Increment
+* Bug fix - Fix php 'Notice's when WP_DEBUG is enabled
+
 
 
 == Installation ==
@@ -185,13 +187,6 @@ Overides the 'AWS Public Key' setting.
 
 Overides the 'AWS Private Key' setting.
 
-= thumb - depreciated =
-
-The URL used to display an image thumbnail for the amazon link in the post, if '1' is used then the image stored in the Wordpress media library is used.
-= image - depreciated =
-
-The URL used to display a fulll size image for the amazon link in the post, if '1' is used then the fullsize image stored in the Wordpress media library is used. If both 'image' and 'thumbnail' are set then the shortcode will cause a thumbnail image to be displayed in the post which links to the fullsize image (rather than to the Amazon store).
-
 == Frequently Asked Questions ==
 
 
@@ -208,6 +203,8 @@ Any user of your site (including the owner/administrator) can also add their Aff
 
 It is recommended that the Affiliate IDs in the default channel as set up, as some sections of the site (e.g. shortcodes inserted in sidebar widgets) do not have an 'author'.
 
+If some of the IDs are not supplied in a User's profile, or in a particular Channel, then the ones in the default channel will be used instead.
+
 = How do I insert product links into my posts? =
 
 
@@ -222,13 +219,13 @@ There is also a facility to add cover images from the Amazon items into the loca
 = Can I create my own templates for product links? =
 
 
-On the plugin settings page there is a dedicated section to showing all the available templates. Use this to create, delete and copy templates. The template content is based on standard html with additional keywords that are surrounded by '%' characters.
+On the plugin settings page there is a section showing all the available templates. Use this to create, delete and copy templates. The template content is based on standard html with additional keywords that are surrounded by '%' characters. These keywords are automatically filled in with the relevant Amazon product information.
 
 See the Template Help on the same page for a description of each of the keywords that can be used.
 
 Most of the keywords are self explanatory: `'%TITLE%'` will expand to be the product's title, `'%PRICE%'` the formatted product's price, etc.
 
-However links can be created by using the keyword pair `'%LINK_START%'` and `'%LINK_END%'` with the subject of the link being placed between them. For example `'%LINK_START%Amazon Product%LINK_END%'`. The link produced will comply with whatever settings you have used, i.e. localised to the users country, produce multinational popup, with the appropriate Amazon associate ID inserted.
+However links can be created by using the keyword pair `'%LINK_START%'` and `'%LINK_END%'` with the subject of the link being placed between them. For example `'%LINK_START%Amazon Product%LINK_END%'`. The link produced will comply with whatever settings you have used, i.e. localised to the user's country or produce a multinational popup, it will also use the appropriate Amazon associate IDs.
 
 There are a number of other keywords that are also localised these include: `'%LINK_START%'` - as described above, `'%TLD%'` the Top Level Domain to be used '.co.uk', '.it', '.com', etc.; `'%MPLACE%'` - the Amazon Market place to use 'GB', 'IT', 'US', etc.; `'%CC%'` - the localised country code 'uk', 'it', 'us'; `'%TAG%'` - The amazon associate tag to use.
 
@@ -240,7 +237,7 @@ The keyword `'%ASINS%'` can be used to indicate that this template will accept a
 
 Browse the default included templates to see some examples of how the keywords can be used.
 
-Note: the Amazon widgets are currently not supported in some locales (e.g. Canada).
+Note: the Amazon widgets are currently not supported in some locales (e.g. Canada and Italy).
 
 = What templates are included with the plugin? =
 
@@ -407,6 +404,17 @@ Features I will be adding to the plugin in the future:
 == Changelog ==
 
 
+= 2.0.4 =
+
+
+
+* Add Affiliate ID channels and User Affiliate ID settings
+* Facility to set Affiliate channel by Author or manually in each shortcode.
+* Bug fix - Italian AWS API Version Increment
+* Bug fix - Fix php 'Notice's when WP_DEBUG is enabled
+
+
+
 = 2.0.3 =
 
 
@@ -497,6 +505,10 @@ First Release
 
 == Upgrade Notice ==
 
+
+= 2.0.4 =
+
+Upgrade to fix issue with Amazon.it AWS API, and add Amazon Tracking ID channels, and per User Amazon Affiliate IDs.
 
 = 2.0.3 =
 

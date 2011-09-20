@@ -242,7 +242,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          wp_enqueue_script('postbox');
 
          add_meta_box( 'alOptions', __( 'Options', 'amazon-link' ), array (&$this, 'showOptions' ), $this->opts_page, 'normal', 'core' );
-         add_meta_box( 'alChannels', __( 'Channels', 'amazon-link' ), array (&$this, 'show_channels' ), $this->opts_page, 'normal', 'core' );
+         add_meta_box( 'alChannels', __( 'Amazon Tracking ID Channels', 'amazon-link' ), array (&$this, 'show_channels' ), $this->opts_page, 'normal', 'core' );
          add_meta_box( 'alInfo', __( 'About', 'amazon-link' ), array (&$this, 'show_info' ), $this->opts_page, 'side', 'core' );
          add_meta_box( 'alTemplateHelp', __( 'Template Help', 'amazon-link' ), array (&$this, 'displayTemplateHelp' ), $this->opts_page, 'side', 'low' );
          add_meta_box( 'alTemplates', __( 'Templates', 'amazon-link' ), array (&$this, 'show_templates' ), $this->opts_page, 'advanced', 'core' );

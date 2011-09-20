@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  \n"
 "Report-Msgid-Bugs-To: http://wordpress.org/tag/amazon-link\n"
-"POT-Creation-Date: 2011-08-26 12:09:11+00:00\n"
+"POT-Creation-Date: 2011-09-20 19:13:09+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -121,6 +121,10 @@ msgstr ""
 msgid "Amazon Rank"
 msgstr ""
 
+#: amazon.php:245
+msgid "Amazon Tracking ID Channels"
+msgstr ""
+
 #: include/insertForm.php:59
 msgid "Amazon product ASIN"
 msgstr ""
@@ -162,8 +166,8 @@ msgstr ""
 msgid "Channel %s Updated"
 msgstr ""
 
-#: include/showChannels.php:95
 #: include/showChannels.php:18
+#: include/showChannels.php:95
 msgid "Channel Description"
 msgstr ""
 
@@ -177,10 +181,6 @@ msgstr ""
 
 #: include/showChannels.php:17
 msgid "Channel Name"
-msgstr ""
-
-#: amazon.php:245
-msgid "Channels"
 msgstr ""
 
 #: amazon.php:363
@@ -205,8 +205,8 @@ msgstr ""
 
 #: include/showChannels.php:83
 #: include/showChannels.php:33
-#: include/showTemplates.php:21
 #: include/showTemplates.php:72
+#: include/showTemplates.php:21
 msgid "Copy"
 msgstr ""
 
