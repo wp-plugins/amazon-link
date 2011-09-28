@@ -14,7 +14,7 @@ Provides a facility to insert Amazon product links directly into your site's Pag
 
 This plugin is used to quickly add Amazon products to your WordPress posts and pages. The products can be simple text links, thumbnail images, fullsize images, complex templates or full-blown Amazon flash widgets.
 
-The product links that the plugin generates can be for any of the Amazon domains ([www.amazon.co.uk](http://www.amazon.co.uk), [www.amazon.com](http://www.amazon.com), [www.amazon.ca](http://www.amazon.ca), [www.amazon.cn](http://www.amazon.cn), [www.amazon.de](http://www.amazon.de), [www.amazon.fr](http://www.amazon.fr), [www.amazon.it](http://www.amazon.it) and [www.amazon.jp](http://www.amazon.co.jp/)).
+The product links that the plugin generates can be for any of the Amazon domains ([www.amazon.co.uk](http://www.amazon.co.uk), [www.amazon.com](http://www.amazon.com), [www.amazon.ca](http://www.amazon.ca), [www.amazon.cn](http://www.amazon.cn), [www.amazon.de](http://www.amazon.de), [www.amazon.es](http://www.amazon.es), [www.amazon.fr](http://www.amazon.fr), [www.amazon.it](http://www.amazon.it) and [www.amazon.jp](http://www.amazon.co.jp/)).
 
 The content of the products can be statically entered by the Author, when the link is created, or dynamically refreshed when displayed using the Amazon site that is most appropriate for the nationality of the reader.
 
@@ -50,15 +50,12 @@ To generate a list of products relevant to the content of your site use the 'cat
 
 This is created by either putting the line `amazon_recommends(<Category>,<Number of Posts>)` in your template. Or putting the line `[amazon cat=<Category>&last=<Number of Posts>]` within a post or page. Where 'Category' is a list of category ids to search within (e.g. as expected by the 'cat' argument of [query_posts](http://codex.wordpress.org/Template_Tags/query_posts#Parameters) function. The 'last' parameter is the number of posts to search through.
 
-= Latest Version - 2.0.4 =
+= Latest Version - 2.0.5 =
 
 
 
-* Add Affiliate ID channels and User Affiliate ID settings
-* Facility to set Affiliate channel by Author or manually in each shortcode.
-* Bug fix - Italian AWS API Version Increment
-* Bug fix - Fix php 'Notice's when WP_DEBUG is enabled
-
+* Add support for www.amazon.es
+* Improve localisation of image iframe template - addition of MPLACE_ID template item
 
 
 == Installation ==
@@ -110,7 +107,7 @@ If this option is selected then the plugin will enable a small popup menu of cou
 
 = Localise Amazon Link =
 
-If this option is selected and the [ip2nation](http://www.ip2nation.com/) database has been installed then the plugin will attempt to use the most appropriate Amazon site when creating the link, currently supports [www.amazon.co.uk](http://www.amazon.co.uk), [www.amazon.com](http://www.amazon.com), [www.amazon.ca](http://www.amazon.ca), [www.amazon.cn](http://www.amazon.cn), [www.amazon.de](http://www.amazon.de), [www.amazon.fr](http://www.amazon.fr), [www.amazon.it](http://www.amazon.it) and [www.amazon.jp](http://www.amazon.co.jp/).
+If this option is selected and the [ip2nation](http://www.ip2nation.com/) database has been installed then the plugin will attempt to use the most appropriate Amazon site when creating the link, currently supports [www.amazon.co.uk](http://www.amazon.co.uk), [www.amazon.com](http://www.amazon.com), [www.amazon.ca](http://www.amazon.ca), [www.amazon.cn](http://www.amazon.cn), [www.amazon.de](http://www.amazon.de), [www.amazon.es](http://www.amazon.es), [www.amazon.fr](http://www.amazon.fr), [www.amazon.it](http://www.amazon.it) and [www.amazon.jp](http://www.amazon.co.jp/).
 
 = Live Data =
 
@@ -179,7 +176,7 @@ Overides the 'Localise Amazon Link' setting. 0 to force the default country, 1 t
 Overides the 'Multinational Link' setting. 0 to disable the popup, 1 to enable the popup.
 = default_cc =
 
-Overides the 'Default Country' setting. Must be one of 'uk', 'us', 'ca', 'cn', 'de', 'fr', 'it' or 'jp'.
+Overrides the 'Default Country' setting. Must be one of 'uk', 'us', 'ca', 'cn', 'de', 'es', 'fr', 'it' or 'jp'.
 = pub_key =
 
 Overides the 'AWS Public Key' setting.
@@ -237,7 +234,7 @@ The keyword `'%ASINS%'` can be used to indicate that this template will accept a
 
 Browse the default included templates to see some examples of how the keywords can be used.
 
-Note: the Amazon widgets are currently not supported in some locales (e.g. Canada and Italy).
+Note: the Amazon widgets are currently not supported in some locales (e.g. Canada, Spain & Italy).
 
 = What templates are included with the plugin? =
 
@@ -357,7 +354,7 @@ The localisation process is far from perfect and authors should be aware of the 
 
 * Incorrect Amazon site allocation -
 
-    There are only 8 major Amazon sites (UK, France, Germany, US, Japan, Italy, China and Canada). So the plugin has to guess where a country's residents are most likely to shop on-line. An alternative is to enable the 'Multinational Link' option, this will enable a small popup for each link allowing the site visitor to choose the most appropriate site (based on locale or language).
+    There are only 9 major Amazon sites (UK, France, Germany, Spain, US, Japan, Italy, China and Canada). So the plugin has to guess where a country's residents are most likely to shop on-line. An alternative is to enable the 'Multinational Link' option, this will enable a small popup for each link allowing the site visitor to choose the most appropriate site (based on locale or language).
 * Product Availability -
 
     A product that is available in the author's locale may not be available on other Amazon sites. If the live data option is enabled the plugin will display a link to the Amazon site in the author's own locale if the product is not available at the visitor's Amazon store.
@@ -402,6 +399,14 @@ Features I will be adding to the plugin in the future:
 
 
 == Changelog ==
+
+
+= 2.0.5 =
+
+
+
+* Add support for www.amazon.es
+* Improve localisation of image iframe template - addition of MPLACE_ID template item
 
 
 = 2.0.4 =
@@ -505,6 +510,10 @@ First Release
 
 == Upgrade Notice ==
 
+
+= 2.0.5 =
+
+Upgrade to add support for www.amazon.es.
 
 = 2.0.4 =
 

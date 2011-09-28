@@ -42,15 +42,17 @@
              }
          }
          //echo "<PRE>"; print_r($request); echo "</PRE>";
+
          $pxml = $this->doQuery($request);
-         if ($pxml === False) {
+         if (is_array($pxml['Cart']['SimilarProducts']['SimilarProduct']))
+         {
+            $Items=$pxml['Cart']['SimilarProducts']['SimilarProduct'];
+         } else {
             $output .= __('Amazon query failed to return any results - Have you configured the AWS settings?', 'amazon-link');
             $output .= print_r($request, true);
             $Items=array();
-         } else {
-            $Items=$pxml['Cart']['SimilarProducts']['SimilarProduct'];
          }
-
+         
          foreach ($Items as $Item => $Details)
             $ASINs[] = $Details['ASIN'];
 

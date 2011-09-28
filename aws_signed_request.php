@@ -57,6 +57,7 @@ function aws_signed_request($region, $params, $public_key, $private_key)
                      'com'   => array( 'host' => 'ecs.amazonaws.com', 'uri' => '/onca/xml'),
                      'co.uk' => array( 'host' => 'ecs.amazonaws.co.uk', 'uri' => '/onca/xml'),
                      'de'    => array( 'host' => 'ecs.amazonaws.de', 'uri' => '/onca/xml'),
+                     'es'    => array( 'host' => 'webservices.amazon.es', 'uri' => '/onca/xml'),
                      'fr'    => array( 'host' => 'ecs.amazonaws.fr', 'uri' => '/onca/xml'),
                      'it'    => array( 'host' => 'webservices.amazon.it', 'uri' => '/onca/xml'),
                      'jp'    => array( 'host' => 'ecs.amazonaws.jp', 'uri' => '/onca/xml'));

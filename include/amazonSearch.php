@@ -99,6 +99,7 @@ if (!class_exists('AmazonLinkSearch')) {
                                   'tag'          => array( 'Description' => __('Localised Amazon Associate Tag', 'amazon-link')),
                                   'cc'           => array( 'Description' => __('Localised Country Code (us, uk, etc.)', 'amazon-link')),
                                   'mplace'       => array( 'Description' => __('Localised Amazon Marketplace Code (US, GB, etc.)', 'amazon-link')),
+                                  'mplace_id'    => array( 'Description' => __('Localised Numeric Amazon Marketplace Code (2=uk, 8=fr, etc.)', 'amazon-link')),
                                   'tld'          => array( 'Description' => __('Localised Top Level Domain (.com, .co.uk, etc.)', 'amazon-link')),
                                   'downloaded'   => array( 'Description' => __('1 if Images are in the local Wordpress media library', 'amazon-link')),
                                   'found'        => array( 'Description' => __('1 if product was found doing a live data request (also 1 if live not enabled).', 'amazon-link')),
@@ -234,6 +235,7 @@ if (!class_exists('AmazonLinkSearch')) {
                $data['tld']     = $local_info['tld'];
                $data['cc']      = $local_info['cc'];
                $data['mplace']  = $local_info['mplace'];
+               $data['mplace_id']= $local_info['mplace_id'];
                $data['url']     = (isset($result['DetailPageURL']) ? $result['DetailPageURL'] : '');
                $data['rank']    = (isset($result['SalesRank']) ? $result['SalesRank'] : '');
                $data['rating']  = (isset($result['CustomerReviews']['AverageRating']) ? $result['CustomerReviews']['AverageRating'] : '-');

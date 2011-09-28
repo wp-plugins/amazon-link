@@ -353,15 +353,16 @@ function al_gen_multi (id, asin, def, chan) {
             // market place of amazon site
             // tld of main amazon site
             // link to affiliate program site
-            // Default tag if none set up
-            $this->country_data = array('uk' => array('name' => __('United Kingdom', 'amazon-link'), 'flag' => 'images/flag_uk.gif', 'market' => 'GB', 'tld' => 'co.uk', 'site' => 'https://affiliate-program.amazon.co.uk', 'default_tag' => 'livpauls-21'),
-                                        'us' => array('name' => __('United States', 'amazon-link'), 'flag' => 'images/flag_us.gif', 'market' => 'US', 'tld' => 'com', 'site' => 'https://affiliate-program.amazon.com', 'default_tag' => 'lipawe-20'),
-                                        'de' => array('name' => __('Germany', 'amazon-link'), 'flag' => 'images/flag_de.gif', 'market' => 'DE', 'tld' => 'de', 'site' => 'https://partnernet.amazon.de', 'default_tag' => 'lipas03-21'),
-                                        'fr' => array('name' => __('France', 'amazon-link'), 'flag' => 'images/flag_fr.gif', 'market' => 'FR', 'tld' => 'fr', 'site' => 'https://partenaires.amazon.fr', 'default_tag' => 'lipas-21'),
-                                        'jp' => array('name' => __('Japan', 'amazon-link'), 'flag' => 'images/flag_jp.gif', 'market' => 'JP', 'tld' => 'jp', 'site' => 'https://affiliate.amazon.co.jp', 'default_tag' => 'livpaul21-22'),
-                                        'it' => array('name' => __('Italy', 'amazon-link'), 'flag' => 'images/flag_it.gif', 'market' => 'IT', 'tld' => 'it', 'site' => 'https://programma-affiliazione.amazon.it', 'default_tag' => 'livpaul-21'),
-                                        'cn' => array('name' => __('China', 'amazon-link'), 'flag' => 'images/flag_cn.gif', 'market' => 'CN', 'tld' => 'cn', 'site' => 'https://associates.amazon.cn', 'default_tag' => 'livpaul-21'),
-                                        'ca' => array('name' => __('Canada', 'amazon-link'), 'flag' => 'images/flag_ca.gif', 'market' => 'CA', 'tld' => 'ca', 'site' => 'https://associates.amazon.ca', 'default_tag' => 'lipas-20'));
+            // Default tag if none set up 
+            $this->country_data = array('uk' => array('name' => __('United Kingdom', 'amazon-link'), 'flag' => 'images/flag_uk.gif', 'market' => 'GB', 'm_id' => 2, 'tld' => 'co.uk', 'site' => 'https://affiliate-program.amazon.co.uk', 'default_tag' => 'livpauls-21'),
+                                        'us' => array('name' => __('United States', 'amazon-link'), 'flag' => 'images/flag_us.gif', 'market' => 'US', 'm_id' => 1, 'tld' => 'com', 'site' => 'https://affiliate-program.amazon.com', 'default_tag' => 'lipawe-20'),
+                                        'de' => array('name' => __('Germany', 'amazon-link'), 'flag' => 'images/flag_de.gif', 'market' => 'DE', 'm_id' => 3, 'tld' => 'de', 'site' => 'https://partnernet.amazon.de', 'default_tag' => 'lipas03-21'),
+                                        'es' => array('name' => __('Spain', 'amazon-link'), 'flag' => 'images/flag_es.gif', 'market' => 'ES', 'm_id' => 30, 'tld' => 'es', 'site' => 'https://afiliados.amazon.es', 'default_tag' => 'livpauls0b-21'),
+                                        'fr' => array('name' => __('France', 'amazon-link'), 'flag' => 'images/flag_fr.gif', 'market' => 'FR', 'm_id' => 8, 'tld' => 'fr', 'site' => 'https://partenaires.amazon.fr', 'default_tag' => 'lipas-21'),
+                                        'jp' => array('name' => __('Japan', 'amazon-link'), 'flag' => 'images/flag_jp.gif', 'market' => 'JP', 'm_id' => 9, 'tld' => 'jp', 'site' => 'https://affiliate.amazon.co.jp', 'default_tag' => 'livpaul21-22'),
+                                        'it' => array('name' => __('Italy', 'amazon-link'), 'flag' => 'images/flag_it.gif', 'market' => 'IT', 'm_id' => 29, 'tld' => 'it', 'site' => 'https://programma-affiliazione.amazon.it', 'default_tag' => 'livpaul-21'),
+                                        'cn' => array('name' => __('China', 'amazon-link'), 'flag' => 'images/flag_cn.gif', 'market' => 'CN', 'm_id' => 28, 'tld' => 'cn', 'site' => 'https://associates.amazon.cn', 'default_tag' => 'livpaul-23'),
+                                        'ca' => array('name' => __('Canada', 'amazon-link'), 'flag' => 'images/flag_ca.gif', 'market' => 'CA', 'm_id' => 15, 'tld' => 'ca', 'site' => 'https://associates.amazon.ca', 'default_tag' => 'lipas-20'));
          }
          return $this->country_data;
       }
@@ -690,8 +691,9 @@ function al_gen_multi (id, asin, def, chan) {
          $country_map = array('uk' => array('uk', 'ie', 'gi', 'gl', 'nl', 'vg', 'cy', 'gb'),
                               'fr' => array('fr', 'be', 'bj', 'bf', 'bi', 'cm', 'cf', 'td', 'km', 'cg', 'dj', 'ga', 'gp',
                                             'gf', 'gr', 'pf', 'tf', 'ht', 'ci', 'lu', 'mg', 'ml', 'mq', 'yt', 'mc', 'nc',
-                                            'ne', 're', 'sn', 'sc', 'tg', 'vu', 'wf', 'es'),
+                                            'ne', 're', 'sn', 'sc', 'tg', 'vu', 'wf'),
                               'de' => array('de', 'at', 'ch', 'no', 'dn', 'li', 'sk'),
+                              'es' => array('es'),
                               'it' => array('it'),
                               'cn' => array('cn'),
                               'ca' => array('ca', 'pm'),
@@ -894,7 +896,7 @@ function al_gen_multi (id, asin, def, chan) {
          $channel      = $this->get_channel();
          $top_cc       = $this->get_country();
          $country_data = $this->get_country_data();
-         $info         = array( 'cc' => $top_cc, 'mplace' => $country_data[$top_cc]['market'], 'tld' => $country_data[$top_cc]['tld'], 'tag' => $channel['tag_' . $top_cc], 'channel' => $channel['ID']);
+         $info         = array( 'cc' => $top_cc, 'mplace_id' => $country_data[$top_cc]['m_id'], 'mplace' => $country_data[$top_cc]['market'], 'tld' => $country_data[$top_cc]['tld'], 'tag' => $channel['tag_' . $top_cc], 'channel' => $channel['ID']);
          return $info;
       }
 
