@@ -35,21 +35,28 @@ if (!class_exists('AmazonWishlist_Options')) {
          wp_enqueue_style('amazon-link-form');
       }
 
-      function displayForm($optionList, $Opts, $Open = True, $Body = True, $Close = True) {
+
+      function displayForm($optionList, $Opts, $Open = True, $Body = True, $Close = True, $NoTable = True) {
 
          if ($Open) {
+            if ($NoTable) {
 ?>
 <div class="wrap">
  <form name="form1" method="post" action="<?php echo str_replace( '%7E', '~', $_SERVER['REQUEST_URI']); ?>">
 <?php
+            } else {
+?>
+<table class="form-table">
+<?php
+            }
          }
 
          if ($Body) {
 
             // Loop through the options table, display a row for each.
             foreach ($optionList as $optName => $optDetails) {
-               if (!isset($Opts[$optName]) && isset($optDetails['Default']))
-                   $Opts[$optName] = $optDetails['Default'];
+               if (!isset($Opts[$optName]))
+                   $Opts[$optName] = isset($optDetails['Default']) ? $optDetails['Default'] : '';
 
                if ($optDetails['Type'] == 'checkbox') {
 
@@ -184,7 +191,7 @@ if (!class_exists('AmazonWishlist_Options')) {
                   // Insert a hidden Item
                   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-                  $Value = isset($optDetails['Value']) ? $optDetails['Value'] : $Opts[$optName];
+                  $Value = isset($optDetails['Value']) ? $optDetails['Value'] : $Opts[$optName] ;
                   $id = isset($optDetails['Id']) ? 'id="'.$optDetails['Id'].'"' : '';
 ?>
     <input <?php echo $id ?> name="<?php echo $optName; ?>" type="hidden" value="<?php echo $Value; ?>" />
@@ -199,7 +206,7 @@ if (!class_exists('AmazonWishlist_Options')) {
                   $hint = isset($optDetails['Hint']) ? $optDetails['Hint'] : '';
                   $id = isset($optDetails['Id']) ? 'id="'.$optDetails['Id'].'"' : '';
                   $class  = isset($optDetails['Class']) ? 'class="'.$optDetails['Class'].' al_opt_container"' : 'class="al_opt_container"';
-
+                  if ($NoTable) {
 ?>
    <dl <?php echo $class ?>>
     <dt class="al_label"><span><label for="<?php  echo $optName; ?>"> <?php echo $optDetails['Name']; ?></label></span></dt>
@@ -213,6 +220,17 @@ if (!class_exists('AmazonWishlist_Options')) {
    </dl>
 
 <?php
+                  } else {
+?>
+<tr><th><label for="<?php  echo $optName; ?>"> <?php echo $optDetails['Name']; ?></label></th>
+ <td>
+  <input style="width:200px" <?php  echo $id ?> name="<?php echo $optName; ?>" title="<?php echo stripslashes($hint); ?>" type="text" value="<?php echo $Opts[$optName]; ?>" size="<?php echo $size ?>" />
+  <?php if (isset($optDetails['Description'])) echo '<span class="description">'.$optDetails['Description'].'</span>'; ?>
+ </td>
+</tr>
+
+<?php
+                  }
                } else if ($optDetails['Type'] == 'nonce') {
 
                   // Insert a Nonce Item
@@ -239,9 +257,29 @@ if (!class_exists('AmazonWishlist_Options')) {
                   $class  = isset($optDetails['Class']) ? 'class="'.$optDetails['Class'].' al_opt_container"' : 'class="al_opt_container"';
 
                   if (isset($optDetails['Title_Class'])) {
+                     $Title = '<div '.$id.' class="' . $optDetails['Title_Class'] . '">'. $optDetails['Value'] . '</div>';
+                  } else {
+                     $Title = '<h2 '.$id.'>'. $optDetails['Value'] . '</h2>';
+                  }
+?>
+    <div <?php echo $class ?>>
+      <?php if (isset($optDetails['Icon'])) screen_icon($optDetails['Icon']); ?>
+      <?php echo $Title ?>
+     <?php if (isset($optDetails['Description'])) echo '<div class="al_description">'.$optDetails['Description'].'</div>'; ?>
+    </div>
+<?php
+               } else if ($optDetails['Type'] == 'subhead') {
+                  $id = isset($optDetails['Id']) ? 'id="'.$optDetails['Id'].'"' : '';
+
+                  // Insert a Sub-Heading Item
+                  //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+                  $class  = isset($optDetails['Class']) ? 'class="'.$optDetails['Class'].' al_opt_container"' : 'class="al_opt_container"';
+
+                  if (isset($optDetails['Title_Class'])) {
                      $Title = '<div '.$id.' class="' . $optDetails['Title_Class'] . '">'. $icon. $optDetails['Value'] . '</div>';
                   } else {
-                     $Title = '<h2 '.$id.'>'. $icon. $optDetails['Value'] . '</h2>';
+                     $Title = '<h3 '.$id.'>'. $icon. $optDetails['Value'] . '</h3>';
                   }
 ?>
     <div <?php echo $class ?>>
@@ -279,12 +317,16 @@ if (!class_exists('AmazonWishlist_Options')) {
          }
 
          if ($Close) {
+            if ($NoTable) {
 ?>
-
  </form>
 </div>
 <?php
-
+            } else {
+?>
+</table>
+<?php
+            }
          }
       }
 
