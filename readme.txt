@@ -4,7 +4,7 @@ Donate link: http://www.houseindorset.co.uk/plugins
 Tags: Amazon, links, wishlist, recommend, shortcode, ip2nation, localise, images, media library, affiliate, product, template
 Requires at least: 3.1
 Tested up to: 3.2.1
-Stable tag: 2.0.6
+Stable tag: 2.0.7
 
 
 Provides a facility to insert Amazon product links directly into your site's Pages, Posts and Widgets and Templates.
@@ -50,12 +50,11 @@ To generate a list of products relevant to the content of your site use the 'cat
 
 This is created by either putting the line `amazon_recommends(<Category>,<Number of Posts>)` in your template. Or putting the line `[amazon cat=<Category>&last=<Number of Posts>]` within a post or page. Where 'Category' is a list of category ids to search within (e.g. as expected by the 'cat' argument of [query_posts](http://codex.wordpress.org/Template_Tags/query_posts#Parameters) function. The 'last' parameter is the number of posts to search through.
 
-= Latest Version - 2.0.5 =
+= Latest Version - 2.0.7 =
 
 
 
-* Add support for www.amazon.es
-* Improve localisation of image iframe template - addition of MPLACE_ID template item
+* Fix US localisation of image iframe template - addition of RCM template item
 
 
 == Installation ==
@@ -70,6 +69,7 @@ Simply:
 1. Update the settings (at the very least enter the default Affiliate Tags)
 1. If you wish to use the advanced functionality: Wishlists, Search or Media Upload facilities or the live data option you must also set up an [Amazon Web Services](http://aws.amazon.com/) account. So that you can update the AWS Public and Private key settings.
 1. Insert links and wishlists into your content using the [amazon] tag as described above, or using the Amazon Link box on the Page/Post edit pages.
+
 
 
 == Settings ==
@@ -289,15 +289,15 @@ Will produce a text link to an Amazon Product page:
 Will produce a thumbnail image link to an Amazon Product page.
 
 
-`[amazon asin=B001L4GBXY,B001L2EZNY,B001LR3576&template=Iframe Image]`
-Will produce 3 classic Amazon product links to the specified products.
+`[amazon asin=B001L4GBXY,B003VLDV24&template=Iframe Image]`
+Will produce 2 classic Amazon product links to the specified products.
 
 `[amazon asin=B001L4GBXY,B001L2EZNY,B001LR3576,B001KSJNWC,B001LWZCKY,B001GTPI7O,B001GTAGS0&template=Carousel]`
 Will produce a single Amazon Carousel widget containing all the specified products.
 
 
-`[amazon asin=B001L4GBXY,B001L2EZNY,B001LR3576&template=Wishlist&live=1]`
-Will produce a list of the 3 products using data from the reader's local Amazon site.
+`[amazon asin=B001L4GBXY,B001L2EZNY&template=Wishlist&live=1]`
+Will produce a list of the 2 products using data from the reader's local Amazon site.
 
 
 `[amazon asin=1841498955&template=Wishlist Post&product=Book&title=Surface Detail (Culture 9)&artist=Iain M. Banks&thumb=http://ecx.images-amazon.com/images/I/41n7sphvJpL._SL160_.jpg&image=http://ecx.images-amazon.com/images/I/41n7sphvJpL.jpg&price=£5.30]`
@@ -401,7 +401,14 @@ Features I will be adding to the plugin in the future:
 == Changelog ==
 
 
-= 2.0.5 =
+= 2.0.7 =
+
+
+
+* Fix US localisation of image iframe template - addition of RCM template item
+
+
+= 2.0.6 =
 
 
 
@@ -511,7 +518,11 @@ First Release
 == Upgrade Notice ==
 
 
-= 2.0.5 =
+= 2.0.7 =
+
+Upgrade to fix US localisation of image iframe template.
+
+= 2.0.6 =
 
 Upgrade to add support for www.amazon.es.
 

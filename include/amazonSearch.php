@@ -101,6 +101,7 @@ if (!class_exists('AmazonLinkSearch')) {
                                   'mplace'       => array( 'Description' => __('Localised Amazon Marketplace Code (US, GB, etc.)', 'amazon-link')),
                                   'mplace_id'    => array( 'Description' => __('Localised Numeric Amazon Marketplace Code (2=uk, 8=fr, etc.)', 'amazon-link')),
                                   'tld'          => array( 'Description' => __('Localised Top Level Domain (.com, .co.uk, etc.)', 'amazon-link')),
+                                  'rcm'          => array( 'Description' => __('Localised RCM site host domain (rcm.amazon.com, rcm-uk.amazon.co.uk, etc.)', 'amazon-link')),
                                   'downloaded'   => array( 'Description' => __('1 if Images are in the local Wordpress media library', 'amazon-link')),
                                   'found'        => array( 'Description' => __('1 if product was found doing a live data request (also 1 if live not enabled).', 'amazon-link')),
                                   'link_open'    => array( 'Description' => __('Create a Amazon link with user defined content, of the form %LINK_OPEN%My Content%LINK_CLOSE%', 'amazon-link')),
@@ -149,6 +150,29 @@ if (!class_exists('AmazonLinkSearch')) {
             $results = array('success' => true);
             $Items=$pxml['Items']['Item'];
          }
+
+/*
+         if( !class_exists( 'WP_Http' ) )
+            include_once( ABSPATH . WPINC. '/class-http.php' );
+
+         foreach($Items as $item => $item_info) {
+            $map = '<div class="al_flags">';
+            $country_data = $this->alink->get_country_data();
+            foreach ($country_data as $cc => $data) {
+               $this->alink->Settings['localise'] = 0;
+               $this->alink->Settings['default_cc'] = $cc;
+               $url = $this->alink->getURL($item_info['ASIN']);
+               $request = new WP_Http;
+               $result = $request->request( $url, array('timeout' => 3, 'method' => 'GET'));
+               if (!is_wp_error($result) && ($result['response']['code'] == 200)) {
+                  $map .= '<img height=8px src="'. $this->alink->URLRoot. '/'. $data['flag'].'">';
+               }
+            }
+            $map .= '</div>';
+            $Items[$item]['Settings'] = $Settings;
+            $Items[$item]['Settings']['text1'] = $map;
+         }
+*/
          print json_encode($this->parse_results($Items, $Settings));
          exit();
       }
@@ -230,12 +254,6 @@ if (!class_exists('AmazonLinkSearch')) {
                $data['artist'] = $this->remove_parents($data['artist']);
                $data['manufacturer'] = (isset($result['ItemAttributes']['Manufacturer']) ? $result['ItemAttributes']['Manufacturer'] : '-');
 
-               $local_info = $this->alink->get_local_info();
-               $data['tag']     = $local_info['tag'];
-               $data['tld']     = $local_info['tld'];
-               $data['cc']      = $local_info['cc'];
-               $data['mplace']  = $local_info['mplace'];
-               $data['mplace_id']= $local_info['mplace_id'];
                $data['url']     = (isset($result['DetailPageURL']) ? $result['DetailPageURL'] : '');
                $data['rank']    = (isset($result['SalesRank']) ? $result['SalesRank'] : '');
                $data['rating']  = (isset($result['CustomerReviews']['AverageRating']) ? $result['CustomerReviews']['AverageRating'] : '-');
@@ -283,8 +301,9 @@ if (!class_exists('AmazonLinkSearch')) {
                   $data['image'] = $data['thumb'];
                unset($Settings['image']);
 
+               $local_info = $this->alink->get_local_info();
                if (isset($result['ASIN'])) unset($Settings['asin']);
-               $data = array_merge($data, $Settings);
+               $data = array_merge($data, $local_info, $Settings);
 
                $data['id']        = $data['asin'];
                for ($count = 0; $count <= 5; $count++) {
