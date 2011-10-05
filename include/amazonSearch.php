@@ -99,7 +99,9 @@ if (!class_exists('AmazonLinkSearch')) {
                                   'tag'          => array( 'Description' => __('Localised Amazon Associate Tag', 'amazon-link')),
                                   'cc'           => array( 'Description' => __('Localised Country Code (us, uk, etc.)', 'amazon-link')),
                                   'mplace'       => array( 'Description' => __('Localised Amazon Marketplace Code (US, GB, etc.)', 'amazon-link')),
+                                  'mplace_id'    => array( 'Description' => __('Localised Numeric Amazon Marketplace Code (2=uk, 8=fr, etc.)', 'amazon-link')),
                                   'tld'          => array( 'Description' => __('Localised Top Level Domain (.com, .co.uk, etc.)', 'amazon-link')),
+                                  'rcm'          => array( 'Description' => __('Localised RCM site host domain (rcm.amazon.com, rcm-uk.amazon.co.uk, etc.)', 'amazon-link')),
                                   'downloaded'   => array( 'Description' => __('1 if Images are in the local Wordpress media library', 'amazon-link')),
                                   'found'        => array( 'Description' => __('1 if product was found doing a live data request (also 1 if live not enabled).', 'amazon-link')),
                                   'link_open'    => array( 'Description' => __('Create a Amazon link with user defined content, of the form %LINK_OPEN%My Content%LINK_CLOSE%', 'amazon-link')),
@@ -148,7 +150,30 @@ if (!class_exists('AmazonLinkSearch')) {
             $results = array('success' => true);
             $Items=$pxml['Items']['Item'];
          }
-        print json_encode($this->parse_results($Items, $Settings));
+
+/*
+         if( !class_exists( 'WP_Http' ) )
+            include_once( ABSPATH . WPINC. '/class-http.php' );
+
+         foreach($Items as $item => $item_info) {
+            $map = '<div class="al_flags">';
+            $country_data = $this->alink->get_country_data();
+            foreach ($country_data as $cc => $data) {
+               $this->alink->Settings['localise'] = 0;
+               $this->alink->Settings['default_cc'] = $cc;
+               $url = $this->alink->getURL($item_info['ASIN']);
+               $request = new WP_Http;
+               $result = $request->request( $url, array('timeout' => 3, 'method' => 'GET'));
+               if (!is_wp_error($result) && ($result['response']['code'] == 200)) {
+                  $map .= '<img height=8px src="'. $this->alink->URLRoot. '/'. $data['flag'].'">';
+               }
+            }
+            $map .= '</div>';
+            $Items[$item]['Settings'] = $Settings;
+            $Items[$item]['Settings']['text1'] = $map;
+         }
+*/
+         print json_encode($this->parse_results($Items, $Settings));
          exit();
       }
 
@@ -158,7 +183,7 @@ if (!class_exists('AmazonLinkSearch')) {
          /* Do we have this image? */
          $media_ids = $this->find_attachments( $Opts['asin'] );
 
-         if (!$media_ids) {
+         if (is_wp_error($media_ids)) {
             $results = array('in_library' => false, 'asin' => $Opts['asin'], 'error' => __('No matching image found', 'amazon-link'));
          } else {
 
@@ -185,7 +210,7 @@ if (!class_exists('AmazonLinkSearch')) {
          /* Do not upload if we already have this image */
          $media_ids = $this->find_attachments( $Opts['asin'] );
 
-         if ($media_ids) {
+         if (!is_wp_error($media_ids)) {
             $results = array('in_library' => true, 'asin' => $Opts['asin'], 'id' => $media_ids[0]->ID);
          } else {
 
@@ -229,11 +254,6 @@ if (!class_exists('AmazonLinkSearch')) {
                $data['artist'] = $this->remove_parents($data['artist']);
                $data['manufacturer'] = (isset($result['ItemAttributes']['Manufacturer']) ? $result['ItemAttributes']['Manufacturer'] : '-');
 
-               $local_info = $this->alink->get_local_info();
-               $data['tag']     = $local_info['tag'];
-               $data['tld']     = $local_info['tld'];
-               $data['cc']      = $local_info['cc'];
-               $data['mplace']  = $local_info['mplace'];
                $data['url']     = (isset($result['DetailPageURL']) ? $result['DetailPageURL'] : '');
                $data['rank']    = (isset($result['SalesRank']) ? $result['SalesRank'] : '');
                $data['rating']  = (isset($result['CustomerReviews']['AverageRating']) ? $result['CustomerReviews']['AverageRating'] : '-');
@@ -251,7 +271,7 @@ if (!class_exists('AmazonLinkSearch')) {
                 */
 
                $media_ids = $this->find_attachments( $data['asin'] );
-               if ($media_ids) {
+               if (!is_wp_error($media_ids)) {
                   $data['media_id'] = $media_ids[0]->ID;
                   $data['downloaded'] = '1';
                   $data['local_thumb'] = wp_get_attachment_thumb_url($data['media_id']);
@@ -281,8 +301,9 @@ if (!class_exists('AmazonLinkSearch')) {
                   $data['image'] = $data['thumb'];
                unset($Settings['image']);
 
+               $local_info = $this->alink->get_local_info();
                if (isset($result['ASIN'])) unset($Settings['asin']);
-               $data = array_merge($data, $Settings);
+               $data = array_merge($data, $local_info, $Settings);
 
                $data['id']        = $data['asin'];
                for ($count = 0; $count <= 5; $count++) {
@@ -295,7 +316,7 @@ if (!class_exists('AmazonLinkSearch')) {
                $data['thumb_link']    = amazon_make_links('image_class='. $Settings['image_class'].'&thumb='. $data['thumb'] . '&asin='.$data['asin'].'&text='. $data['title']);
 
                foreach($data as $keyword => $details)
-                  $data[$keyword . '_S'] = addslashes($details);
+                  $data[$keyword . '_S'] = is_array($details) ? $details : addslashes($details);
 
                $data['template'] = $this->process_template($data, $Template);
                $results['items'][$data['asin']] = $data;
@@ -332,7 +353,7 @@ if (!class_exists('AmazonLinkSearch')) {
          if ($media_ids) {
             return $media_ids;
          } else {
-            new WP_Error(__('No images found','amazon-link'));
+            return new WP_Error(__('No images found','amazon-link'));
          }
       }
 

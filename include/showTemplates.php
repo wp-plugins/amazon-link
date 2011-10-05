@@ -129,10 +129,10 @@
       $templateOpts['ID']['Default'] = $templateID;
       $templateOpts['title']['Value'] = sprintf(__('<b>%s</b> - %s','amazon-link'), $templateID, $templateDetails['Description']);
       if (preg_match('/%ASINS%/i', $Templates[$templateID]['Content'])) {
-         $asins = 'asin=B001L4GBXY,B001L2EZNY,B001LR3576,B001KSJNWC,B001LWZCKY,B001GTPI7O,B001GTAGS0';
+         $asins = 'asin=B000056VJ7,B0000025UW,B001LR3576,B001KSJNWC,B001LWZCKY,B001GTPI7O,B001GTAGS0';
          $live='';
       } else {
-         $asins = 'asin=0340993766';
+         $asins = 'asin=B000056VJ7';
          $live='&live=1';
       }
       $templateOpts['preview']['Value'] = amazon_make_links( $asins.'&text=Text Item&text1=Text1&text2=Text 2&text3=Text 3&text4=Text 4&template='.$templateID.$live). '<br style="clear:both"\>';
