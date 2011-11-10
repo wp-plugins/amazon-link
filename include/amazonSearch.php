@@ -151,7 +151,7 @@ if (!class_exists('AmazonLinkSearch')) {
             $Items=$pxml['Items']['Item'];
          }
 
-/*
+/* Test Code to check availibility at all sites... 
          if( !class_exists( 'WP_Http' ) )
             include_once( ABSPATH . WPINC. '/class-http.php' );
 
@@ -257,7 +257,10 @@ if (!class_exists('AmazonLinkSearch')) {
                $data['url']     = (isset($result['DetailPageURL']) ? $result['DetailPageURL'] : '');
                $data['rank']    = (isset($result['SalesRank']) ? $result['SalesRank'] : '');
                $data['rating']  = (isset($result['CustomerReviews']['AverageRating']) ? $result['CustomerReviews']['AverageRating'] : '-');
-               $data['price']   = (isset($result['Offers']['Offer']['OfferListing']['Price']['FormattedPrice']) ? $result['Offers']['Offer']['OfferListing']['Price']['FormattedPrice'] : '');
+               $data['price']   = (isset($result['Offers']['Offer']['OfferListing']['Price']['FormattedPrice']) ? $result['Offers']['Offer']['OfferListing']['Price']['FormattedPrice'] : 
+                                   (isset($result['OfferSummary']['LowestNewPrice']['FormattedPrice']) ? $result['OfferSummary']['LowestNewPrice']['FormattedPrice'] :
+                                    (isset($result['OfferSummary']['LowestUsedPrice']['FormattedPrice']) ? $result['OfferSummary']['LowestUsedPrice']['FormattedPrice'] :
+                                     (isset($result['ItemAttributes']['ListPrice']['FormattedPrice']) ? $result['ItemAttributes']['ListPrice']['FormattedPrice'] : '-'))));
                $data['type']    = 'Amazon';
                $data['product'] = (isset($result['ItemAttributes']['ProductGroup']) ? $result['ItemAttributes']['ProductGroup'] : '-');
                $data['found']   = (isset($result['found']) ? $result['found'] : 0);

@@ -4,7 +4,7 @@
 Plugin Name: Amazon Link
 Plugin URI: http://www.houseindorset.co.uk/plugins/amazon-link
 Description: Insert a link to Amazon using the passed ASIN number, with the required affiliate info.
-Version: 2.0.7
+Version: 2.0.8
 Text Domain: amazon-link
 Author: Paul Stuttard
 Author URI: http://www.houseindorset.co.uk
@@ -72,7 +72,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
       var $TagTail       = ']';
 
       var $option_version= 3;
-      var $plugin_version= '2.0.4';
+      var $plugin_version= '2.0.8';
       var $optionName    = 'AmazonLinkOptions';
       var $user_options  = 'amazonlinkoptions';
       var $templatesName = 'AmazonLinkTemplates';
@@ -918,7 +918,7 @@ function al_gen_multi (id, asin, def, chan) {
 
          // Create query to retrieve the an item
          $request = array('Operation'     => 'ItemLookup',
-                          'ResponseGroup' => 'Offers,Small,Reviews,Images,SalesRank',
+                          'ResponseGroup' => 'Offers,ItemAttributes,Small,Reviews,Images,SalesRank',
                           'ItemId'        => $asin, 
                           'IdType'        => 'ASIN',
                           'MerchantId'    => 'Amazon');
@@ -931,6 +931,7 @@ function al_gen_multi (id, asin, def, chan) {
             $item =array_merge($pxml['Items']['Item'], array('found' => 1));
          }
          $item['Settings'] = $Settings;
+//echo "<!-- "; print_r($item); echo "-->";
          return $item;
       }
 
