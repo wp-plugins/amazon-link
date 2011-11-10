@@ -4,7 +4,7 @@ Donate link: http://www.houseindorset.co.uk/plugins
 Tags: Amazon, links, wishlist, recommend, shortcode, ip2nation, localise, images, media library, affiliate, product, template
 Requires at least: 3.1
 Tested up to: 3.2.1
-Stable tag: 2.0.3
+Stable tag: 2.0.8
 
 
 Provides a facility to insert Amazon product links directly into your site's Pages, Posts and Widgets and Templates.
@@ -14,7 +14,7 @@ Provides a facility to insert Amazon product links directly into your site's Pag
 
 This plugin is used to quickly add Amazon products to your WordPress posts and pages. The products can be simple text links, thumbnail images, fullsize images, complex templates or full-blown Amazon flash widgets.
 
-The product links that the plugin generates can be for any of the Amazon domains ([www.amazon.co.uk](http://www.amazon.co.uk), [www.amazon.com](http://www.amazon.com), [www.amazon.ca](http://www.amazon.ca), [www.amazon.cn](http://www.amazon.cn), [www.amazon.de](http://www.amazon.de), [www.amazon.fr](http://www.amazon.fr), [www.amazon.it](http://www.amazon.it) and [www.amazon.jp](http://www.amazon.co.jp/)).
+The product links that the plugin generates can be for any of the Amazon domains ([www.amazon.co.uk](http://www.amazon.co.uk), [www.amazon.com](http://www.amazon.com), [www.amazon.ca](http://www.amazon.ca), [www.amazon.cn](http://www.amazon.cn), [www.amazon.de](http://www.amazon.de), [www.amazon.es](http://www.amazon.es), [www.amazon.fr](http://www.amazon.fr), [www.amazon.it](http://www.amazon.it) and [www.amazon.jp](http://www.amazon.co.jp/)).
 
 The content of the products can be statically entered by the Author, when the link is created, or dynamically refreshed when displayed using the Amazon site that is most appropriate for the nationality of the reader.
 
@@ -32,6 +32,7 @@ All product links will contain the Amazon affiliate ID of the site author and wi
 * Optional multinational popup to allow the reader to choose which Amazon site to visit
 * [Global options](#options) to update the behaviour of all the links on your site
 * Ability to locally override the global options using the [shortcode](#shortcode) content
+* Affiliate Tracking IDs for User or by user specified ['Channels'](#channels).
 * Flexible [template facility](#templates) to enable the author to quickly create complex content quickly and consistently
 * Includes [built in templates](#defaults) for the major Amazon widgets (Carousel, My Favourites, etc.).
 
@@ -45,19 +46,15 @@ Where ASIN Number is the unique amazon number used to identify products e.g. "14
 
 To utilise one of the templates simply specify the template option with the name of the template to use. For example: `[amazon asin=<ASIN Number>&title=<link text>&template=thumbnail]`.
 
-To generate a list of products relevant to the content of your site use the 'cat' option, to specify where the plugin should search for Amazon product links. This option can be either 'local' to search the current content or a list of category ids to search specific sections of your site. For example I use this feature to provide friends and family some ideas for presents This feature is based on the Amazon Web Service API and uses the 'CartSimilarities' feature to generate the list of items.
+To generate a list of products relevant to the content of your site use the 'cat' option, to specify where the plugin should search for Amazon product links. This option can be either 'local' to search the current content or a list of category ids to search specific sections of your site. For example I use this feature to provide friends and family some ideas for presents. This feature is based on the Amazon Web Service API and uses the 'CartSimilarities' feature to generate the list of items.
 
 This is created by either putting the line `amazon_recommends(<Category>,<Number of Posts>)` in your template. Or putting the line `[amazon cat=<Category>&last=<Number of Posts>]` within a post or page. Where 'Category' is a list of category ids to search within (e.g. as expected by the 'cat' argument of [query_posts](http://codex.wordpress.org/Template_Tags/query_posts#Parameters) function. The 'last' parameter is the number of posts to search through.
 
-= Latest Version - 2.0.3 =
+= Latest Version - 2.0.8 =
 
 
 
-* Add extra support for www.amazon.it and www.amazon.cn
-* Add 'found' tag to templates to indicate if product is listed on Amazon, and updated default templates to make use of this.
-* Bug fix - not displaying '$' prices correctly
-* Bug fix - not linking to default locale correctly
-
+* Bug Fix - Extract price information from OfferListing, LowestNew, LowestUsed and then ItemAttributes. Thanks to [Matthew](http://mynextebook.com) for spotting.
 
 
 == Installation ==
@@ -69,9 +66,10 @@ Simply:
 1. Download the [amazon-link plugin](http://wordpress.org/extend/plugins/amazon-link/) from the [Plugin Directory](http://wordpress.org/extend/plugins/).
 1. Unzip the amazon-link.zip file into your Wordpress `/wp-content/plugins/` directory.
 1. Activate the plugin through the 'Plugins' menu in WordPress.
-1. Update the settings (at the very least change the default Affiliate Tag)
-1. If you wish to use the Wishlist functionality, Search or Media Upload facilities or the live data option you must also set up an [Amazon Web Services](http://aws.amazon.com/) account. So that you can update the AWS Public and Private key settings.
+1. Update the settings (at the very least enter the default Affiliate Tags)
+1. If you wish to use the advanced functionality: Wishlists, Search or Media Upload facilities or the live data option you must also set up an [Amazon Web Services](http://aws.amazon.com/) account. So that you can update the AWS Public and Private key settings.
 1. Insert links and wishlists into your content using the [amazon] tag as described above, or using the Amazon Link box on the Page/Post edit pages.
+
 
 
 == Settings ==
@@ -109,7 +107,7 @@ If this option is selected then the plugin will enable a small popup menu of cou
 
 = Localise Amazon Link =
 
-If this option is selected and the [ip2nation](http://www.ip2nation.com/) database has been installed then the plugin will attempt to use the most appropriate Amazon site when creating the link, currently supports [www.amazon.co.uk](http://www.amazon.co.uk), [www.amazon.com](http://www.amazon.com), [www.amazon.ca](http://www.amazon.ca), [www.amazon.cn](http://www.amazon.cn), [www.amazon.de](http://www.amazon.de), [www.amazon.fr](http://www.amazon.fr), [www.amazon.it](http://www.amazon.it) and [www.amazon.jp](http://www.amazon.co.jp/).
+If this option is selected and the [ip2nation](http://www.ip2nation.com/) database has been installed then the plugin will attempt to use the most appropriate Amazon site when creating the link, currently supports [www.amazon.co.uk](http://www.amazon.co.uk), [www.amazon.com](http://www.amazon.com), [www.amazon.ca](http://www.amazon.ca), [www.amazon.cn](http://www.amazon.cn), [www.amazon.de](http://www.amazon.de), [www.amazon.es](http://www.amazon.es), [www.amazon.fr](http://www.amazon.fr), [www.amazon.it](http://www.amazon.it) and [www.amazon.jp](http://www.amazon.co.jp/).
 
 = Live Data =
 
@@ -121,11 +119,9 @@ Note this option also changes the behaviour of the Amazon Search Tool. When the 
 
 If this option is enabled then when generating links, the plugin will ensure that if they are clicked on it will open it in a new browser window. This option is equivalent to the 'new_window=1' shortcode argument.
 
-= Default Country & Associate IDs =
+= Default Country =
 
 If localisation is not enabled, or has failed for some reason, then this is the default Amazon site to use for the link.
-
-The author must enter their Amazon Associate IDs for any countries they have an ID for in this section. This will ensure their Associate account is credited with any sales made through the links.
 
 = AWS Public Key =
 
@@ -143,6 +139,10 @@ If you are having problems with the plugin and need to contact me, it may be hel
 
 It is not recommended that this option is enabled for any length of time as it will show your AWS access keys in the page html source.
 
+= Associate IDs & Channels =
+
+The author must enter their Amazon Associate IDs for any countries they have an ID for in this section. This will ensure their Associate account is credited with any sales made through the links.
+
 == Shortcode ==
 
 
@@ -157,6 +157,10 @@ The css class used when displaying the image in the post.
 = asin =
 
 The unique Amazon product ID or IDs, of the form '1405235675,1234567890'. Enter as 'asin=1405235675,1234567890'.
+= chan =
+
+It is possible to manually select which set of tracking IDs the link uses by specifying the 'chan=channel_id' option. This will override the user specific affiliate ids.
+
 = cat =
 
 When creating a wishlist you must specify the post category(s) through which to search for other Amazon links. Enter as 'cat=4,7'. Alternatively enter 'cat=local' to search the content on the current page.
@@ -172,20 +176,13 @@ Overides the 'Localise Amazon Link' setting. 0 to force the default country, 1 t
 Overides the 'Multinational Link' setting. 0 to disable the popup, 1 to enable the popup.
 = default_cc =
 
-Overides the 'Default Country' setting. Must be one of 'uk', 'us', 'ca', 'cn', 'de', 'fr', 'it' or 'jp'.
+Overrides the 'Default Country' setting. Must be one of 'uk', 'us', 'ca', 'cn', 'de', 'es', 'fr', 'it' or 'jp'.
 = pub_key =
 
 Overides the 'AWS Public Key' setting.
 = priv_key =
 
 Overides the 'AWS Private Key' setting.
-
-= thumb - depreciated =
-
-The URL used to display an image thumbnail for the amazon link in the post, if '1' is used then the image stored in the Wordpress media library is used.
-= image - depreciated =
-
-The URL used to display a fulll size image for the amazon link in the post, if '1' is used then the fullsize image stored in the Wordpress media library is used. If both 'image' and 'thumbnail' are set then the shortcode will cause a thumbnail image to be displayed in the post which links to the fullsize image (rather than to the Amazon store).
 
 == Frequently Asked Questions ==
 
@@ -194,6 +191,16 @@ The URL used to display a fulll size image for the amazon link in the post, if '
 
 
 If you think the plugin doesn't work, please try contacting me and I will endeavour to help. You can either start a forum topic on the [Wordpress site](http://wordpress.org/tags/amazon-link?forum_id=10) or leave a comment on my site on the plugin page [Amazon Link Page](http://www.houseindorset.co.uk/plugins/amazon-link).
+
+= Where do I enter my Amazon Affiliate IDs? =
+
+The site owner can enter their Affiliate IDs on the Amazon Link Settings page in the 'Channels' section. Enter your IDs for all the locales that you have registered for in the default channel.
+
+Any user of your site (including the owner/administrator) can also add their Affiliate IDs to their User Profile.
+
+It is recommended that the Affiliate IDs in the default channel as set up, as some sections of the site (e.g. shortcodes inserted in sidebar widgets) do not have an 'author'.
+
+If some of the IDs are not supplied in a User's profile, or in a particular Channel, then the ones in the default channel will be used instead.
 
 = How do I insert product links into my posts? =
 
@@ -209,13 +216,13 @@ There is also a facility to add cover images from the Amazon items into the loca
 = Can I create my own templates for product links? =
 
 
-On the plugin settings page there is a dedicated section to showing all the available templates. Use this to create, delete and copy templates. The template content is based on standard html with additional keywords that are surrounded by '%' characters.
+On the plugin settings page there is a section showing all the available templates. Use this to create, delete and copy templates. The template content is based on standard html with additional keywords that are surrounded by '%' characters. These keywords are automatically filled in with the relevant Amazon product information.
 
 See the Template Help on the same page for a description of each of the keywords that can be used.
 
 Most of the keywords are self explanatory: `'%TITLE%'` will expand to be the product's title, `'%PRICE%'` the formatted product's price, etc.
 
-However links can be created by using the keyword pair `'%LINK_START%'` and `'%LINK_END%'` with the subject of the link being placed between them. For example `'%LINK_START%Amazon Product%LINK_END%'`. The link produced will comply with whatever settings you have used, i.e. localised to the users country, produce multinational popup, with the appropriate Amazon associate ID inserted.
+However links can be created by using the keyword pair `'%LINK_START%'` and `'%LINK_END%'` with the subject of the link being placed between them. For example `'%LINK_START%Amazon Product%LINK_END%'`. The link produced will comply with whatever settings you have used, i.e. localised to the user's country or produce a multinational popup, it will also use the appropriate Amazon associate IDs.
 
 There are a number of other keywords that are also localised these include: `'%LINK_START%'` - as described above, `'%TLD%'` the Top Level Domain to be used '.co.uk', '.it', '.com', etc.; `'%MPLACE%'` - the Amazon Market place to use 'GB', 'IT', 'US', etc.; `'%CC%'` - the localised country code 'uk', 'it', 'us'; `'%TAG%'` - The amazon associate tag to use.
 
@@ -227,7 +234,7 @@ The keyword `'%ASINS%'` can be used to indicate that this template will accept a
 
 Browse the default included templates to see some examples of how the keywords can be used.
 
-Note: the Amazon widgets are currently not supported in some locales (e.g. Canada).
+Note: the Amazon widgets are currently not supported in some locales (e.g. Canada, Spain & Italy).
 
 = What templates are included with the plugin? =
 
@@ -249,6 +256,28 @@ Currently the plugin has default templates for:
 
 The 'Wishlist' template is the default template used for any lists created by shortcodes, as such it must exist. Deleting this template will cause the plugin to recreate any of the default templates that do not exist. This can be used to reset the templates back to their factory settings.
 
+= Does the plugin support multiple Amazon Tracking IDs? =
+
+The plugin allows the site author to create any number of 'Amazon Affiliate Channels' that specify a different set of Affiliate Tracking IDs. This allows the user to monitor how effective particular sections of the site are for generating referrals to Amazon.
+
+The user can generate extra Amazon Tracking IDs by managing their options at Amazon Associates > Your Account > Manage Tracking IDs [US](https://affiliate-program.amazon.com/gp/associates/network/your-account/manage-tracking-ids.html), [UK](https://affiliate-program.amazon.co.uk/gp/associates/network/your-account/manage-tracking-ids.html).
+
+Then under the Amazon Link Settings page, in the 'Channels' section, create a new Channel and enter the tracking IDs created. Individual Wordpress users can also add their own tracking IDs to their User profile. Any page of post that they are the author of will automatically use their Affiliate IDs.
+
+When generating Amazon Link shortcodes, either manually add 'chan=channel_id' to the shortcode or use the drop down selector in the Link Tool to choose one of the available channels.
+
+In the future it is intended that the plugin will allow the user to specify Channels by post category/tag/parent, etc.
+
+*Associate ID Priority*
+
+If the user specifies a Channel in the Amazon Link shortcode then this will always be used (if it exists).
+
+If the post or page is authored by a user who has specified their own affiliate ids then these will be used next.
+
+Otherwise the Affiliate IDs in the 'default' channel will be used.
+
+If the Channel selected does not contain affiliate IDs for all locales then ones from the 'default' Channel will be automatically inserted.
+
 = Can you provide a few examples of the shortcodes? =
 
 
@@ -260,22 +289,22 @@ Will produce a text link to an Amazon Product page:
 Will produce a thumbnail image link to an Amazon Product page.
 
 
-`[amazon asin=B001L4GBXY,B001L2EZNY,B001LR3576&template=Iframe Image]`
-Will produce 3 classic Amazon product links to the specified products.
+`[amazon asin=B001L4GBXY,B003VLDV24&template=Iframe Image]`
+Will produce 2 classic Amazon product links to the specified products.
 
 `[amazon asin=B001L4GBXY,B001L2EZNY,B001LR3576,B001KSJNWC,B001LWZCKY,B001GTPI7O,B001GTAGS0&template=Carousel]`
 Will produce a single Amazon Carousel widget containing all the specified products.
 
 
-`[amazon asin=B001L4GBXY,B001L2EZNY,B001LR3576&template=Wishlist&live=1]`
-Will produce a list of the 3 products using data from the reader's local Amazon site.
+`[amazon asin=B001L4GBXY,B001L2EZNY&template=Wishlist&live=1]`
+Will produce a list of the 2 products using data from the reader's local Amazon site.
 
 
-`[amazon asin=1841498955&template=Wishlist_Post&product=Book&title=Surface Detail (Culture 9)&artist=Iain M. Banks&thumb=http://ecx.images-amazon.com/images/I/41n7sphvJpL._SL160_.jpg&image=http://ecx.images-amazon.com/images/I/41n7sphvJpL.jpg&price=£5.30]`
+`[amazon asin=1841498955&template=Wishlist Post&product=Book&title=Surface Detail (Culture 9)&artist=Iain M. Banks&thumb=http://ecx.images-amazon.com/images/I/41n7sphvJpL._SL160_.jpg&image=http://ecx.images-amazon.com/images/I/41n7sphvJpL.jpg&price=£5.30]`
 Will produce a link using a custom template filled in with the data included in the shortcode.
 
 
-`[amazon asin=1841498955&template=Wishlist_Post&live=1&title=My Favourite Book]`
+`[amazon asin=1841498955&template=Wishlist Post&live=1&title=My Favourite Book]`
 Will produce a link using a custom template filled in with live data from the Amazon site, but with the title set by the data included in the shortcode.
 
 
@@ -325,7 +354,7 @@ The localisation process is far from perfect and authors should be aware of the 
 
 * Incorrect Amazon site allocation -
 
-    There are only 8 major Amazon sites (UK, France, Germany, US, Japan, Italy, China and Canada). So the plugin has to guess where a country's residents are most likely to shop on-line. An alternative is to enable the 'Multinational Link' option, this will enable a small popup for each link allowing the site visitor to choose the most appropriate site (based on locale or language).
+    There are only 9 major Amazon sites (UK, France, Germany, Spain, US, Japan, Italy, China and Canada). So the plugin has to guess where a country's residents are most likely to shop on-line. An alternative is to enable the 'Multinational Link' option, this will enable a small popup for each link allowing the site visitor to choose the most appropriate site (based on locale or language).
 * Product Availability -
 
     A product that is available in the author's locale may not be available on other Amazon sites. If the live data option is enabled the plugin will display a link to the Amazon site in the author's own locale if the product is not available at the visitor's Amazon store.
@@ -370,6 +399,39 @@ Features I will be adding to the plugin in the future:
 
 
 == Changelog ==
+
+
+= 2.0.8 =
+
+
+
+* Bug Fix - Extract price information from OfferListing, LowestNew, LowestUsed and then ItemAttributes. Thanks to [Matthew](http://mynextebook.com) for spotting.
+
+
+= 2.0.7 =
+
+
+
+* Fix US localisation of image iframe template - addition of RCM template item
+
+
+= 2.0.6 =
+
+
+
+* Add support for www.amazon.es
+* Improve localisation of image iframe template - addition of MPLACE_ID template item
+
+
+= 2.0.4 =
+
+
+
+* Add Affiliate ID channels and User Affiliate ID settings
+* Facility to set Affiliate channel by Author or manually in each shortcode.
+* Bug fix - Italian AWS API Version Increment
+* Bug fix - Fix php 'Notice's when WP_DEBUG is enabled
+
 
 
 = 2.0.3 =
@@ -462,6 +524,22 @@ First Release
 
 == Upgrade Notice ==
 
+
+= 2.0.8 =
+
+Upgrade if having problems getting prices for some items.
+
+= 2.0.7 =
+
+Upgrade to fix US localisation of image iframe template.
+
+= 2.0.6 =
+
+Upgrade to add support for www.amazon.es.
+
+= 2.0.4 =
+
+Upgrade to fix issue with Amazon.it AWS API, and add Amazon Tracking ID channels, and per User Amazon Affiliate IDs.
 
 = 2.0.3 =
 

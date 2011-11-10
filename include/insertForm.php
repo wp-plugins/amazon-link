@@ -8,7 +8,7 @@
 
 /*****************************************************************************************/
 
-   $Settings = $this->getSettings();
+   $Settings = $this->getOptions();
 
    $results_html = __('Results: ', 'amazon-link'). 
                   '<img style="float:right" alt="" title="" id="amazon-link-status" class="ajax-feedback " src="images/wpspin_light.gif" />'.
@@ -40,6 +40,7 @@
        <input style="float:left" type="button" title="'. __('Insert a link into the post, based on the selected template','amazon-link'). '"onClick="return wpAmazonLinkAd.sendToEditor(this.form, { '. $item_details.' } );" value="'.__('Insert', 'amazon-link').'" class="button-secondary">
        <input style="float:right" id="upload-button-%ASIN%" type="button" title="'. __('Upload cover image into media library','amazon-link'). '"onClick="return wpAmazonLinkSearch.grabMedia(this.form, {asin: \'%ASIN%\'} );" value="'.__('Upload', 'amazon-link').'" class="al_hide-%DOWNLOADED% button-secondary">
        <input style="float:right" id="uploaded-button-%ASIN%" type="button" title="'. __('Remove image from media library','amazon-link'). '"onClick="return wpAmazonLinkSearch.removeMedia(this.form, {asin: \'%ASIN%\'} );" value="'.__('Delete', 'amazon-link').'" class="al_show-%DOWNLOADED% button-secondary">
+      %TEXT1%
       </div>
      </div>
    
@@ -59,7 +60,8 @@
          'asin' => array( 'Id' => 'AmazonLinkOpt', 'Name' => __('ASIN', 'amazon-link'), 'Default' => '', 'Type' => 'text', 'Hint' => __('Amazon product ASIN', 'amazon-link'), 'Size' => '30', 
                            'Buttons' => array( __('Insert Link', 'amazon-link' ) => array( 'Type' => 'button', 'Class' => 'button-primary', 'Script' => 'return wpAmazonLinkAd.sendToEditor(this.form);'))),
          'text' => array( 'Id' => 'AmazonLinkOpt', 'Name' => __('Link Text', 'amazon-link'), 'Hint' => __('Amazon Link text', 'amazon-link'), 'Default' => 'Amazon', 'Type' => 'text', 'Size' => '40'),
-         'template' => array( 'Id' => 'AmazonLinkOpt', 'Name' => __('Template', 'amazon-link'), 'Hint' => __('Choose which template is used to display the item.', 'amazon-link'), 'Default' => ' ', 'Type' => 'selection'));
+         'template' => array( 'Id' => 'AmazonLinkOpt', 'Name' => __('Template', 'amazon-link'), 'Hint' => __('Choose which template is used to display the item.', 'amazon-link'), 'Default' => ' ', 'Type' => 'selection'),
+         'chan' => array( 'Id' => 'AmazonLinkOpt', 'Name' => __('Channel', 'amazon-link'), 'Hint' => __('Choose which set of Amazon Tracking IDs to use.', 'amazon-link'), 'Default' => ' ', 'Type' => 'selection'));
 
    if ( $this->valid_keys())
    {
@@ -96,6 +98,7 @@
          );
 
    $optionList['template']['Options'] = array(' ');
+   $optionList['T_' . ' '] = array( 'Id' => 'AmazonLinkTemplates', 'Type' => 'hidden', 'Value' => 'text');
    $Templates = $this->getTemplates();
    foreach ($Templates as $templateName => $Details) {
       $optionList['template']['Options'][$templateName]['Name'] = $Details['Name']. '  -  ' . $Details['Description'];
@@ -106,6 +109,12 @@
             $template_data[] = $keyword;
       }
       $optionList['T_' . $templateName] = array( 'Id' => 'AmazonLinkTemplates', 'Type' => 'hidden', 'Value' => implode(',',$template_data));
+   }
+
+   $optionList['chan']['Options'] = array(' ');
+   $channels = $this->get_channels();
+   foreach ($channels as $channel_id => $details) {
+      $optionList['chan']['Options'][$channel_id]['Name'] = $details['Name']. '  -  ' . $details['Description'];
    }
 
    $live_data = array();
@@ -123,7 +132,7 @@
 
    // **********************************************************
    // Now display the options editing screen
-   //$Settings['asin'] = implode(',', $this->Settings['asin']);
+   $Settings['asin'] = (isset($Settings['asin']) && is_array($Settings['asin'])) ? implode(',', $Settings['asin']): '';
    $this->form->displayForm($optionList, $Settings, True, True);
 
 ?>

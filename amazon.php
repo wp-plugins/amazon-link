@@ -4,7 +4,7 @@
 Plugin Name: Amazon Link
 Plugin URI: http://www.houseindorset.co.uk/plugins/amazon-link
 Description: Insert a link to Amazon using the passed ASIN number, with the required affiliate info.
-Version: 2.0.3
+Version: 2.0.8
 Text Domain: amazon-link
 Author: Paul Stuttard
 Author URI: http://www.houseindorset.co.uk
@@ -52,6 +52,8 @@ require_once('aws_signed_request.php');
 
 require_once('include/displayForm.php');
 
+require_once('include/translate.php');
+
 if (!class_exists('AmazonWishlist_ip2nation'))
    include_once ( 'include/ip2nation.php');
 
@@ -69,14 +71,13 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
       var $TagHead       = '[amazon';
       var $TagTail       = ']';
 
-      var $option_version= 2;
-      var $plugin_version= '2.0.3';
+      var $option_version= 3;
+      var $plugin_version= '2.0.8';
       var $optionName    = 'AmazonLinkOptions';
+      var $user_options  = 'amazonlinkoptions';
       var $templatesName = 'AmazonLinkTemplates';
+      var $channels_name = 'AmazonLinkChannels';
       var $settings_slug = 'amazon-link-options';
-      var $Opts          = null;
-      var $Settings      = null;
-      var $Templates     = null;
 
       var $multi_id      = 0;
 
@@ -101,7 +102,11 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          add_filter('the_posts', array($this, 'stylesNeeded'));                      // Run once to determine if styles needed
          add_filter('the_content', array($this, 'contentFilter'),15);                // Process the content
          add_action('admin_menu', array($this, 'optionsMenu'));                      // Add options page hooks
-         add_filter('widget_text', array($this, 'contentFilter'), 16 );              // Filter widget text (after the content?)
+         add_filter('widget_text', array($this, 'widget_filter'), 16 );              // Filter widget text (after the content?)
+         add_action('show_user_profile', array($this, 'show_user_options') );        // Display User Options
+         add_action('edit_user_profile', array($this, 'show_user_options') );        // Display User Options
+         add_action('personal_options_update', array($this, 'update_user_options')); // Update User Options
+         add_action('edit_user_profile_update', array($this, 'update_user_options'));// Update User Options
       }
 
 /*****************************************************************************************/
@@ -149,6 +154,23 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
             if (isset($Opts['wishlist_template'])) 
                $Opts['wishlist_template'] = strtolower($Opts['wishlist_template']);
             $Opts['version'] = 2;
+            $this->saveOptions($Opts);
+         }
+
+         if ($Opts['version'] == 2) {
+            /* Upgrade from 2 to 3:
+             * copy affiliate Ids to new channels section.
+             */
+            $country_data = $this->get_country_data();
+            foreach ($country_data as $cc => $data)
+            {
+               $channels['default']['tag_'.$cc] = isset($Opts['tag_'.$cc]) ? $Opts['tag_'.$cc] : '';
+            }
+            $channels['default']['Name'] = 'Default';
+            $channels['default']['Description'] = 'Default Affiliate Tags';
+            $channels['default']['Filter'] = '';
+            $Opts['version'] = 3;
+            $this->save_channels($channels);
             $this->saveOptions($Opts);
          }
 
@@ -222,6 +244,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          wp_enqueue_script('postbox');
 
          add_meta_box( 'alOptions', __( 'Options', 'amazon-link' ), array (&$this, 'showOptions' ), $this->opts_page, 'normal', 'core' );
+         add_meta_box( 'alChannels', __( 'Amazon Tracking ID Channels', 'amazon-link' ), array (&$this, 'show_channels' ), $this->opts_page, 'normal', 'core' );
          add_meta_box( 'alInfo', __( 'About', 'amazon-link' ), array (&$this, 'show_info' ), $this->opts_page, 'side', 'core' );
          add_meta_box( 'alTemplateHelp', __( 'Template Help', 'amazon-link' ), array (&$this, 'displayTemplateHelp' ), $this->opts_page, 'side', 'low' );
          add_meta_box( 'alTemplates', __( 'Templates', 'amazon-link' ), array (&$this, 'show_templates' ), $this->opts_page, 'advanced', 'core' );
@@ -257,22 +280,27 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
       function generate_multi_script() {
          $Settings     = $this->getSettings();
          $country_data = $this->get_country_data();
+         $channels     = $this->get_channels(True, True);
 
          $TARGET = $Settings['new_window'] ? 'target="_blank"' : '';
          ?>
 
 <script type='text/javascript'> 
-function al_gen_multi (id, asin, def) {
+function al_gen_multi (id, asin, def, chan) {
    var country_data = new Array();
 <?php
          foreach ($country_data as $cc => $data) {
-            echo "   country_data['". $cc ."'] = { 'flag' : '" . $this->URLRoot . "/" . $data['flag'] . "', 'tld' : '" . $data['tld'] . "',  'tag' : '" . $Settings['tag_' . $cc] ."'};\n";
+            echo "   country_data['". $cc ."'] = { 'flag' : '" . $this->URLRoot . "/" . $data['flag'] . "', ";
+            foreach ($channels as $id => $chan_data) {
+               echo " 'tag_" .$id . "' : '". $chan_data['tag_' .$cc]. "', ";
+            }
+            echo "'tld' : '" . $data['tld'] . "'};\n";
          }
 ?>
    var content = "";
    for (var cc in country_data) {
       if (cc != def) {
-         var url = 'http://www.amazon.' + country_data[cc].tld + '/gp/product/' + asin + '?ie=UTF8&tag=' + country_data[cc].tag + '&linkCode=as2&camp=1634&creative=6738&creativeASIN='+ asin;
+         var url = 'http://www.amazon.' + country_data[cc].tld + '/gp/product/' + asin + '?ie=UTF8&tag=' + country_data[cc]['tag_'+chan] + '&linkCode=as2&camp=1634&creative=6738&creativeASIN='+ asin;
          content = content +'<a <?php echo $TARGET; ?> href="' + url + '"><img src="' + country_data[cc].flag + '"></a>';
       }
    }
@@ -282,6 +310,8 @@ function al_gen_multi (id, asin, def) {
 
 
 <?php
+      remove_action('wp_print_scripts', array($this, 'generate_multi_script'));
+
       }
 
       function registerPluginLinks($links, $file) {
@@ -325,15 +355,16 @@ function al_gen_multi (id, asin, def) {
             // market place of amazon site
             // tld of main amazon site
             // link to affiliate program site
-            // Default tag if none set up
-            $this->country_data = array('uk' => array('name' => __('United Kingdom', 'amazon-link'), 'flag' => 'images/flag_uk.gif', 'market' => 'GB', 'tld' => 'co.uk', 'site' => 'https://affiliate-program.amazon.co.uk', 'default_tag' => 'livpauls-21'),
-                                        'us' => array('name' => __('United States', 'amazon-link'), 'flag' => 'images/flag_us.gif', 'market' => 'US', 'tld' => 'com', 'site' => 'https://affiliate-program.amazon.com', 'default_tag' => 'lipawe-20'),
-                                        'de' => array('name' => __('Germany', 'amazon-link'), 'flag' => 'images/flag_de.gif', 'market' => 'DE', 'tld' => 'de', 'site' => 'https://partnernet.amazon.de', 'default_tag' => 'lipas03-21'),
-                                        'fr' => array('name' => __('France', 'amazon-link'), 'flag' => 'images/flag_fr.gif', 'market' => 'FR', 'tld' => 'fr', 'site' => 'https://partenaires.amazon.fr', 'default_tag' => 'lipas-21'),
-                                        'jp' => array('name' => __('Japan', 'amazon-link'), 'flag' => 'images/flag_jp.gif', 'market' => 'JP', 'tld' => 'jp', 'site' => 'https://affiliate.amazon.co.jp', 'default_tag' => 'livpaul21-22'),
-                                        'it' => array('name' => __('Italy', 'amazon-link'), 'flag' => 'images/flag_it.gif', 'market' => 'IT', 'tld' => 'it', 'site' => 'https://programma-affiliazione.amazon.it', 'default_tag' => 'livpaul-21'),
-                                        'cn' => array('name' => __('China', 'amazon-link'), 'flag' => 'images/flag_cn.gif', 'market' => 'CN', 'tld' => 'cn', 'site' => 'https://associates.amazon.cn', 'default_tag' => 'livpaul-21'),
-                                        'ca' => array('name' => __('Canada', 'amazon-link'), 'flag' => 'images/flag_ca.gif', 'market' => 'CA', 'tld' => 'ca', 'site' => 'https://associates.amazon.ca', 'default_tag' => 'lipas-20'));
+            // Default tag if none set up 
+            $this->country_data = array('uk' => array('name' => __('United Kingdom', 'amazon-link'), 'lang' => 'en', 'flag' => 'images/flag_uk.gif', 'market' => 'GB', 'm_id' => 2, 'tld' => 'co.uk', 'rcm' => 'rcm-uk.amazon.co.uk', 'site' => 'https://affiliate-program.amazon.co.uk', 'default_tag' => 'livpauls-21'),
+                                        'us' => array('name' => __('United States', 'amazon-link'), 'lang' => 'en', 'flag' => 'images/flag_us.gif', 'market' => 'US', 'm_id' => 1, 'tld' => 'com', 'rcm' => 'rcm.amazon.com', 'site' => 'https://affiliate-program.amazon.com', 'default_tag' => 'lipawe-20'),
+                                        'de' => array('name' => __('Germany', 'amazon-link'), 'lang' => 'de', 'flag' => 'images/flag_de.gif', 'market' => 'DE', 'm_id' => 3, 'tld' => 'de', 'rcm' => 'rcm-de.amazon.de', 'site' => 'https://partnernet.amazon.de', 'default_tag' => 'lipas03-21'),
+                                        'es' => array('name' => __('Spain', 'amazon-link'), 'lang' => 'es', 'flag' => 'images/flag_es.gif', 'market' => 'ES', 'm_id' => 30, 'tld' => 'es', 'rcm' => 'rcm-es.amazon.es', 'site' => 'https://afiliados.amazon.es', 'default_tag' => 'livpauls0b-21'),
+                                        'fr' => array('name' => __('France', 'amazon-link'), 'lang' => 'fr', 'flag' => 'images/flag_fr.gif', 'market' => 'FR', 'm_id' => 8, 'tld' => 'fr', 'rcm' => 'rcm-fr.amazon.fr', 'site' => 'https://partenaires.amazon.fr', 'default_tag' => 'lipas-21'),
+                                        'jp' => array('name' => __('Japan', 'amazon-link'), 'lang' => 'ja', 'flag' => 'images/flag_jp.gif', 'market' => 'JP', 'm_id' => 9, 'tld' => 'jp', 'rcm' => 'rcm-jp.amazon.co.jp', 'site' => 'https://affiliate.amazon.co.jp', 'default_tag' => 'livpaul21-22'),
+                                        'it' => array('name' => __('Italy', 'amazon-link'), 'lang' => 'it', 'flag' => 'images/flag_it.gif', 'market' => 'IT', 'm_id' => 29, 'tld' => 'it', 'rcm' => 'rcm-it.amazon.it', 'site' => 'https://programma-affiliazione.amazon.it', 'default_tag' => 'livpaul-21'),
+                                        'cn' => array('name' => __('China', 'amazon-link'), 'lang' => 'zh-CHS', 'flag' => 'images/flag_cn.gif', 'market' => 'CN', 'm_id' => 28, 'rcm' => 'rcm-cn.amazon.cn', 'tld' => 'cn', 'site' => 'https://associates.amazon.cn', 'default_tag' => 'livpaul-23'),
+                                        'ca' => array('name' => __('Canada', 'amazon-link'), 'lang' => 'en', 'flag' => 'images/flag_ca.gif', 'market' => 'CA', 'm_id' => 15, 'rcm' => 'rcm-ca.amazon.ca', 'tld' => 'ca', 'site' => 'https://associates.amazon.ca', 'default_tag' => 'lipas-20'));
          }
          return $this->country_data;
       }
@@ -358,7 +389,8 @@ function al_gen_multi (id, asin, def) {
             'nonce' => array ( 'Type' => 'nonce', 'Name' => 'update-AmazonLink-options' ),
             'cat' => array ( 'Type' => 'hidden' ),
             'last' => array ( 'Type' => 'hidden' ),
-            'template' => array(  'Type' => 'hidden'),
+            'template' => array(  'Type' => 'hidden' ),
+            'chan' => array(  'Type' => 'hidden' ),
 
             /* Options that change how the items are displayed */
             'hd1s' => array ( 'Type' => 'section', 'Value' => __('Display Options', 'amazon-link'), 'Section_Class' => 'al_subhead1'),
@@ -380,7 +412,7 @@ function al_gen_multi (id, asin, def) {
    
             /* Options related to the Amazon backend */
             'hd2s' => array ( 'Type' => 'section', 'Value' => __('Amazon Associate Information','amazon-link'), 'Section_Class' => 'al_subhead1'),
-            'default_cc' => array( 'Name' => __('Default Country', 'amazon-link'), 'Description' => __('Which country\'s Amazon site to use by default', 'amazon-link'), 'Default' => 'uk', 'Type' => 'radio', 'Class' => 'al_border' ),
+            'default_cc' => array( 'Name' => __('Default Country', 'amazon-link'), 'Hint' => __('The Amazon Affiliate Tags should be entered in the \'Channels\' section below', 'amazon-link'),'Description' => __('Which country\'s Amazon site to use by default', 'amazon-link'), 'Default' => 'uk', 'Type' => 'selection', 'Class' => 'al_border' ),
             'aws_help' => array( 'Name' => __('AWS Note', 'amazon-link'), 'Value' => __('AWS Access Keys', 'amazon-link'), 'Description' => __('The AWS Keys are required for some of the features of the plugin to work (The ones marked with AWS above), visit <a href="http://aws.amazon.com/">Amazon Web Services</a> to sign up to get your own keys.', 'amazon-link'), 'Title_Class' => 'al_subheading', 'Id' => 'aws_notes', 'Default' => '', 'Type' => 'title', 'Class' => 'alternate al_border' ),
             'pub_key' => array( 'Name' => __('AWS Public Key', 'amazon-link'), 'Description' => __('Access Key ID provided by your AWS Account, found under Security Credentials/Access Keys of your AWS account', 'amazon-link'), 'Default' => '', 'Type' => 'text', 'Size' => '40', 'Class' => 'alternate al_border' ),
             'priv_key' => array( 'Name' => __('AWS Private key', 'amazon-link'), 'Description' => __('Secret Access Key ID provided by your AWS Account.', 'amazon-link'), 'Default' => '', 'Type' => 'text', 'Size' => '40', 'Class' => 'al_border' ),
@@ -392,10 +424,7 @@ function al_gen_multi (id, asin, def) {
             $country_data = $this->get_country_data();
             // Populate Country related options
             foreach ($country_data as $cc => $data) {
-               $this->optionList['default_cc']['Options'][$cc]['Name'] = '<img style="height:14px;" src="'. $this->URLRoot. '/'. $data['flag'] . '">';
-               $this->optionList['default_cc']['Options'][$cc]['Input'] = 'tag_' . $cc;
-               $this->optionList['tag_' . $cc] = array('Type' => 'option', 'OverrideBlank' => $data['default_tag'], 'Name' => $data['name'] . __(' Affiliate Tag', 'amazon-link'),
-                                                       'Description' => sprintf(__('Enter your affiliate tag for %1$s.', 'amazon-link'), '<a href="'. $data['site']. '">'.$data['name'].'</a>' ));
+               $this->optionList['default_cc']['Options'][$cc]['Name'] = $data['name'];
             }
 
             if (isset($this->search->keywords)) {
@@ -409,8 +438,24 @@ function al_gen_multi (id, asin, def) {
          return $this->optionList;
       }
 
+      function get_user_option_list() {
+        $option_list = array( 
+            'title'       => array ( 'Type' => 'subhead', 'Value' => __('Amazon Link Affiliate IDs', 'amazon-link'), 'Description' => __('Valid affiliate IDs from all Amazon locales can be obtained from the relevant Amazon sites: ', 'amazon-link'), 'Class' => 'al_pad al_border'),
+         );
+
+         $country_data = $this->get_country_data();
+         // Populate Country related options
+         foreach ($country_data as $cc => $data) {
+            $option_list ['tag_' . $cc] = array('Type' => 'text', 'Default' => '',
+                                                'Name' => '<img style="height:14px;" src="'. $this->URLRoot. '/'. $data['flag'] . '"> ' . $data['name'],
+                                                'Hint' => sprintf(__('Enter your affiliate tag for %1$s.', 'amazon-link'), $data['name'] ));
+            $option_list ['title']['Description'] .= '<a href="' . $data['site']. '">'. $data['name']. '</a>, ';
+         }
+         return $option_list;
+      }
+
       function getOptions() {
-         if (null === $this->Opts) {
+         if (!isset($this->Opts)) {
             $this->Opts = get_option($this->optionName, array());
             if (!isset($this->Opts['version']) || ($this->Opts['version'] < $this->option_version))
             {
@@ -440,7 +485,7 @@ function al_gen_multi (id, asin, def) {
 
 
       function getTemplates() {
-         if (null === $this->Templates) {
+         if (!isset($this->Templates)) {
             $this->Templates = get_option($this->templatesName, array());
             ksort($this->Templates);
          }
@@ -455,6 +500,46 @@ function al_gen_multi (id, asin, def) {
          $this->Templates = $Templates;
       }
 
+      function get_channels($override = False, $user_channels = False) {
+         if (!$override || !isset($this->channels)) {
+            $channels = get_option($this->channels_name, array());
+            if ($user_channels) {
+               $users = get_users();
+               foreach ($users as $user => $data) {
+                  $user_options = $this->get_user_options($data->ID);
+                  if (is_array($user_options)) {
+                     $channels['al_user_' . $data->ID] = $user_options;
+                     $channels['al_user_' . $data->ID]['user_channel'] = 1;
+                  }
+               }
+            }
+
+            if (!$override) return $channels;
+
+            $country_data = $this->get_country_data();
+            $this->channels = array();
+            foreach ( $channels as $channel_id => $channel_data) {
+               $this->channels[$channel_id] = $channel_data;
+               $this->channels[$channel_id]['ID'] = $channel_id;
+               foreach ( $country_data as $cc => $data) {
+                  if ($channel_data['tag_'. $cc] == '') {
+                     $this->channels[$channel_id]['tag_'. $cc] = ($channels['default']['tag_' .$cc] != '') ? 
+                                                                  $channels['default']['tag_' .$cc] : $data['default_tag'];
+                  }
+               }
+            }
+         }
+
+         return $this->channels;         
+      }
+
+      function save_channels($channels) {
+         if (!is_array($channels)) {
+            return;
+         }
+         update_option($this->channels_name, $channels);
+         $this->channels = $channels;
+      }
       /*
        * Parse the arguments passed in.
        */
@@ -484,7 +569,7 @@ function al_gen_multi (id, asin, def) {
                $this->Settings[$key] = $details['OverrideBlank'];      // Use default
             }
          }
-         $this->Settings['asin'] = explode (',', $this->Settings['asin']);
+         $this->Settings['asin'] = isset($this->Settings['asin']) ? explode (',', $this->Settings['asin']) : array();
       }
 
       /*
@@ -493,7 +578,7 @@ function al_gen_multi (id, asin, def) {
        * ensures we have the defaults.
        */
       function getSettings() {
-         if (null === $this->Settings) {
+         if (!isset($this->Settings)) {
             $this->Settings = $this->getOptions();
          }
          $optionList = $this->get_option_list();
@@ -505,6 +590,15 @@ function al_gen_multi (id, asin, def) {
          return $this->Settings;
       }
 
+      function get_user_options($ID) {
+         $options = get_the_author_meta( $this->user_options, $ID );
+         return $options;
+      }
+
+      function save_user_options($ID, $options ) {
+	 update_usermeta( $ID, $this->user_options,  $options );
+      }
+
       function valid_keys() {
          $Settings = $this->getSettings();
 
@@ -514,17 +608,94 @@ function al_gen_multi (id, asin, def) {
       }
 
 /*****************************************************************************************/
+      /// Affiliate Tracking ID Channels
+/*****************************************************************************************/
+
+      /*
+       * Check the channels in order until we get a match
+       *
+       * Filter rules:
+       *    cat = [category slug|category id]
+       *    parent_cat = [category slug| category id]
+       *    author = [author name|author id]
+       *    tag = [tag name|tag id]
+       *    type = [page|post|other = widget|template, etc]
+       *    parent = [page/post id]
+       *    random = 1-99
+       *    empty filter = always use.
+       */
+      function get_channel() {
+         
+         // Need $GLOBALS & Channels
+         $settings = $this->getSettings();
+         $channels = $this->get_channels(True, True);
+         if (isset($settings['in_post']) && $settings['in_post']) {
+            $post = $GLOBALS['post'];
+         } else {
+            $post = '';
+         }
+
+         // If manually set always respect.
+         if (isset($settings['chan']) && isset($channels[strtolower($settings['chan'])]))
+         {
+            return $channels[strtolower($settings['chan'])];
+         }
+
+         // If post or page, check $this->channel_ids[ID] to see if already processed
+
+         // For each channel (excluding default)
+
+         // For each filter check for match
+
+         // Switch on rule type [cat|parent_cat|author|tag|type]
+
+         // cat
+         // if !isset($cats) grab array(cat_id => cat_slug)
+         // check cat in array or array_keys
+
+         // parent_cat = recursive list of all category parents
+         // if !isset($cats) grab array(cat_id => cat_slug)
+         // if !isset($parent_cats) grab array(cat_id => cat_slug)
+         // check cat in either cats/parent_cats array or array_keys
+
+         // author
+         // if !isset($author) grab array(author_id => author_name)
+         // check author in array or array_keys
+
+         // tag
+         // if !isset($tags) grab array(tag_id => tag_name)
+         // check tag in array or array_keys
+
+         // type
+         // if !isset($type) post_type / other
+         // check type == type
+
+         // If any rule fails drop to next channel
+         // If all rules pass use this channel, save in $this->channel_ids[ID]
+         
+         // If no specific channel detected then check for author specific IDs via get_the_author_meta
+         if (isset($post->post_author) && isset($channels['al_user_'.$post->post_author])) {
+            return $channels['al_user_'.$post->post_author];
+         }
+
+         // No match found return default channel.
+         return $channels['default'];
+
+      }
+      
+/*****************************************************************************************/
       /// Localise Link Facility
 /*****************************************************************************************/
 
       function get_country() {
 
          // Pretty arbitrary mapping of domains to Amazon sites, default to 'com' - the 'international' site.
-         $country_map = array('uk' => array('uk', 'ie', 'gi', 'gl', 'nl', 'vg', 'cy', 'gb'),
+         $country_map = array('uk' => array('uk', 'ie', 'gi', 'gl', 'nl', 'vg', 'cy', 'gb', 'dk'),
                               'fr' => array('fr', 'be', 'bj', 'bf', 'bi', 'cm', 'cf', 'td', 'km', 'cg', 'dj', 'ga', 'gp',
                                             'gf', 'gr', 'pf', 'tf', 'ht', 'ci', 'lu', 'mg', 'ml', 'mq', 'yt', 'mc', 'nc',
-                                            'ne', 're', 'sn', 'sc', 'tg', 'vu', 'wf', 'es'),
+                                            'ne', 're', 'sn', 'sc', 'tg', 'vu', 'wf'),
                               'de' => array('de', 'at', 'ch', 'no', 'dn', 'li', 'sk'),
+                              'es' => array('es'),
                               'it' => array('it'),
                               'cn' => array('cn'),
                               'ca' => array('ca', 'pm'),
@@ -553,6 +724,9 @@ function al_gen_multi (id, asin, def) {
          return $this->Settings['default_cc'];
       }
 
+      function widget_filter($content) {
+         return $this->contentFilter($content, TRUE, TRUE, FALSE);
+      }
 /*****************************************************************************************/
       /// Searches through the_content for our 'Tag' and replaces it with the lists or links
       /*
@@ -562,7 +736,7 @@ function al_gen_multi (id, asin, def) {
        *   3. Search through the content and record any Amazon ASIN numbers ready to generate a wishlist.
        */
 /*****************************************************************************************/
-      function contentFilter($content, $doRecs=TRUE, $doLinks=TRUE) {
+      function contentFilter($content, $doRecs=TRUE, $doLinks=TRUE, $in_post=TRUE) {
 
          $newContent='';
          $index=0;
@@ -582,11 +756,12 @@ function al_gen_multi (id, asin, def) {
                $this->parseArgs($arguments);
                if (isset($this->Settings['cat'])) {
                   if ($doRecs) {
+                     $this->Settings['in_post'] = $in_post;
                      if ($this->Settings['debug']) {
                         $output .= '<!-- Amazon Link: ' . $this->plugin_version . ' - ' . substr($content, $found, $tagEnd - $found+1) . "\n";
                         $output .= print_r($this->Settings, true) . ' -->';
                      }
-                     $output .= $this->showRecommendations($this->Settings['cat'],$this->Settings['last']);
+                     $output .= $this->showRecommendations($this->Settings['cat'], isset($this->Settings['last']) ? $this->Settings['last'] : 30);
                   } elseif (!$this->stylesNeeded) {
                      $output .= '<span id="al_popup" onmouseover="al_div_in()" onmouseout="al_div_out()"></span>' .
                                substr($content, $found, ($tagEnd - $found) + strlen($this->TagTail));
@@ -597,6 +772,7 @@ function al_gen_multi (id, asin, def) {
                } else if ($doLinks) {
                   // Generate Amazon Link
                   $this->tags = array_merge($this->Settings['asin'], $this->tags);
+                  $this->Settings['in_post'] = $in_post;
                      if ($this->Settings['debug']) {
                         $output .= '<!-- Amazon Link: ' . $this->plugin_version . ' - ' . substr($content, $found, $tagEnd - $found+1) . "\n";
                         $output .= print_r($this->Settings, true) . ' -->';
@@ -667,11 +843,22 @@ function al_gen_multi (id, asin, def) {
          include('include/showOptions.php');
       }
 
+      // User Options Page
+      function show_user_options($user) {
+         include('include/showUserOptions.php');
+      }
+      // Main Options Page
+      function update_user_options($user) {
+         include('include/updateUserOptions.php');
+      }
 
 /*****************************************************************************************/
 
       function show_templates() {
          include('include/showTemplates.php');
+      }
+      function show_channels() {
+         include('include/showChannels.php');
       }
 
       function show_info() {
@@ -708,9 +895,10 @@ function al_gen_multi (id, asin, def) {
       }
 
       function get_local_info() {
+         $channel      = $this->get_channel();
          $top_cc       = $this->get_country();
          $country_data = $this->get_country_data();
-         $info         = array( 'cc' => $top_cc, 'mplace' => $country_data[$top_cc]['market'], 'tld' => $country_data[$top_cc]['tld'], 'tag' => $this->Settings['tag_' . $top_cc]);
+         $info         = array( 'cc' => $top_cc, 'rcm' => $country_data[$top_cc]['rcm'], 'mplace_id' => $country_data[$top_cc]['m_id'], 'mplace' => $country_data[$top_cc]['market'], 'tld' => $country_data[$top_cc]['tld'], 'tag' => $channel['tag_' . $top_cc], 'channel' => $channel['ID']);
          return $info;
       }
 
@@ -718,22 +906,6 @@ function al_gen_multi (id, asin, def) {
          $li  = $this->get_local_info();
          
          $text='http://www.amazon.' . $li['tld'] . '/gp/product/'. $asin. '?ie=UTF8&tag=' . $li['tag'] .'&linkCode=as2&camp=1634&creative=6738&creativeASIN='. $asin;
-         return $text;
-      }
-
-      function getURLs($asin)
-      {
-         $country_data = $this->get_country_data();
-         $li           = $this->get_local_info();
-
-         $text[$li['cc']]='http://www.amazon.' . $li['tld'] . '/gp/product/'. $asin. '?ie=UTF8&tag=' . $li['tag'] .'&linkCode=as2&camp=1634&creative=6738&creativeASIN='. $asin;
-         foreach ($country_data as $cc => $data) {
-            if ($cc != $li['cc']) {
-               $tld = $data['tld'];
-               $tag = $this->Settings['tag_'.$cc];
-               $text[$cc]='http://www.amazon.' . $tld . '/gp/product/'. $asin. '?ie=UTF8&tag=' . $tag .'&linkCode=as2&camp=1634&creative=6738&creativeASIN='. $asin;
-            }
-         }
          return $text;
       }
 
@@ -745,9 +917,11 @@ function al_gen_multi (id, asin, def) {
             $this->Settings = $Settings;
 
          // Create query to retrieve the an item
-         $request = array("Operation" => "ItemLookup",
-                          "ResponseGroup" => "Offers,Small,Reviews,Images,SalesRank",
-                          "ItemId"=>$asin, "IdType"=>"ASIN","MerchantId"=>"Amazon");
+         $request = array('Operation'     => 'ItemLookup',
+                          'ResponseGroup' => 'Offers,ItemAttributes,Small,Reviews,Images,SalesRank',
+                          'ItemId'        => $asin, 
+                          'IdType'        => 'ASIN',
+                          'MerchantId'    => 'Amazon');
 
          $pxml = $this->doQuery($request, $Settings);
 
@@ -757,6 +931,7 @@ function al_gen_multi (id, asin, def) {
             $item =array_merge($pxml['Items']['Item'], array('found' => 1));
          }
          $item['Settings'] = $Settings;
+//echo "<!-- "; print_r($item); echo "-->";
          return $item;
       }
 
@@ -767,12 +942,10 @@ function al_gen_multi (id, asin, def) {
          else
             $this->Settings = $Settings;
 
-         $country_data = $this->get_country_data();
-         $li           = $this->get_local_info();
+         $li  = $this->get_local_info();
+         $tld = $li['tld'];
 
-         $cc = $li['cc'];
-         $tld = $country_data[$cc]['tld'];
-         if (!isset($request['AssociateTag'])) $request['AssociateTag'] = $Settings['tag_' . $cc];
+         if (!isset($request['AssociateTag'])) $request['AssociateTag'] = $li['tag'];
 
          return aws_signed_request($tld, $request, $Settings['pub_key'], $Settings['priv_key']);
       }
@@ -837,21 +1010,20 @@ function al_gen_multi (id, asin, def) {
           */
          $object = stripslashes($link_text);
          // Do we need to display or link to an image ?
-         if ($this->Settings['image'] || $this->Settings['thumb']) {
-
+         if (!empty($this->Settings['image']) || !empty($this->Settings['thumb'])) {
             $media_ids = $this->search->find_attachments($asin);
             if (!is_wp_error($media_ids)) {
                $media_id = $media_ids[0]->ID;
             }
 
-            if ($this->Settings['thumb']) {
+            if (!empty($this->Settings['thumb'])) {
                if (isset($media_id)) {
                   $thumb = wp_get_attachment_thumb_url($media_id);
                } elseif (strlen($this->Settings['thumb']) > 4) {
                   $thumb = $this->Settings['thumb'];
                }
             }
-            if ($this->Settings['image']) {
+            if (!empty($this->Settings['image'])) {
                if (isset($media_id)) {
                   $image = wp_get_attachment_url($media_id);
                } elseif (strlen($this->Settings['image']) > 4) {
@@ -878,8 +1050,8 @@ function al_gen_multi (id, asin, def) {
          $URL    = $this->getURL($asin);
 
          if ($this->Settings['multi_cc']) {
-            $def = $this->get_country();
-            $text='<a '. $TARGET .' onMouseOut="al_link_out()" href="' . $URL .'" onMouseOver="al_gen_multi('. $this->multi_id . ', \'' . $asin . '\', \''. $def .'\');">';
+            $local_info = $this->get_local_info();
+            $text='<a '. $TARGET .' onMouseOut="al_link_out()" href="' . $URL .'" onMouseOver="al_gen_multi('. $this->multi_id . ', \'' . $asin . '\', \''. $local_info['cc']. '\', \''. $local_info['channel'] .'\');">';
             $text .= $object. '</a>';
             $this->multi_id++;
          } else {
@@ -908,13 +1080,10 @@ function amazon_get_link($args)
    }
 }
 
-function amazon_get_links($args)
+function amazon_scripts()
 {
   global $awlfw;
-  $awlfw->parseArgs($args);       // Get the default settings
-   foreach ($awlfw->Settings['asin'] as $asin) {
-      return $awlfw->getURLs($asin);        // Return a URL
-   }
+  $this->generate_multi_script();
 }
 
 function amazon_make_links($args)
