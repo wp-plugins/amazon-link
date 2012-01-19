@@ -920,8 +920,7 @@ function al_gen_multi (id, asin, def, chan) {
          $request = array('Operation'     => 'ItemLookup',
                           'ResponseGroup' => 'Offers,ItemAttributes,Small,Reviews,Images,SalesRank',
                           'ItemId'        => $asin, 
-                          'IdType'        => 'ASIN',
-                          'MerchantId'    => 'Amazon');
+                          'IdType'        => 'ASIN');
 
          $pxml = $this->doQuery($request, $Settings);
 
@@ -931,7 +930,7 @@ function al_gen_multi (id, asin, def, chan) {
             $item =array_merge($pxml['Items']['Item'], array('found' => 1));
          }
          $item['Settings'] = $Settings;
-//echo "<!-- "; print_r($item); echo "-->";
+         //echo "<!-- "; print_r($item); echo "-->";
          return $item;
       }
 

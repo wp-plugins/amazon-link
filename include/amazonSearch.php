@@ -113,33 +113,71 @@ if (!class_exists('AmazonLinkSearch')) {
       /// AJAX Call Handlers
 /*****************************************************************************************/
 
-      function performSearch() {
-         $Opts = $_POST;
+      function performSearch($Opts='') {
+         if (!is_array($Opts)) $Opts = $_POST;
 
          $Settings = array_merge($this->alink->getSettings(), $Opts);
          $Settings['multi_cc'] = '0';
          $Settings['found'] = 1;
          $Settings['localise'] = 0;
  
-         if ($Opts['s_index'] == 'Books') {
-            $Term = "Author";
-         } else if ($Opts['s_index'] == 'Music') {
-            $Term = "Artist";
-         } else if ($Opts['s_index'] == 'DVD') {
-            $Term = "Publisher";
-         } else {
-            $Term = "Manufacturer";
-         }
+         $Items = $this->do_search($Opts);
+
+         print json_encode($this->parse_results($Items, $Settings));
+         exit();
+      }
+
+
+      function do_search($Opts) {
+
+         $Settings = array_merge($this->alink->getSettings(), $Opts);
+         $Settings['multi_cc'] = '0';
+         $Settings['found'] = 1;
+         $Settings['localise'] = 0;
+
+         // Not working: Baby, MusicalInstruments
+         $Creator = array( 'Author' => array( 'Books', 'MP3Downloads'),
+                                     'Artist' => array('Music'),
+                                     'Director' => array('DVD', 'VHS', 'Video'),
+                                     'Brand' => array('Apparel', 'Baby', 'Beauty', 'Grocery', 'Lighting', 'OfficeProducts', 'Shoes', 'MusicalInstruments', 'VideoGames'),
+                                     'Manufacturer' => array('Automotive', 'Electronics', 'HealthPersonalCare','HomeGarden', 'Kitchen',  'OutdoorLiving', 'Software', 'SoftwareVideoGames'),
+                                     'Composer' => array('Classical'));
+
+         $Keywords = array('Blended', 'All', 'MusicTracks', 'Outlet');
+         $Sort = array('salesrank' => array('Books', 'Classical', 'DVD', 'Electronics', 'HealthPersonalCare', 'HomeGarden', 'HomeImprovement', 'Kitchen', 'MarketPlace', 'Music', 'OutdoorLiving', 'PCHardware', 'Software', 'SoftwareVideoGames', 'Toys', 'VHS', 'Video', 'VideoGames'),
+                       'relevancerank' => array('Apparel', 'Automotive', 'Baby', 'Beauty', 'Grocery', 'Jewelry', 'KindleStore', 'MP3Downloads', 'MusicalInstruments', 'OfficeProducts', 'Shoes', 'Watches'),
+                       'xsrelevancerank' => array('Shoes'));
 
          // Create query to retrieve the first 10 matching items
          $request = array("Operation" => "ItemSearch",
-                          "ResponseGroup" => "Offers,Small,Reviews,Images,SalesRank",
-                          $Term=>$Opts['s_author'],
-                          "Title"=>$Opts['s_title'],
+                          "ResponseGroup" => "Offers,ItemAttributes,Small,Reviews,Images,SalesRank",
                           "SearchIndex"=>$Opts['s_index'],
-                          "Sort"=>"salesrank",
-                          "MerchantId"=>"Amazon",
                           "ItemPage"=>$Opts['s_page']);
+
+         foreach ($Sort as $Term => $Indices) {
+            if (in_array($Opts['s_index'], $Indices)) {
+               $request['Sort'] = $Term;
+               continue;
+            }
+         }
+
+         foreach ($Creator as $Term => $Indices) {
+            if (in_array($Opts['s_index'], $Indices)) {
+               $request[$Term] = $Opts['s_author'];
+               continue;
+            }
+         }
+
+         if (in_array($Opts['s_index'], $Keywords)) {
+            $request['Keywords']  = $Opts['s_title'];
+         } else {
+//            $request['Sort'] = 'salesrank';
+            $request['Title'] = $Opts['s_title'];
+         }
+
+         if ($Opts['s_index'] == 'Marketplace') {
+            $request['MarketplaceDomain'] = 'UK';
+         }
 
          $pxml = $this->alink->doQuery($request, $Settings);
 
@@ -173,8 +211,7 @@ if (!class_exists('AmazonLinkSearch')) {
             $Items[$item]['Settings']['text1'] = $map;
          }
 */
-         print json_encode($this->parse_results($Items, $Settings));
-         exit();
+      return $Items;
       }
 
       function removeImage() {
@@ -250,10 +287,18 @@ if (!class_exists('AmazonLinkSearch')) {
                $data['title']  = (isset($result['ItemAttributes']['Title']) ?  $result['ItemAttributes']['Title'] : '');
                $data['artist'] = (isset($result['ItemAttributes']['Artist']) ? $result['ItemAttributes']['Artist'] :
                                   (isset($result['ItemAttributes']['Author']) ? $result['ItemAttributes']['Author'] :
-                                   (isset($result['ItemAttributes']['Creator']) ? $result['ItemAttributes']['Creator'] : '-') ) );
+                                   (isset($result['ItemAttributes']['Director'])  ? $result['ItemAttributes']['Director'] :
+                                   (isset($result['ItemAttributes']['Creator']) ? $result['ItemAttributes']['Creator'] : 
+                                    (isset($result['ItemAttributes']['Brand']) ? $result['ItemAttributes']['Brand'] : '-') ))) );
                $data['artist'] = $this->remove_parents($data['artist']);
-               $data['manufacturer'] = (isset($result['ItemAttributes']['Manufacturer']) ? $result['ItemAttributes']['Manufacturer'] : '-');
 
+
+
+/*
+               $data['manufacturer'] = (isset($result['ItemAttributes']['Manufacturer']) ? $result['ItemAttributes']['Manufacturer'] : '');
+                                                     (isset($result['ItemAttributes']['Brand']) ? $result['ItemAttributes']['Brand'] : '-') );
+*/
+               $data['manufacturer']  = (isset($result['ItemAttributes']['Manufacturer']) ?  $result['ItemAttributes']['Manufacturer'] : (isset($result['ItemAttributes']['Brand']) ?  $result['ItemAttributes']['Brand'] : '-'));
                $data['url']     = (isset($result['DetailPageURL']) ? $result['DetailPageURL'] : '');
                $data['rank']    = (isset($result['SalesRank']) ? $result['SalesRank'] : '');
                $data['rating']  = (isset($result['CustomerReviews']['AverageRating']) ? $result['CustomerReviews']['AverageRating'] : '-');
@@ -320,7 +365,6 @@ if (!class_exists('AmazonLinkSearch')) {
 
                foreach($data as $keyword => $details)
                   $data[$keyword . '_S'] = is_array($details) ? $details : addslashes($details);
-
                $data['template'] = $this->process_template($data, $Template);
                $results['items'][$data['asin']] = $data;
             }
@@ -367,10 +411,19 @@ if (!class_exists('AmazonLinkSearch')) {
          $result = $this->alink->itemLookup($ASIN);
 
          $r_title  = $result['ItemAttributes']['Title'];
+/*
          $r_artist = isset($result['ItemAttributes']['Artist'])  ? $result['ItemAttributes']['Artist'] :
                      (isset($result['ItemAttributes']['Author'])  ? $result['ItemAttributes']['Author'] :
                      (isset($result['ItemAttributes']['Director'])  ? $result['ItemAttributes']['Director'] :
-                      (isset($result['ItemAttributes']['Creator']) ? $result['ItemAttributes']['Creator'] : '-')));
+                      (isset($result['ItemAttributes']['Creator']) ? $result['ItemAttributes']['Creator'] :
+                       (isset($result['ItemAttributes']['Brand']) ? $result['ItemAttributes']['Brand'] : '-') ))) );
+*/
+             $r_artist = (isset($result['ItemAttributes']['Artist']) ? $result['ItemAttributes']['Artist'] :
+                                  (isset($result['ItemAttributes']['Author']) ? $result['ItemAttributes']['Author'] :
+                                   (isset($result['ItemAttributes']['Director'])  ? $result['ItemAttributes']['Director'] :
+                                   (isset($result['ItemAttributes']['Creator']) ? $result['ItemAttributes']['Creator'] : 
+                                    (isset($result['ItemAttributes']['Brand']) ? $result['ItemAttributes']['Brand'] : '-') ))) );
+
          $r_artist  = $this->remove_parents($r_artist);
 
          if (isset($result['LargeImage']))

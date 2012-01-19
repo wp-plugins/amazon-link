@@ -103,10 +103,10 @@ function aws_signed_request($region, $params, $public_key, $private_key)
     // create request
     $request = "http://".$host.$uri."?".$canonicalized_query."&Signature=".$signature;
     
-     //echo "<!-- REQ: "; print_r($request); echo "-->";
+    // echo "<!-- REQ: "; print_r($request); echo "-->";
     // do request
     $response = @file_get_contents($request);
-     //echo "<!--RESP:"; print_r($response); echo "-->";
+   //  echo "<!--RESP:"; print_r($response); echo "-->";
 
     if ($response === False)
     {
