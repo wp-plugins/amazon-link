@@ -4,7 +4,7 @@
 Plugin Name: Amazon Link
 Plugin URI: http://www.houseindorset.co.uk/plugins/amazon-link
 Description: Insert a link to Amazon using the passed ASIN number, with the required affiliate info.
-Version: 2.0.8
+Version: 2.0.9
 Text Domain: amazon-link
 Author: Paul Stuttard
 Author URI: http://www.houseindorset.co.uk
@@ -48,6 +48,38 @@ Layout:
 
 */
 
+/*******************************************************************************************************
+
+To serve a page containing amazon links the plugin performs the following:
+
+* Scan the content for amazon links with 'multinational' enabled, if one found then:
+  * Return all channels and user channels(>cached), create the javascript for the multinational popup.
+
+* Queue the Amazon javascript and styles
+
+* Search through the content and widget text for Amazon links, for each one:
+  * Parse arguments (get_options_list(>cached), get_country_data (>cached), get_options(>cached))
+  * Make Links:
+    * get_templates (>cached)
+    * for each ASIN:
+      * (if live) perform itemLookup
+    * parse results:
+      * Get local Info:
+        * get channel
+        * get country [ip2n lookup >cached]
+        * get country data
+        * return country specific data
+      * For each ASIN:
+        * Check for local images
+        * Make links * 5:
+          * get URL (get local info)
+          * get local info
+        * Make unused link, image_link & thumb_link [REMOVE?]
+        * Fill in template
+
+*******************************************************************************************************/
+
+
 require_once('aws_signed_request.php');
 
 require_once('include/displayForm.php');
@@ -72,7 +104,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
       var $TagTail       = ']';
 
       var $option_version= 3;
-      var $plugin_version= '2.0.8';
+      var $plugin_version= '2.0.9';
       var $optionName    = 'AmazonLinkOptions';
       var $user_options  = 'amazonlinkoptions';
       var $templatesName = 'AmazonLinkTemplates';
@@ -286,7 +318,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          ?>
 
 <script type='text/javascript'> 
-function al_gen_multi (id, asin, def, chan) {
+function al_gen_multi (id, term, def, chan) {
    var country_data = new Array();
 <?php
          foreach ($country_data as $cc => $data) {
@@ -298,9 +330,16 @@ function al_gen_multi (id, asin, def, chan) {
          }
 ?>
    var content = "";
+   var type = term.substr(0,1);
+   var arg  = term.substr(2);
+
    for (var cc in country_data) {
       if (cc != def) {
-         var url = 'http://www.amazon.' + country_data[cc].tld + '/gp/product/' + asin + '?ie=UTF8&tag=' + country_data[cc]['tag_'+chan] + '&linkCode=as2&camp=1634&creative=6738&creativeASIN='+ asin;
+         if ( type == 'A' ) {
+            var url = 'http://www.amazon.' + country_data[cc].tld + '/gp/product/' + arg+ '?ie=UTF8&linkCode=as2&camp=1634&creative=6738&tag=' + country_data[cc]['tag_'+chan] + '&creativeASIN='+ arg;
+         } else {
+            var url = 'http://www.amazon.' + country_data[cc].tld + '/mn/search/?_encoding=UTF8&linkCode=ur2&camp=1634&creative=19450&tag=' + country_data[cc]['tag_'+chan] + '&field-keywords=' + arg;
+         }
          content = content +'<a <?php echo $TARGET; ?> href="' + url + '"><img src="' + country_data[cc].flag + '"></a>';
       }
    }
@@ -405,6 +444,8 @@ function al_gen_multi (id, asin, def, chan) {
 
             'multi_cc' => array('Name' => __('Multinational Link', 'amazon-link'), 'Description' => __('Insert links to all other Amazon sites after primary link.', 'amazon-link'), 'Default' => '1', 'Type' => 'checkbox', 'Class' => 'alternate al_border'),
             'localise' => array('Name' => __('Localise Amazon Link', 'amazon-link'), 'Description' => __('Make the link point to the users local Amazon website, (you must have ip2nation installed for this to work).', 'amazon-link'), 'Default' => '1', 'Type' => 'checkbox', 'Class' => 'al_border' ),
+            'search_link' => array('Name' => __('Create Search Links', 'amazon-link'), 'Description' => __('Generate links to search for the items by "Author Title" for non local links, rather than direct links to the product by ASIN.', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox', 'Class' => 'alternate al_border' ),
+            'search_text' => array( 'Name' => __('Default Search String', 'amazon-link'), 'Description' => __('Default items to search for for "Search Links", uses the same system as the Templates below.', 'amazon-link'), 'Default' => '%AUTHOR% | %TITLE%', 'Type' => 'text', 'Size' => '40', 'Class' => 'al_border' ),
             'live' => array ( 'Name' => __('Live Data', 'amazon-link'), 'Description' => __('When creating Amazon links, use live data from the Amazon site, otherwise populate the shortcode with static information. <em>* <a href="#aws_notes" title="AWS Access keys required for full functionality">AWS</a> *</em>', 'amazon-link'), 'Default' => '1', 'Type' => 'checkbox', 'Class' => 'al_border' ),
             'new_window' => array('Name' => __('New Window Link', 'amazon-link'), 'Description' => __('When link is clicked on open it in a new browser window', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox', 'Class' => 'alternate' ),
    
@@ -624,10 +665,13 @@ function al_gen_multi (id, asin, def, chan) {
        *    random = 1-99
        *    empty filter = always use.
        */
-      function get_channel() {
+      function get_channel($settings = NULL) {
          
          // Need $GLOBALS & Channels
-         $settings = $this->getSettings();
+
+         if ($settings === NULL)
+            $settings = $this->getSettings();
+
          $channels = $this->get_channels(True, True);
          if (isset($settings['in_post']) && $settings['in_post']) {
             $post = $GLOBALS['post'];
@@ -687,7 +731,10 @@ function al_gen_multi (id, asin, def, chan) {
       /// Localise Link Facility
 /*****************************************************************************************/
 
-      function get_country() {
+      function get_country($settings = NULL) {
+
+         if ($settings === NULL)
+            $settings = $this->getSettings();
 
          // Pretty arbitrary mapping of domains to Amazon sites, default to 'com' - the 'international' site.
          $country_map = array('uk' => array('uk', 'ie', 'gi', 'gl', 'nl', 'vg', 'cy', 'gb', 'dk'),
@@ -704,7 +751,7 @@ function al_gen_multi (id, asin, def, chan) {
                           
          $country = False;
 
-         if ($this->Settings['localise'])
+         if ($settings['localise'])
          {
             if (!isset($this->local_country)) {
                $cc = $this->ip2n->get_cc();
@@ -721,7 +768,7 @@ function al_gen_multi (id, asin, def, chan) {
             return $this->local_country;
          }
 
-         return $this->Settings['default_cc'];
+         return $settings['default_cc'];
       }
 
       function widget_filter($content) {
@@ -894,27 +941,33 @@ function al_gen_multi (id, asin, def, chan) {
          return include('include/showRecommendations.php');
       }
 
-      function get_local_info() {
-         $channel      = $this->get_channel();
-         $top_cc       = $this->get_country();
+      function get_local_info($settings = NULL) {
+
+         if ($settings === NULL)
+            $settings = $this->getSettings();
+
+         $channel      = $this->get_channel($settings);
+         $top_cc       = $this->get_country($settings);
          $country_data = $this->get_country_data();
          $info         = array( 'cc' => $top_cc, 'rcm' => $country_data[$top_cc]['rcm'], 'mplace_id' => $country_data[$top_cc]['m_id'], 'mplace' => $country_data[$top_cc]['market'], 'tld' => $country_data[$top_cc]['tld'], 'tag' => $channel['tag_' . $top_cc], 'channel' => $channel['ID']);
          return $info;
       }
 
-      function getURL($asin) {
-         $li  = $this->get_local_info();
-         
-         $text='http://www.amazon.' . $li['tld'] . '/gp/product/'. $asin. '?ie=UTF8&tag=' . $li['tag'] .'&linkCode=as2&camp=1634&creative=6738&creativeASIN='. $asin;
+      function getURL($term, $tld, $tag) {
+         $type = substr($term,0,1);
+         $arg  = substr($term,2);
+         if ($type == 'A')
+            $text='http://www.amazon.' . $tld . '/gp/product/'. $arg. '?ie=UTF8&linkCode=as2&camp=1634&creative=6738&tag=' . $tag .'&creativeASIN='. $arg;
+         else {
+            $text='http://www.amazon.' . $tld . '/mn/search/?_encoding=UTF8&linkCode=ur2&camp=1634&creative=19450&tag=' . $tag. '&field-keywords=' . $arg;
+         }
          return $text;
       }
 
-      function itemLookup($asin, $Settings = NULL ) {
+      function itemLookup($asin, $settings = NULL ) {
 
-         if ($Settings === NULL)
-            $Settings = $this->getSettings();
-         else
-            $this->Settings = $Settings;
+         if ($settings === NULL)
+            $settings = $this->getSettings();
 
          // Create query to retrieve the an item
          $request = array('Operation'     => 'ItemLookup',
@@ -922,14 +975,14 @@ function al_gen_multi (id, asin, def, chan) {
                           'ItemId'        => $asin, 
                           'IdType'        => 'ASIN');
 
-         $pxml = $this->doQuery($request, $Settings);
+         $pxml = $this->doQuery($request, $settings);
 
          if (($pxml === False) || !isset($pxml['Items']['Item'])) {
             $item = array('found' => 0, 'ASIN' => $asin);
          } else {
             $item =array_merge($pxml['Items']['Item'], array('found' => 1));
          }
-         $item['Settings'] = $Settings;
+         $item['Settings'] = $settings;
          //echo "<!-- "; print_r($item); echo "-->";
          return $item;
       }
@@ -941,12 +994,48 @@ function al_gen_multi (id, asin, def, chan) {
          else
             $this->Settings = $Settings;
 
-         $li  = $this->get_local_info();
+         $li  = $this->get_local_info($Settings);
          $tld = $li['tld'];
 
          if (!isset($request['AssociateTag'])) $request['AssociateTag'] = $li['tag'];
 
          return aws_signed_request($tld, $request, $Settings['pub_key'], $Settings['priv_key']);
+      }
+
+      function make_link($asin, $object, $settings = NULL, $local_info = NULL, $search = '')
+      {
+         if ($settings === NULL)
+            $settings = $this->getSettings();
+
+         if ($local_info === NULL)
+            $local_info = $this->get_local_info($settings);
+
+         if ($settings['search_link']) {
+            $term = 'S-'.urlencode ($search);
+            if ($settings['localise'] && ($settings['default_cc'] != $local_info['cc'])) {
+               $url_term = $term;
+            } else {
+               $url_term = 'A-'.$asin;
+            }
+         } else {
+            $url_term = $term = 'A-'.$asin;
+         }
+            
+
+         /*
+          * Generate a localised/multinational link, wrapped around '$object'
+          */
+         $TARGET = $settings['new_window'] ? 'target="_blank"' : '';
+         $URL    = $this->getURL($url_term, $local_info['tld'], $local_info['tag']);
+
+         if ($settings['multi_cc']) {
+            $text='<a '. $TARGET .' onMouseOut="al_link_out()" href="' . $URL .'" onMouseOver="al_gen_multi('. $this->multi_id . ', \'' . $term. '\', \''. $local_info['cc']. '\', \''. $local_info['channel'] .'\');">';
+            $text .= $object. '</a>';
+            $this->multi_id++;
+         } else {
+            $text='<a '. $TARGET .' href="' . $URL .'">' . $object . '</a>';
+         }
+         return $text;
       }
 
       function make_links($asins, $link_text, $Settings = NULL)
@@ -955,8 +1044,6 @@ function al_gen_multi (id, asin, def, chan) {
          
          if ($Settings === NULL)
             $Settings = $this->getSettings();
-         else
-            $this->Settings = $Settings;
 
          $output = '';
          /*
@@ -1002,61 +1089,49 @@ function al_gen_multi (id, asin, def, chan) {
             }
          }
 
+         $local_info = $this->get_local_info($settings);
          foreach ($asins as $asin) {
 
-         /*
-          * This code required to maintain backward compatibility
-          */
-         $object = stripslashes($link_text);
-         // Do we need to display or link to an image ?
-         if (!empty($this->Settings['image']) || !empty($this->Settings['thumb'])) {
-            $media_ids = $this->search->find_attachments($asin);
-            if (!is_wp_error($media_ids)) {
-               $media_id = $media_ids[0]->ID;
-            }
+            /*
+             * This code required to maintain backward compatibility
+             */
+            $object = stripslashes($link_text);
+            // Do we need to display or link to an image ?
+            if (!empty($Settings['image']) || !empty($Settings['thumb'])) {
+               $media_ids = $this->search->find_attachments($asin);
+               if (!is_wp_error($media_ids)) {
+                  $media_id = $media_ids[0]->ID;
+               }
 
-            if (!empty($this->Settings['thumb'])) {
-               if (isset($media_id)) {
-                  $thumb = wp_get_attachment_thumb_url($media_id);
-               } elseif (strlen($this->Settings['thumb']) > 4) {
-                  $thumb = $this->Settings['thumb'];
+               if (!empty($Settings['thumb'])) {
+                  if (isset($media_id)) {
+                     $thumb = wp_get_attachment_thumb_url($media_id);
+                  } elseif (strlen($Settings['thumb']) > 4) {
+                     $thumb = $Settings['thumb'];
+                  }
+               }
+               if (!empty($Settings['image'])) {
+                  if (isset($media_id)) {
+                     $image = wp_get_attachment_url($media_id);
+                  } elseif (strlen($Settings['image']) > 4) {
+                     $image = $Settings['image'];
+                  }
                }
             }
-            if (!empty($this->Settings['image'])) {
-               if (isset($media_id)) {
-                  $image = wp_get_attachment_url($media_id);
-               } elseif (strlen($this->Settings['image']) > 4) {
-                  $image = $this->Settings['image'];
-               }
+
+            // If both thumb and image are specified then just insert the image
+            if (isset($thumb) && isset($image)) {
+               $object = '<a href = "'. $image .'"><img class="'. $Settings['image_class'] .'" src="'. $thumb. '" alt="'. $link_text .'"></a>';
+               return $object;
             }
-         }
 
-         // If both thumb and image are specified then just insert the image
-         if (isset($thumb) && isset($image)) {
-            $object = '<a href = "'. $image .'"><img class="'. $this->Settings['image_class'] .'" src="'. $thumb. '" alt="'. $link_text .'"></a>';
-            return $object;
-         }
+            if (isset($image))
+               $object = '<img class="'. $Settings['image_class'] .'" src="'. $image . '" alt="'. $link_text .'">';
+            if (isset($thumb))
+               $object = '<img class="'. $Settings['image_class'] .'" src="'. $thumb . '" alt="'. $link_text .'">';
 
-         if (isset($image))
-            $object = '<img class="'. $this->Settings['image_class'] .'" src="'. $image . '" alt="'. $link_text .'">';
-         if (isset($thumb))
-            $object = '<img class="'. $this->Settings['image_class'] .'" src="'. $thumb . '" alt="'. $link_text .'">';
+            $output .= $this->make_link($asin, $object, $Settings, $local_info);
 
-         /*
-          * Generate a localised/multinational link, wrapped around '$object'
-          */
-         $TARGET = $this->Settings['new_window'] ? 'target="_blank"' : '';
-         $URL    = $this->getURL($asin);
-
-         if ($this->Settings['multi_cc']) {
-            $local_info = $this->get_local_info();
-            $text='<a '. $TARGET .' onMouseOut="al_link_out()" href="' . $URL .'" onMouseOver="al_gen_multi('. $this->multi_id . ', \'' . $asin . '\', \''. $local_info['cc']. '\', \''. $local_info['channel'] .'\');">';
-            $text .= $object. '</a>';
-            $this->multi_id++;
-         } else {
-            $text='<a '. $TARGET .' href="' . $URL .'">' . $object . '</a>';
-         }
-         $output .= $text;
          }
          return $output;
       }
@@ -1074,8 +1149,9 @@ function amazon_get_link($args)
 {
    global $awlfw;
    $awlfw->parseArgs($args);       // Get the default settings
+   $li  = $awlfw->get_local_info();
    foreach ($awlfw->Settings['asin'] as $asin) {
-      return $awlfw->getURL($asin);        // Return a URL
+      return $awlfw->getURL('A:'.$asin, $li['tld'], $li['tag']);        // Return a URL
    }
 }
 

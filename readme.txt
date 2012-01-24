@@ -54,6 +54,7 @@ This is created by either putting the line `amazon_recommends(<Category>,<Number
 
 
 
+* New Feature - Amazon search links for non-local links
 * Bug Fix - Fix so that searches from all Search Indices return valid results.
 
 
@@ -440,6 +441,21 @@ If this option is selected then the plugin will enable a small popup menu of cou
 
 If this option is selected and the [ip2nation](http://www.ip2nation.com/) database has been installed then the plugin will attempt to use the most appropriate Amazon site when creating the link, currently supports [www.amazon.co.uk](http://www.amazon.co.uk), [www.amazon.com](http://www.amazon.com), [www.amazon.ca](http://www.amazon.ca), [www.amazon.cn](http://www.amazon.cn), [www.amazon.de](http://www.amazon.de), [www.amazon.es](http://www.amazon.es), [www.amazon.fr](http://www.amazon.fr), [www.amazon.it](http://www.amazon.it) and [www.amazon.jp](http://www.amazon.co.jp/).
 
+= Create Search Links =
+
+If localisation or the Multinational popup are enabled then the plugin will create links to Amazon sites other than your default locale. Sometimes these links either do not work - for example that exact product ASIN is not available in that country. Or is not suitable - for example it is an incorrect region DVD or a book in the wrong language.
+
+Selecting this option will force the plugin to generate links to non-local Amazon sites that search for your product rather than an exact ASIN link. The exact terms of the search are determined by the next option.
+
+This option can be overridden in the shortcode by specifying the 'search_link=1' or 'search_link=0' argument.
+
+= Default Search String =
+
+
+If the 'Create Search Links' option is enabled then this string determines what keywords are used to create the search link. Any of the keywords used in the Templates can be used to generate the term, for example the keyword '%ARTIST%' will be expanded by the plugin to the Author/Artist/Director of the linked item.
+
+This option can be overridden in the shortcode by specifying the 'search_text=Specific Search String' argument.
+
 = Live Data =
 
 If this option is enabled then the plugin will attempt to retrieve up to date (and localised) information on the product when generating the product link. For this to work the AWS Access keys in the global settings must be configured with valid keys. If not enabled then the plugin will only use the information included in the shortcode. This option can be overridden in the shortcode by specifying the 'live=1' or 'live=0' argument.
@@ -505,6 +521,12 @@ Overides the 'Localise Amazon Link' setting. 0 to force the default country, 1 t
 = multi_cc =
 
 Overides the 'Multinational Link' setting. 0 to disable the popup, 1 to enable the popup.
+= search_link =
+
+Overrides the 'Create Search Links' setting. 0 to force direct links by ASIN, 1 to force search based links.
+= search_text =
+
+Overrides the 'Default Search String' setting. A more specific search string can be used to generate the links.
 = default_cc =
 
 Overrides the 'Default Country' setting. Must be one of 'uk', 'us', 'ca', 'cn', 'de', 'es', 'fr', 'it' or 'jp'.
@@ -516,8 +538,7 @@ Overides the 'AWS Public Key' setting.
 Overides the 'AWS Private Key' setting.
 == Technical ==
 
-
-The plugin relies upon the php script aws_signed_request kindly crafted by [Ulrich Mierendorff](http://mierendo.com/software/aws_signed_query/).
+The plugin relies upon the php script aws_signed_request kindly crafted by [Ulrich Mierendorff](http://mierendo.com/software/aws_signed_query/).
 
 The plugin has two utility classes that might be of use to other plugin designers. The first is one for generating the options page (as well as the 'Add Amazon Link' meta box). The second is an AJAX facility for performing Amazon product searches and returning an array of product details, including a facility to fill in a HTML template with various attributes of the product using the patterns %TITLE%, %PRICE%, %AUTHOR%, etc. See the plugin source files for more details on how to utilise them.
 
@@ -543,7 +564,6 @@ Features I will be adding to the plugin in the future:
 
 * Allow the wishlist to search for legacy amazon links not just ones embedded in the shortcode.
 * Cache product queries to the Amazon sites (by locality).
-
 
 == Upgrade Notice ==
 
