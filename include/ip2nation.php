@@ -29,7 +29,7 @@ if (!class_exists('AmazonWishlist_ip2nation')) {
 
          $sql = "SHOW TABLE STATUS WHERE Name LIKE '". $this->db ."'";
          $db_info = $wpdb->get_row($sql);
-         if ($db_info) {
+         if ($db_info != NULL) {
             $ip2nationdb_ts = strtotime($db_info->Update_time);
             $ip2nationdb_time = date('D, d M Y H:i:s', $ip2nationdb_ts);
          } else {
@@ -133,8 +133,15 @@ if (!class_exists('AmazonWishlist_ip2nation')) {
          if ($ip === FALSE)
             $ip = $_SERVER['REMOTE_ADDR'];
 
-         $sql = 'SELECT country FROM ' . $this->db .' WHERE ip < INET_ATON("'.$ip.'") ORDER BY ip DESC LIMIT 0,1';
-         return $wpdb->get_var($sql);
+
+         $sql = "SHOW TABLE STATUS WHERE Name LIKE '". $this->db ."'";
+         $db_info = $wpdb->get_row($sql);
+         if ($db_info != NULL) {
+            $sql = 'SELECT country FROM ' . $this->db .' WHERE ip < INET_ATON("'.$ip.'") ORDER BY ip DESC LIMIT 0,1';
+            return $wpdb->get_var($sql);
+         } else {
+            return NULL;
+         }
 
       }
 

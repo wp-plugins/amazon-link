@@ -282,31 +282,53 @@ if (!class_exists('AmazonLinkSearch')) {
             $results = array('success' => true);
             $Items=$pxml['Items']['Item'];
          }
-
-/* Test Code to check availibility at all sites... 
-         if( !class_exists( 'WP_Http' ) )
-            include_once( ABSPATH . WPINC. '/class-http.php' );
+/* Test Code to check availibility at all sites... 
+ //        if( !class_exists( 'WP_Http' ) )
+   //         include_once( ABSPATH . WPINC. '/class-http.php' );
 
          foreach($Items as $item => $item_info) {
-            $map = '<div class="al_flags">';
+         $map = '<div class="al_flags">';
             $country_data = $this->alink->get_country_data();
             foreach ($country_data as $cc => $data) {
                $this->alink->Settings['localise'] = 0;
                $this->alink->Settings['default_cc'] = $cc;
-               $url = $this->alink->getURL($item_info['ASIN']);
-               $request = new WP_Http;
-               $result = $request->request( $url, array('timeout' => 3, 'method' => 'GET'));
+               $url = $this->alink->getURL($item_info['ASIN'], $data['tld'], $data['default_tag']);
+               //$request = new WP_Http;
+               //$result = $request->request( $url, array('timeout' => 3, 'method' => 'GET'));
+               $result = $this->get_headers($url);
+               $map .= '<PRE>'.$result[0].'</PRE>';
                if (!is_wp_error($result) && ($result['response']['code'] == 200)) {
                   $map .= '<img height=8px src="'. $this->alink->URLRoot. '/'. $data['flag'].'">';
                }
+               break;
             }
+
             $map .= '</div>';
             $Items[$item]['Settings'] = $Settings;
             $Items[$item]['Settings']['text1'] = $map;
          }
-*/
+ */
       return $Items;
       }
+
+      function get_headers($url,$format=0,$httpn=0) { 
+         $fp = fsockopen($url, 80, $errno, $errstr, 30); 
+         if ($fp) { 
+            $out = "GET / HTTP/1.1\r\n"; 
+            $out .= "Host: $url\r\n"; 
+            $out .= "Connection: Close\r\n\r\n"; 
+            fwrite($fp, $out); 
+            while (!feof($fp)) { 
+               $var.=fgets($fp, 1280); 
+            } 
+            $var=explode("<",$var); 
+            $var=$var[0]; 
+            $var=explode("\n",$var); 
+            fclose($fp); 
+            return $var;
+         }
+         return array();
+      } 
 
       function parse_results ($Items, $Global_Settings=NULL, $Count=100) {
          if (count($Items) > 0) {

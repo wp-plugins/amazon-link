@@ -3,7 +3,7 @@ Contributors: paulstuttard
 Donate link: http://www.houseindorset.co.uk/plugins
 Tags: Amazon, links, wishlist, recommend, shortcode, ip2nation, localise, images, media library, affiliate, product, template
 Requires at least: 3.1
-Tested up to: 3.2.1
+Tested up to: 3.3.1
 Stable tag: 2.0.8
 
 
@@ -91,7 +91,7 @@ Further information on the Plugin can be found on these pages:
 == Screenshots ==
 
 
-1. This is the example wishlist taken from [www.HouseInDorset.co.uk](http://www.houseindorset.co.uk/plugins/amazon-link)
+1. This is the example wishlist taken from [www.HouseInDorset.co.uk](http://www.houseindorset.co.uk/plugins/amazon-link/faq/)
 
 2. This shows the multinational Amazon link popup.
 

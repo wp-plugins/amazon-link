@@ -755,6 +755,7 @@ function al_gen_multi (id, term, def, chan) {
          {
             if (!isset($this->local_country)) {
                $cc = $this->ip2n->get_cc();
+               if ($cc === NULL) return $settings['default_cc'];
                $country = 'us';
                foreach ($country_map as $key => $countries) {
                   if (in_array($cc, $countries)) {
