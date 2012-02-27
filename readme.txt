@@ -4,7 +4,7 @@ Donate link: http://www.houseindorset.co.uk/plugins
 Tags: Amazon, links, wishlist, recommend, shortcode, ip2nation, localise, images, media library, affiliate, product, template
 Requires at least: 3.1
 Tested up to: 3.3.1
-Stable tag: 2.0.8
+Stable tag: 2.0.9
 
 
 Provides a facility to insert Amazon product links directly into your site's Pages, Posts and Widgets and Templates.
@@ -50,12 +50,13 @@ To generate a list of products relevant to the content of your site use the 'cat
 
 This is created by either putting the line `amazon_recommends(<Category>,<Number of Posts>)` in your template. Or putting the line `[amazon cat=<Category>&last=<Number of Posts>]` within a post or page. Where 'Category' is a list of category ids to search within (e.g. as expected by the 'cat' argument of [query_posts](http://codex.wordpress.org/Template_Tags/query_posts#Parameters) function. The 'last' parameter is the number of posts to search through.
 
-= Latest Version - Development =
+= Latest Version - 2.0.9 =
 
 
 
 * New Feature - Amazon search links for non-local links
 * Bug Fix - Fix so that searches from all Search Indices return valid results.
+* Bug Fix - Extra checks on ip2nation lookup failures.
 
 
 == Installation ==
@@ -68,7 +69,7 @@ Simply:
 1. Unzip the amazon-link.zip file into your Wordpress `/wp-content/plugins/` directory.
 1. Activate the plugin through the 'Plugins' menu in WordPress.
 1. Update the settings (at the very least enter the default Affiliate Tags)
-1. If you wish to use the advanced functionality: Wishlists, Search or Media Upload facilities or the live data option you must also set up an [Amazon Web Services](http://aws.amazon.com/) account. So that you can update the AWS Public and Private key settings.
+1. If you wish to use the advanced functionality: Wishlists, Search, Media Upload facilities or the live data option you must also set up an [Amazon Web Services](http://aws.amazon.com/) account. So that you can update the AWS Public and Private key settings.
 1. Insert links and wishlists into your content using the [amazon] tag as described above, or using the Amazon Link box on the Page/Post edit pages.
 
 
@@ -101,7 +102,16 @@ Further information on the Plugin can be found on these pages:
 
 == Changelog ==
 
-= 2.0.8 =
+= 2.0.9 =
+
+
+
+* New Feature - Amazon search links for non-local links
+* Bug Fix - Fix so that searches from all Search Indices return valid results.
+* Bug Fix - Extra checks on ip2nation lookup failures.
+
+
+= 2.0.8 =
 
 
 
@@ -567,7 +577,11 @@ Features I will be adding to the plugin in the future:
 
 == Upgrade Notice ==
 
-= 2.0.8 =
+= 2.0.9 =
+
+Upgrade to enable 'search for product' type links or having problems with the search tool.
+
+= 2.0.8 =
 
 Upgrade if having problems getting prices for some items.
 

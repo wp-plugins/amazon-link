@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  \n"
 "Report-Msgid-Bugs-To: http://wordpress.org/tag/amazon-link\n"
-"POT-Creation-Date: 2012-02-07 13:53:53+00:00\n"
+"POT-Creation-Date: 2012-02-27 10:18:24+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -37,7 +37,7 @@ msgstr ""
 msgid "<b>WARNING!</b> You're <b>ip2nation</b> database is out of date. It was last updated on %1$s, the latest version available is dated: %2$s"
 msgstr ""
 
-#: amazon.php:922
+#: amazon.php:923
 msgid "<p>Hover the mouse pointer over the keywords for more information.</p>"
 msgstr ""
 
@@ -101,7 +101,7 @@ msgstr ""
 msgid "Amazon Link Affiliate IDs"
 msgstr ""
 
-#: amazon.php:857
+#: amazon.php:858
 msgid "Amazon Link Options"
 msgstr ""
 
