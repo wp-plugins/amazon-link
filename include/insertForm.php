@@ -8,7 +8,7 @@
 
 /*****************************************************************************************/
 
-   $Settings = $this->getSettings();
+   $Settings = $this->getOptions();
 
    $results_html = __('Results: ', 'amazon-link'). 
                   '<img style="float:right" alt="" title="" id="amazon-link-status" class="ajax-feedback " src="images/wpspin_light.gif" />'.
@@ -25,6 +25,9 @@
       }
    }
 
+   $aws_api_info = $this->search->get_aws_info();
+   $search_indexes = $aws_api_info['SearchIndexByLocale'][$Settings['default_cc']];
+
    /* This is the template used for generating each line of the search results */
    $results_template = htmlspecialchars ('
 <div class="amazon_prod">
@@ -40,6 +43,7 @@
        <input style="float:left" type="button" title="'. __('Insert a link into the post, based on the selected template','amazon-link'). '"onClick="return wpAmazonLinkAd.sendToEditor(this.form, { '. $item_details.' } );" value="'.__('Insert', 'amazon-link').'" class="button-secondary">
        <input style="float:right" id="upload-button-%ASIN%" type="button" title="'. __('Upload cover image into media library','amazon-link'). '"onClick="return wpAmazonLinkSearch.grabMedia(this.form, {asin: \'%ASIN%\'} );" value="'.__('Upload', 'amazon-link').'" class="al_hide-%DOWNLOADED% button-secondary">
        <input style="float:right" id="uploaded-button-%ASIN%" type="button" title="'. __('Remove image from media library','amazon-link'). '"onClick="return wpAmazonLinkSearch.removeMedia(this.form, {asin: \'%ASIN%\'} );" value="'.__('Delete', 'amazon-link').'" class="al_show-%DOWNLOADED% button-secondary">
+      %TEXT1%
       </div>
      </div>
    
@@ -59,7 +63,8 @@
          'asin' => array( 'Id' => 'AmazonLinkOpt', 'Name' => __('ASIN', 'amazon-link'), 'Default' => '', 'Type' => 'text', 'Hint' => __('Amazon product ASIN', 'amazon-link'), 'Size' => '30', 
                            'Buttons' => array( __('Insert Link', 'amazon-link' ) => array( 'Type' => 'button', 'Class' => 'button-primary', 'Script' => 'return wpAmazonLinkAd.sendToEditor(this.form);'))),
          'text' => array( 'Id' => 'AmazonLinkOpt', 'Name' => __('Link Text', 'amazon-link'), 'Hint' => __('Amazon Link text', 'amazon-link'), 'Default' => 'Amazon', 'Type' => 'text', 'Size' => '40'),
-         'template' => array( 'Id' => 'AmazonLinkOpt', 'Name' => __('Template', 'amazon-link'), 'Hint' => __('Choose which template is used to display the item.', 'amazon-link'), 'Default' => ' ', 'Type' => 'selection'));
+         'template' => array( 'Id' => 'AmazonLinkOpt', 'Name' => __('Template', 'amazon-link'), 'Hint' => __('Choose which template is used to display the item.', 'amazon-link'), 'Default' => ' ', 'Type' => 'selection'),
+         'chan' => array( 'Id' => 'AmazonLinkOpt', 'Name' => __('Channel', 'amazon-link'), 'Hint' => __('Choose which set of Amazon Tracking IDs to use.', 'amazon-link'), 'Default' => ' ', 'Type' => 'selection'));
 
    if ( $this->valid_keys())
    {
@@ -68,9 +73,7 @@
          'template_content' => array( 'Id' => 'amazon-link-search', 'Default' => $results_template, 'Type' => 'hidden'),
          'post' => array( 'Id' => 'amazon-link-search', 'Default' => $post->ID, 'Type' => 'hidden'),
          's_index' => array( 'Id' => 'amazon-link-search', 'Name' => __('Product Index', 'amazon-link'), 'Hint' => __('Which Amazon Product Index to Search through', 'amazon-link'), 'Default' => 'Books', 'Type' => 'selection', 
-                           'Options' => array ( 'Apparel', 'Baby','Beauty','Blended','Books','Classical','DigitalMusic','DVD','Electronics','ForeignBooks','GourmetFood','HealthPersonalCare','HomeGarden',
-                                               'Jewelry','Kitchen','Magazines','Merchants','Miscellaneous','Music','MusicalInstruments','MusicTracks','OfficeProducts','OutdoorLiving','PCHardware',
-                                               'Photo','Restaurants','Software','SoftwareVideoGames','SportingGoods','Tools','Toys','VHS','Video','VideoGames','Wireless','WirelessAccessories') ),
+                           'Options' => $search_indexes ),
          's_author' => array('Id' => 'amazon-link-search', 'Name' => __('Author', 'amazon-link'), 'Hint' => __('Author or Artist to search for', 'amazon-link'), 'Type' => 'text', 'Default' => ''),
          's_title' => array('Id' => 'amazon-link-search', 'Name' => __('Title', 'amazon-link'), 'Hint' => __('Items Title to search for', 'amazon-link'), 'Type' => 'text', 'Default' => ''),
          's_page' => array('Id' => 'amazon-link-search', 'Name' => __('Page', 'amazon-link'), 'Hint' => __('Page of Search Results', 'amazon-link'), 'Default' => '1', 'Type' => 'text',
@@ -91,11 +94,13 @@
          'subhd4' => array ( 'Type' => 'title', 'Value' => __('Advanced settings', 'amazon-link'), 'Title_Class' => 'sub-head'),
          'defaults' => array( 'Id' => 'AmazonLinkOpt', 'Name' => __('Use Defaults', 'amazon-link'), 'Hint' => __('Use the site default settings for the options below', 'amazon-link'), 'Default' => '1', 'Type' => 'checkbox', 'Script' => 'return wpAmazonLinkAd.toggleAdvanced(this.form);'),
          'localise' => array( 'Id' => 'AmazonLinkOpt', 'Name' => __('Localise Amazon Link', 'amazon-link'), 'Hint' => __('Make the link point to the users local Amazon website', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox', 'Class' => 'hide-if-js'),
+         'search_link' => array( 'Id' => 'AmazonLinkOpt', 'Name' => __('Create Search Links', 'amazon-link'), 'Hint' => __('Make the link point to a search result on the Amazon site', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox', 'Class' => 'hide-if-js'),
          'multi_cc' => array( 'Id' => 'AmazonLinkOpt', 'Name' => __('Multinational Link', 'amazon-link'), 'Hint' => __('Insert links to all other Amazon sites after primary link.', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox', 'Class' => 'hide-if-js'),
          'live' => array( 'Id' => 'AmazonLinkOpt', 'Name' => __('Live Data', 'amazon-link'), 'Hint' => __('When displaying the link, use live data from amazon to populate the template', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox', 'Class' => 'hide-if-js'))
          );
 
    $optionList['template']['Options'] = array(' ');
+   $optionList['T_' . ' '] = array( 'Id' => 'AmazonLinkTemplates', 'Type' => 'hidden', 'Value' => 'text');
    $Templates = $this->getTemplates();
    foreach ($Templates as $templateName => $Details) {
       $optionList['template']['Options'][$templateName]['Name'] = $Details['Name']. '  -  ' . $Details['Description'];
@@ -106,6 +111,12 @@
             $template_data[] = $keyword;
       }
       $optionList['T_' . $templateName] = array( 'Id' => 'AmazonLinkTemplates', 'Type' => 'hidden', 'Value' => implode(',',$template_data));
+   }
+
+   $optionList['chan']['Options'] = array(' ');
+   $channels = $this->get_channels();
+   foreach ($channels as $channel_id => $details) {
+      $optionList['chan']['Options'][$channel_id]['Name'] = $details['Name']. '  -  ' . $details['Description'];
    }
 
    $live_data = array();
@@ -123,7 +134,7 @@
 
    // **********************************************************
    // Now display the options editing screen
-   //$Settings['asin'] = implode(',', $this->Settings['asin']);
+   $Settings['asin'] = (isset($Settings['asin']) && is_array($Settings['asin'])) ? implode(',', $Settings['asin']): '';
    $this->form->displayForm($optionList, $Settings, True, True);
 
 ?>

@@ -13,11 +13,11 @@
  *
  * The page must consist of a form with input elements all with the id='amazon-link-search', and
  * with the following names:
- *    - title
- *    - index
- *    - author
- *    - page
- *    - template
+ *    - s_title
+ *    - s_index
+ *    - s_author
+ *    - s_page
+ *    - s_template
  *
  * To initiate a search there must be an element in the form which triggers the javascript:
  * 'return wpAmazonLinkSearch.searchAmazon(this.form);'
@@ -99,7 +99,9 @@ if (!class_exists('AmazonLinkSearch')) {
                                   'tag'          => array( 'Description' => __('Localised Amazon Associate Tag', 'amazon-link')),
                                   'cc'           => array( 'Description' => __('Localised Country Code (us, uk, etc.)', 'amazon-link')),
                                   'mplace'       => array( 'Description' => __('Localised Amazon Marketplace Code (US, GB, etc.)', 'amazon-link')),
+                                  'mplace_id'    => array( 'Description' => __('Localised Numeric Amazon Marketplace Code (2=uk, 8=fr, etc.)', 'amazon-link')),
                                   'tld'          => array( 'Description' => __('Localised Top Level Domain (.com, .co.uk, etc.)', 'amazon-link')),
+                                  'rcm'          => array( 'Description' => __('Localised RCM site host domain (rcm.amazon.com, rcm-uk.amazon.co.uk, etc.)', 'amazon-link')),
                                   'downloaded'   => array( 'Description' => __('1 if Images are in the local Wordpress media library', 'amazon-link')),
                                   'found'        => array( 'Description' => __('1 if product was found doing a live data request (also 1 if live not enabled).', 'amazon-link')),
                                   'link_open'    => array( 'Description' => __('Create a Amazon link with user defined content, of the form %LINK_OPEN%My Content%LINK_CLOSE%', 'amazon-link')),
@@ -111,44 +113,17 @@ if (!class_exists('AmazonLinkSearch')) {
       /// AJAX Call Handlers
 /*****************************************************************************************/
 
-      function performSearch() {
-         $Opts = $_POST;
+      function performSearch($Opts='') {
+         if (!is_array($Opts)) $Opts = $_POST;
 
          $Settings = array_merge($this->alink->getSettings(), $Opts);
          $Settings['multi_cc'] = '0';
          $Settings['found'] = 1;
          $Settings['localise'] = 0;
  
-         if ($Opts['s_index'] == 'Books') {
-            $Term = "Author";
-         } else if ($Opts['s_index'] == 'Music') {
-            $Term = "Artist";
-         } else if ($Opts['s_index'] == 'DVD') {
-            $Term = "Publisher";
-         } else {
-            $Term = "Manufacturer";
-         }
+         $Items = $this->do_search($Opts);
 
-         // Create query to retrieve the first 10 matching items
-         $request = array("Operation" => "ItemSearch",
-                          "ResponseGroup" => "Offers,Small,Reviews,Images,SalesRank",
-                          $Term=>$Opts['s_author'],
-                          "Title"=>$Opts['s_title'],
-                          "SearchIndex"=>$Opts['s_index'],
-                          "Sort"=>"salesrank",
-                          "MerchantId"=>"Amazon",
-                          "ItemPage"=>$Opts['s_page']);
-
-         $pxml = $this->alink->doQuery($request, $Settings);
-
-         if (($pxml === False) || !isset($pxml['Items']['Item'])) {
-            $results = array('success' => false);
-            $Items = array();
-         } else {
-            $results = array('success' => true);
-            $Items=$pxml['Items']['Item'];
-         }
-        print json_encode($this->parse_results($Items, $Settings));
+         print json_encode($this->parse_results($Items, $Settings));
          exit();
       }
 
@@ -158,7 +133,7 @@ if (!class_exists('AmazonLinkSearch')) {
          /* Do we have this image? */
          $media_ids = $this->find_attachments( $Opts['asin'] );
 
-         if (!$media_ids) {
+         if (is_wp_error($media_ids)) {
             $results = array('in_library' => false, 'asin' => $Opts['asin'], 'error' => __('No matching image found', 'amazon-link'));
          } else {
 
@@ -185,7 +160,7 @@ if (!class_exists('AmazonLinkSearch')) {
          /* Do not upload if we already have this image */
          $media_ids = $this->find_attachments( $Opts['asin'] );
 
-         if ($media_ids) {
+         if (!is_wp_error($media_ids)) {
             $results = array('in_library' => true, 'asin' => $Opts['asin'], 'id' => $media_ids[0]->ID);
          } else {
 
@@ -207,6 +182,154 @@ if (!class_exists('AmazonLinkSearch')) {
       /// Helper Functions
 /*****************************************************************************************/
 
+
+      function get_aws_info() {
+
+         $search_index_by_locale = array( 
+            'ca' => array('All', 'Blended', 'Books', 'Classical', 'DVD', 'Electronics', 'ForeignBooks', 'Kitchen', 'Music', 'Software', 'SoftwareVideoGames',
+'VHS', 'Video', 'VideoGames'),
+            'us' => array('All', 'Apparel', 'Appliances', 'ArtsAndCrafts', 'Automotive', 'Baby', 'Beauty', 'Blended', 'Books', 'Classical', 'DigitalMusic',
+'Grocery', 'MP3Downloads', 'DVD', 'Electronics', 'HealthPersonalCare', 'HomeGarden', 'Industrial', 'Jewelry', 'KindleStore',
+'Kitchen', 'Magazines', 'Marketplace', 'Merchants', 'Miscellaneous', 'MobileApps', 'Music', 'MusicalInstruments', 'MusicTracks',
+'OfficeProducts', 'OutdoorLiving', 'PCHardware', 'PetSupplies', 'Photo', 'Shoes', 'Software', 'SportingGoods', 'Tools', 'Toys',
+'UnboxVideo', 'VHS', 'Video', 'VideoGames', 'Watches', 'Wireless', 'WirelessAccessories'),
+            'cn' => array('All', 'Apparel', 'Appliances', 'Automotive', 'Baby', 'Beauty', 'Books', 'Electronics', 'Grocery', 'HealthPersonalCare', 'Home',
+'HomeImprovement', 'Jewelry', 'Misc', 'Music', 'OfficeProducts', 'Photo', 'Shoes', 'Software', 'SportingGoods', 'Toys', 'Video',
+'VideoGames', 'Watches'),
+            'de' => array('All', 'Apparel', 'Automotive', 'Baby', 'Blended', 'Beauty', 'Books', 'Classical', 'DVD', 'Electronics', 'ForeignBooks', 'Grocery',
+'HealthPersonalCare', 'HomeGarden', 'Jewelry', 'KindleStore', 'Kitchen', 'Lighting', 'Magazines', 'Marketplace', 'MP3Downloads',
+'Music', 'MusicalInstruments', 'MusicTracks', 'OfficeProducts', 'OutdoorLiving', 'Outlet', 'PCHardware', 'Photo', 'Software',
+'SoftwareVideoGames', 'SportingGoods', 'Tools', 'Toys', 'VHS', 'Video', 'VideoGames', 'Watches'),
+            'es' => array('All', 'Books', 'DVD', 'Electronics', 'ForeignBooks', 'Kitchen', 'Music', 'Software', 'Toys', 'VideoGames', 'Watches'),
+            'fr' => array('All', 'Apparel', 'Baby', 'Beauty', 'Blended', 'Books', 'Classical', 'DVD', 'Electronics', 'ForeignBooks', 'HealthPersonalCare',
+'Jewelry', 'Kitchen', 'Lighting', 'MP3Downloads', 'Music', 'MusicalInstruments', 'MusicTracks', 'OfficeProducts', 'Outlet',
+'Shoes', 'Software', 'SoftwareVideoGames', 'VHS', 'Video', 'VideoGames', 'Watches'),
+            'it' => array('All', 'Books', 'DVD', 'Electronics', 'ForeignBooksSearchIndex:Garden', 'Kitchen', 'Music', 'Shoes', 'Software', 'Toys',
+'VideoGames', 'Watches'),
+            'jp' => array('All', 'Apparel', 'Automotive', 'Baby', 'Beauty', 'Blended', 'Books', 'Classical', 'DVD', 'Electronics', 'ForeignBooks', 'Grocery',
+'HealthPersonalCare', 'Hobbies', 'HomeImprovement', 'Jewelry', 'Kitchen', 'Marketplace', 'MP3Downloads', 'Music', 'MusicalInstruments',
+'MusicTracks', 'OfficeProducts', 'Shoes', 'Software', 'SportingGoods', 'Toys', 'VHS', 'Video', 'VideoGames', 'Watches'),
+            'uk' => array('All', 'Apparel', 'Automotive', 'Baby', 'Beauty', 'Blended', 'Books', 'Classical', 'DVD', 'Electronics', 'Grocery', 'HealthPersonalCare',
+'HomeGarden', 'Jewelry', 'Kitchen', 'Lighting', 'Marketplace', 'MP3Downloads', 'Music', 'MusicalInstruments', 'MusicTracks',
+'OfficeProducts', 'OutdoorLiving', 'Outlet', 'Shoes', 'Software', 'SoftwareVideoGames', 'Toys', 'VHS', 'Video', 'VideoGames', 'Watches'),
+            'us' => array('All', 'Apparel', 'Appliances', 'ArtsAndCrafts', 'Automotive', 'Baby', 'Beauty', 'Blended', 'Books', 'Classical', 'DigitalMusic',
+'Grocery', 'MP3Downloads', 'DVD', 'Electronics', 'HealthPersonalCare', 'HomeGarden', 'Industrial', 'Jewelry', 'KindleStore',
+'Kitchen', 'Magazines', 'Marketplace', 'Merchants', 'Miscellaneous', 'MobileApps', 'Music', 'MusicalInstruments', 'MusicTracks',
+'OfficeProducts', 'OutdoorLiving', 'PCHardware', 'PetSupplies', 'Photo', 'Shoes', 'Software', 'SportingGoods', 'Tools', 'Toys',
+'UnboxVideo', 'VHS', 'Video', 'VideoGames', 'Watches', 'Wireless', 'WirelessAccessories'));
+
+         return array('SearchIndexByLocale' => $search_index_by_locale);
+      }
+
+      function do_search($Opts) {
+
+         $Settings = array_merge($this->alink->getSettings(), $Opts);
+         $Settings['multi_cc'] = '0';
+         $Settings['found'] = 1;
+         $Settings['localise'] = 0;
+
+         // Not working: Baby, MusicalInstruments
+         $Creator = array( 'Author' => array( 'Books', 'ForeignBooks', 'MobileApps', 'MP3Downloads'),
+                           'Actor' => array( 'DigitalMusic' ),
+                           'Artist' => array('Music'),
+                           'Director' => array('DVD', 'UnboxVideo', 'VHS', 'Video'),
+                           'Publisher' => array('Magazines'),
+                           'Brand' => array('Apparel', 'ArtsAndCrafts', 'Baby', 'Beauty', 'Grocery', 'Lighting', 'OfficeProducts', 'Miscellaneous', 'PetSupplies', 'Shoes', 'MusicalInstruments', 'VideoGames'),
+                           'Manufacturer' => array('Appliances', 'Automotive', 'Electronics', 'Garden', 'HealthPersonalCare', 'Hobbies', 'Home', 'HomeGarden', 'HomeImprovement', 'Industrial', 'Kitchen',  'OutdoorLiving', 'Photo', 'Software', 'SoftwareVideoGames'),
+                           'Composer' => array('Classical'));
+
+         $Keywords = array('Blended', 'All', 'MusicTracks', 'Outlet');
+         $Sort = array('salesrank' => array('Books', 'Classical', 'DVD', 'Electronics', 'HealthPersonalCare', 'HomeGarden', 'HomeImprovement', 'Kitchen', 'MarketPlace', 'Music', 'OutdoorLiving', 'PCHardware', 'Software', 'SoftwareVideoGames', 'Toys', 'VHS', 'Video', 'VideoGames'),
+                       'relevancerank' => array('Apparel', 'Automotive', 'Baby', 'Beauty', 'Grocery', 'Jewelry', 'KindleStore', 'MP3Downloads', 'MusicalInstruments', 'OfficeProducts', 'Shoes', 'Watches'),
+                       'xsrelevancerank' => array('Shoes'));
+
+         // Create query to retrieve the first 10 matching items
+         $request = array("Operation" => "ItemSearch",
+                          "ResponseGroup" => "Offers,ItemAttributes,Small,Reviews,Images,SalesRank",
+                          "SearchIndex"=>$Opts['s_index'],
+                          "ItemPage"=>$Opts['s_page']);
+
+         foreach ($Sort as $Term => $Indices) {
+            if (in_array($Opts['s_index'], $Indices)) {
+               $request['Sort'] = $Term;
+               continue;
+            }
+         }
+
+         foreach ($Creator as $Term => $Indices) {
+            if (in_array($Opts['s_index'], $Indices)) {
+               $request[$Term] = $Opts['s_author'];
+               continue;
+            }
+         }
+
+         if (in_array($Opts['s_index'], $Keywords)) {
+            $request['Keywords']  = $Opts['s_title'];
+         } else {
+            $request['Title'] = $Opts['s_title'];
+         }
+
+         if ($Opts['s_index'] == 'Marketplace') {
+            $request['MarketplaceDomain'] = 'UK';
+         }
+
+         $pxml = $this->alink->doQuery($request, $Settings);
+
+         if (($pxml === False) || !isset($pxml['Items']['Item'])) {
+            $results = array('success' => false);
+            $Items = array();
+         } else {
+            $results = array('success' => true);
+            $Items=$pxml['Items']['Item'];
+         }
+/* Test Code to check availibility at all sites... 
+ //        if( !class_exists( 'WP_Http' ) )
+   //         include_once( ABSPATH . WPINC. '/class-http.php' );
+
+         foreach($Items as $item => $item_info) {
+         $map = '<div class="al_flags">';
+            $country_data = $this->alink->get_country_data();
+            foreach ($country_data as $cc => $data) {
+               $this->alink->Settings['localise'] = 0;
+               $this->alink->Settings['default_cc'] = $cc;
+               $url = $this->alink->getURL($item_info['ASIN'], $data['tld'], $data['default_tag']);
+               //$request = new WP_Http;
+               //$result = $request->request( $url, array('timeout' => 3, 'method' => 'GET'));
+               $result = $this->get_headers($url);
+               $map .= '<PRE>'.$result[0].'</PRE>';
+               if (!is_wp_error($result) && ($result['response']['code'] == 200)) {
+                  $map .= '<img height=8px src="'. $this->alink->URLRoot. '/'. $data['flag'].'">';
+               }
+               break;
+            }
+
+            $map .= '</div>';
+            $Items[$item]['Settings'] = $Settings;
+            $Items[$item]['Settings']['text1'] = $map;
+         }
+ */
+      return $Items;
+      }
+
+      function get_headers($url,$format=0,$httpn=0) { 
+         $fp = fsockopen($url, 80, $errno, $errstr, 30); 
+         if ($fp) { 
+            $out = "GET / HTTP/1.1\r\n"; 
+            $out .= "Host: $url\r\n"; 
+            $out .= "Connection: Close\r\n\r\n"; 
+            fwrite($fp, $out); 
+            while (!feof($fp)) { 
+               $var.=fgets($fp, 1280); 
+            } 
+            $var=explode("<",$var); 
+            $var=$var[0]; 
+            $var=explode("\n",$var); 
+            fclose($fp); 
+            return $var;
+         }
+         return array();
+      } 
+
       function parse_results ($Items, $Global_Settings=NULL, $Count=100) {
          if (count($Items) > 0) {
             for ($counter = 0; ($counter < count($Items)) || ($counter > $Count) ; $counter++) {
@@ -215,6 +338,10 @@ if (!class_exists('AmazonLinkSearch')) {
                $Settings = isset($result['Settings']) ? $result['Settings'] : $Global_Settings;
                $Template = htmlspecialchars_decode (stripslashes($Settings['template_content']));
                unset($Settings['template']);
+               unset($Settings['template_content']);
+
+               // Get Local Info - may or may not be localised if not found in user's local
+               $local_info = $this->alink->get_local_info($Settings);
 
            // echo "<PRE>"; print_r($result); echo "</PRE>";
                $data = array();
@@ -225,23 +352,23 @@ if (!class_exists('AmazonLinkSearch')) {
                $data['title']  = (isset($result['ItemAttributes']['Title']) ?  $result['ItemAttributes']['Title'] : '');
                $data['artist'] = (isset($result['ItemAttributes']['Artist']) ? $result['ItemAttributes']['Artist'] :
                                   (isset($result['ItemAttributes']['Author']) ? $result['ItemAttributes']['Author'] :
-                                   (isset($result['ItemAttributes']['Creator']) ? $result['ItemAttributes']['Creator'] : '-') ) );
+                                   (isset($result['ItemAttributes']['Director'])  ? $result['ItemAttributes']['Director'] :
+                                   (isset($result['ItemAttributes']['Creator']) ? $result['ItemAttributes']['Creator'] : 
+                                    (isset($result['ItemAttributes']['Brand']) ? $result['ItemAttributes']['Brand'] : '-') ))) );
                $data['artist'] = $this->remove_parents($data['artist']);
-               $data['manufacturer'] = (isset($result['ItemAttributes']['Manufacturer']) ? $result['ItemAttributes']['Manufacturer'] : '-');
 
-               $local_info = $this->alink->get_local_info();
-               $data['tag']     = $local_info['tag'];
-               $data['tld']     = $local_info['tld'];
-               $data['cc']      = $local_info['cc'];
-               $data['mplace']  = $local_info['mplace'];
+               $data['manufacturer']  = (isset($result['ItemAttributes']['Manufacturer']) ?  $result['ItemAttributes']['Manufacturer'] : (isset($result['ItemAttributes']['Brand']) ?  $result['ItemAttributes']['Brand'] : '-'));
                $data['url']     = (isset($result['DetailPageURL']) ? $result['DetailPageURL'] : '');
                $data['rank']    = (isset($result['SalesRank']) ? $result['SalesRank'] : '');
                $data['rating']  = (isset($result['CustomerReviews']['AverageRating']) ? $result['CustomerReviews']['AverageRating'] : '-');
-               $data['price']   = (isset($result['Offers']['Offer']['OfferListing']['Price']['FormattedPrice']) ? $result['Offers']['Offer']['OfferListing']['Price']['FormattedPrice'] : '');
+               $data['price']   = (isset($result['Offers']['Offer']['OfferListing']['Price']['FormattedPrice']) ? $result['Offers']['Offer']['OfferListing']['Price']['FormattedPrice'] : 
+                                   (isset($result['OfferSummary']['LowestNewPrice']['FormattedPrice']) ? $result['OfferSummary']['LowestNewPrice']['FormattedPrice'] :
+                                    (isset($result['OfferSummary']['LowestUsedPrice']['FormattedPrice']) ? $result['OfferSummary']['LowestUsedPrice']['FormattedPrice'] :
+                                     (isset($result['ItemAttributes']['ListPrice']['FormattedPrice']) ? $result['ItemAttributes']['ListPrice']['FormattedPrice'] : '-'))));
                $data['type']    = 'Amazon';
                $data['product'] = (isset($result['ItemAttributes']['ProductGroup']) ? $result['ItemAttributes']['ProductGroup'] : '-');
                $data['found']   = (isset($result['found']) ? $result['found'] : 0);
-              /*
+               /*
                 * Image and Thumb URL's can have 3 sources:
                 *  - passed as arguments in Settings (thumb, image if longer than 1 character)
                 *  - stored in the local media library (local_thumb, local_image)
@@ -251,7 +378,7 @@ if (!class_exists('AmazonLinkSearch')) {
                 */
 
                $media_ids = $this->find_attachments( $data['asin'] );
-               if ($media_ids) {
+               if (!is_wp_error($media_ids)) {
                   $data['media_id'] = $media_ids[0]->ID;
                   $data['downloaded'] = '1';
                   $data['local_thumb'] = wp_get_attachment_thumb_url($data['media_id']);
@@ -282,21 +409,24 @@ if (!class_exists('AmazonLinkSearch')) {
                unset($Settings['image']);
 
                if (isset($result['ASIN'])) unset($Settings['asin']);
-               $data = array_merge($data, $Settings);
+               $data = array_merge($data, $local_info, $Settings);
 
                $data['id']        = $data['asin'];
+
+               if ($Settings['search_link']) {
+                  $search = $this->process_template($data, $Settings['search_text']);
+               }
+
                for ($count = 0; $count <= 5; $count++) {
-                  $this->alink->Settings = $Settings;
-                  $data['link_open'][$count] = substr($this->alink->make_links(array($data['asin']),''),0,-4);
+                  $data['link_open'][$count] = substr($this->alink->make_link($data['asin'],'',$Settings, $local_info, $search),0,-4);
                }
                $data['link_close'] = '</a>';
-               $data['link']          = amazon_make_links('asin='.$data['asin'].'&text='.(isset($data['text']) ? $data['text'] : $data['title']));
-               $data['image_link']    = amazon_make_links('multi_cc='. $Settings['multi_cc'].'&image_class='. $Settings['image_class'].'&image='. $data['image'] . '&asin='.$data['asin'].'&text=' .$data['title']);
-               $data['thumb_link']    = amazon_make_links('image_class='. $Settings['image_class'].'&thumb='. $data['thumb'] . '&asin='.$data['asin'].'&text='. $data['title']);
+               //$data['link']          = amazon_make_links('asin='.$data['asin'].'&text='.(isset($data['text']) ? $data['text'] : $data['title']));
+               //$data['image_link']    = amazon_make_links('multi_cc='. $Settings['multi_cc'].'&image_class='. $Settings['image_class'].'&image='. $data['image'] . '&asin='.$data['asin'].'&text=' .$data['title']);
+               //$data['thumb_link']    = amazon_make_links('image_class='. $Settings['image_class'].'&thumb='. $data['thumb'] . '&asin='.$data['asin'].'&text='. $data['title']);
 
                foreach($data as $keyword => $details)
-                  $data[$keyword . '_S'] = addslashes($details);
-
+                  $data[$keyword . '_S'] = is_array($details) ? $details : addslashes($details);
                $data['template'] = $this->process_template($data, $Template);
                $results['items'][$data['asin']] = $data;
             }
@@ -308,6 +438,7 @@ if (!class_exists('AmazonLinkSearch')) {
       function preg_replacement_quote($str) {
          return preg_replace('/(\$|\\\\)(?=\d)/', '\\\\\1', $str);
       }
+
       function process_template ($data, $template) {
          $count = 1;
          foreach ($data as $key => $string) {
@@ -332,7 +463,7 @@ if (!class_exists('AmazonLinkSearch')) {
          if ($media_ids) {
             return $media_ids;
          } else {
-            new WP_Error(__('No images found','amazon-link'));
+            return new WP_Error(__('No images found','amazon-link'));
          }
       }
 
@@ -343,10 +474,13 @@ if (!class_exists('AmazonLinkSearch')) {
          $result = $this->alink->itemLookup($ASIN);
 
          $r_title  = $result['ItemAttributes']['Title'];
-         $r_artist = isset($result['ItemAttributes']['Artist'])  ? $result['ItemAttributes']['Artist'] :
-                     (isset($result['ItemAttributes']['Author'])  ? $result['ItemAttributes']['Author'] :
-                     (isset($result['ItemAttributes']['Director'])  ? $result['ItemAttributes']['Director'] :
-                      (isset($result['ItemAttributes']['Creator']) ? $result['ItemAttributes']['Creator'] : '-')));
+
+         $r_artist = (isset($result['ItemAttributes']['Artist']) ? $result['ItemAttributes']['Artist'] :
+                      (isset($result['ItemAttributes']['Author']) ? $result['ItemAttributes']['Author'] :
+                       (isset($result['ItemAttributes']['Director'])  ? $result['ItemAttributes']['Director'] :
+                        (isset($result['ItemAttributes']['Creator']) ? $result['ItemAttributes']['Creator'] : 
+                         (isset($result['ItemAttributes']['Brand']) ? $result['ItemAttributes']['Brand'] : '-') ))) );
+
          $r_artist  = $this->remove_parents($r_artist);
 
          if (isset($result['LargeImage']))

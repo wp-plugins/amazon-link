@@ -99,4 +99,9 @@
 
    $this->form->displayForm($optionList, $Opts);
 
+
+         $pxml = $this->search->do_search(array('s_title' => 'boot', 's_artist' =>'', 's_index' => 'Shoes' ));
+         echo "<!--PXML:"; print_r($pxml); echo "-->";
+  //       $pxml = $this->itemLookup('B002P3VPB8');
+     //    echo "<!--ITEMLOOKUP:"; print_r($pxml); echo "-->";
 ?>
