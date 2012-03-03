@@ -103,7 +103,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
       var $TagHead       = '[amazon';
       var $TagTail       = ']';
 
-      var $option_version= 3;
+      var $option_version= 4;
       var $plugin_version= '2.0.9';
       var $optionName    = 'AmazonLinkOptions';
       var $user_options  = 'amazonlinkoptions';
@@ -206,6 +206,27 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
             $this->saveOptions($Opts);
          }
 
+         if ($Opts['version'] == 3) {
+            /* Upgrade from 3 to 4:
+             * Add Template 'Type' field and 'Version'
+             */
+            $Templates = $this->getTemplates();
+            foreach ($Templates as $Name => $Data)
+            {
+               if (preg_match('/%ASINS%/i', $Data['Content'])) {
+                  $Templates[$Name]['Type'] = 'Multi';
+               } else {
+                  $Templates[$Name]['Type'] = 'Product';
+               }
+               $Templates[$Name]['Version'] = '1';
+               $Templates[$Name]['Preview_Off'] = '0';
+            }
+
+            $this->saveTemplates($Templates);
+            $Opts['version'] = 4;
+            $this->saveOptions($Opts);
+         }
+
          /*
           * If first run need to create a default templates
           */
@@ -280,6 +301,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          add_meta_box( 'alInfo', __( 'About', 'amazon-link' ), array (&$this, 'show_info' ), $this->opts_page, 'side', 'core' );
          add_meta_box( 'alTemplateHelp', __( 'Template Help', 'amazon-link' ), array (&$this, 'displayTemplateHelp' ), $this->opts_page, 'side', 'low' );
          add_meta_box( 'alTemplates', __( 'Templates', 'amazon-link' ), array (&$this, 'show_templates' ), $this->opts_page, 'advanced', 'core' );
+         add_meta_box( 'alManageTemplates', __( 'Default Templates', 'amazon-link' ), array (&$this, 'show_default_templates' ), $this->opts_page, 'advanced', 'low' );
       }
 
       function adminColumns($columns, $screen) {
@@ -443,11 +465,11 @@ function al_gen_multi (id, term, def, chan) {
             /* Options that change the behaviour of the links */
 
             'multi_cc' => array('Name' => __('Multinational Link', 'amazon-link'), 'Description' => __('Insert links to all other Amazon sites after primary link.', 'amazon-link'), 'Default' => '1', 'Type' => 'checkbox', 'Class' => 'alternate al_border'),
-            'localise' => array('Name' => __('Localise Amazon Link', 'amazon-link'), 'Description' => __('Make the link point to the users local Amazon website, (you must have ip2nation installed for this to work).', 'amazon-link'), 'Default' => '1', 'Type' => 'checkbox', 'Class' => 'al_border' ),
+            'localise' => array('Name' => __('Localise Amazon Link', 'amazon-link'), 'Description' => __('Make the link point to the user\'s local Amazon website, (you must have ip2nation installed for this to work).', 'amazon-link'), 'Default' => '1', 'Type' => 'checkbox', 'Class' => 'al_border' ),
             'search_link' => array('Name' => __('Create Search Links', 'amazon-link'), 'Description' => __('Generate links to search for the items by "Author Title" for non local links, rather than direct links to the product by ASIN.', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox', 'Class' => 'alternate al_border' ),
-            'search_text' => array( 'Name' => __('Default Search String', 'amazon-link'), 'Description' => __('Default items to search for for "Search Links", uses the same system as the Templates below.', 'amazon-link'), 'Default' => '%AUTHOR% | %TITLE%', 'Type' => 'text', 'Size' => '40', 'Class' => 'al_border' ),
+            'search_text' => array( 'Name' => __('Default Search String', 'amazon-link'), 'Description' => __('Default items to search for with "Search Links", uses the same system as the Templates below.', 'amazon-link'), 'Default' => '%AUTHOR% | %TITLE%', 'Type' => 'text', 'Size' => '40', 'Class' => 'al_border' ),
             'live' => array ( 'Name' => __('Live Data', 'amazon-link'), 'Description' => __('When creating Amazon links, use live data from the Amazon site, otherwise populate the shortcode with static information. <em>* <a href="#aws_notes" title="AWS Access keys required for full functionality">AWS</a> *</em>', 'amazon-link'), 'Default' => '1', 'Type' => 'checkbox', 'Class' => 'al_border' ),
-            'new_window' => array('Name' => __('New Window Link', 'amazon-link'), 'Description' => __('When link is clicked on open it in a new browser window', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox', 'Class' => 'alternate' ),
+            'new_window' => array('Name' => __('New Window Link', 'amazon-link'), 'Description' => __('When link is clicked on, open it in a new browser window', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox', 'Class' => 'alternate' ),
    
             'hd1e' => array ( 'Type' => 'end'),
    
@@ -528,7 +550,6 @@ function al_gen_multi (id, term, def, chan) {
       function getTemplates() {
          if (!isset($this->Templates)) {
             $this->Templates = get_option($this->templatesName, array());
-            ksort($this->Templates);
          }
          return $this->Templates;
       }
@@ -537,6 +558,7 @@ function al_gen_multi (id, term, def, chan) {
          if (!is_array($Templates)) {
             return;
          }
+         ksort($Templates);
          update_option($this->templatesName, $Templates);
          $this->Templates = $Templates;
       }
@@ -578,6 +600,7 @@ function al_gen_multi (id, term, def, chan) {
          if (!is_array($channels)) {
             return;
          }
+         ksort($channels);
          update_option($this->channels_name, $channels);
          $this->channels = $channels;
       }
@@ -789,6 +812,8 @@ function al_gen_multi (id, term, def, chan) {
          $newContent='';
          $index=0;
          $found = 0;
+        // echo "<!--"; print_r($content); echo "dorecs: $doRecs, dolinks $doLinks, in_post: $in_post --!>";
+        // return $content;
 
          while ($found !== FALSE) {
             $found = strpos($content, $this->TagHead, $index);
@@ -800,43 +825,48 @@ function al_gen_multi (id, term, def, chan) {
                $output = '';
                // Need to parse any arguments
                $tagEnd = strpos($content, $this->TagTail, $found);
-               $arguments = substr($content, $found + strlen($this->TagHead), ($tagEnd-$found-strlen($this->TagHead)));
-               $this->parseArgs($arguments);
-               if (isset($this->Settings['cat'])) {
-                  if ($doRecs) {
-                     $this->Settings['in_post'] = $in_post;
-                     if ($this->Settings['debug']) {
-                        $output .= '<!-- Amazon Link: ' . $this->plugin_version . ' - ' . substr($content, $found, $tagEnd - $found+1) . "\n";
-                        $output .= print_r($this->Settings, true) . ' -->';
-                     }
-                     $output .= $this->showRecommendations($this->Settings['cat'], isset($this->Settings['last']) ? $this->Settings['last'] : 30);
-                  } elseif (!$this->stylesNeeded) {
-                     $output .= '<span id="al_popup" onmouseover="al_div_in()" onmouseout="al_div_out()"></span>' .
-                               substr($content, $found, ($tagEnd - $found) + strlen($this->TagTail));
-                     $this->stylesNeeded = True;
-                  } else {
-                     $output .= substr($content, $found, ($tagEnd - $found) + strlen($this->TagTail));
-                  }
-               } else if ($doLinks) {
-                  // Generate Amazon Link
-                  $this->tags = array_merge($this->Settings['asin'], $this->tags);
-                  $this->Settings['in_post'] = $in_post;
-                     if ($this->Settings['debug']) {
-                        $output .= '<!-- Amazon Link: ' . $this->plugin_version . ' - ' . substr($content, $found, $tagEnd - $found+1) . "\n";
-                        $output .= print_r($this->Settings, true) . ' -->';
-                     }
-                  $output .= $this->make_links($this->Settings['asin'], $this->Settings['text']);
+               if ($tagEnd === FALSE) {
+                  // Add the remaining content to the output
+                  $newContent = $newContent . substr($content, $index);
+                  break;
                } else {
-                  $this->tags = array_merge($this->Settings['asin'], $this->tags);
-                  if ($this->Settings['multi_cc'] && !$this->stylesNeeded) {
-                     $this->stylesNeeded = True;
-                     $output .= '<span id="al_popup" onmouseover="al_div_in()" onmouseout="al_div_out()"></span>' .
-                               substr($content, $found, ($tagEnd - $found) + strlen($this->TagTail));
+                  $arguments = substr($content, $found + strlen($this->TagHead), ($tagEnd-$found-strlen($this->TagHead)));
+                  $this->parseArgs($arguments);
+                  if (isset($this->Settings['cat'])) {
+                     if ($doRecs) {
+                        $this->Settings['in_post'] = $in_post;
+                        if ($this->Settings['debug']) {
+                           $output .= '<!-- Amazon Link: ' . $this->plugin_version . ' - ' . substr($content, $found, $tagEnd - $found+1) . "\n";
+                           $output .= print_r($this->Settings, true) . ' -->';
+                        }
+                        $output .= $this->showRecommendations($this->Settings['cat'], isset($this->Settings['last']) ? $this->Settings['last'] : 30);
+                     } elseif (!$this->stylesNeeded) {
+                        $output .= '<span id="al_popup" onmouseover="al_div_in()" onmouseout="al_div_out()"></span>' .
+                                  substr($content, $found, ($tagEnd - $found) + strlen($this->TagTail));
+                        $this->stylesNeeded = True;
+                     } else {
+                        $output .= substr($content, $found, ($tagEnd - $found) + strlen($this->TagTail));
+                     }
+                  } else if ($doLinks) {
+                     // Generate Amazon Link
+                     $this->tags = array_merge($this->Settings['asin'], $this->tags);
+                     $this->Settings['in_post'] = $in_post;
+                        if ($this->Settings['debug']) {
+                           $output .= '<!-- Amazon Link: ' . $this->plugin_version . ' - ' . substr($content, $found, $tagEnd - $found+1) . "\n";
+                           $output .= print_r($this->Settings, true) . ' -->';
+                        }
+                      $output .= $this->make_links($this->Settings['asin'], $this->Settings['text']);
                   } else {
-                     $output .= substr($content, $found, ($tagEnd - $found) + strlen($this->TagTail));
+                     $this->tags = array_merge($this->Settings['asin'], $this->tags);
+                     if ($this->Settings['multi_cc'] && !$this->stylesNeeded) {
+                        $this->stylesNeeded = True;
+                        $output .= '<span id="al_popup" onmouseover="al_div_in()" onmouseout="al_div_out()"></span>' .
+                                   substr($content, $found, ($tagEnd - $found) + strlen($this->TagTail));
+                     } else {
+                        $output .= substr($content, $found, ($tagEnd - $found) + strlen($this->TagTail));
+                     }
                   }
                }
-
                $newContent = $newContent . substr($content, $index, ($found-$index));
                $newContent = $newContent . $output;
                $index = $tagEnd + strlen($this->TagTail);
@@ -902,9 +932,14 @@ function al_gen_multi (id, term, def, chan) {
 
 /*****************************************************************************************/
 
+      function show_default_templates() {
+         include('include/showDefaultTemplates.php');
+      }
+
       function show_templates() {
          include('include/showTemplates.php');
       }
+
       function show_channels() {
          include('include/showChannels.php');
       }
@@ -1054,27 +1089,31 @@ function al_gen_multi (id, term, def, chan) {
             $template = strtolower($Settings['template']);
             $Templates = $this->getTemplates();
             if (isset($Templates[$template])) {
+               $Settings['template_content'] = $Templates[$template]['Content'];
+               $Settings['template_type'] = $Templates[$template]['Type'];
+            }
+         }
+         if (isset($Settings['template_content'])) {
                $details = array();
                unset($Settings['asin']);
-               $Settings['template_content'] = $Templates[$template]['Content'];
-               if (preg_match('/%ASINS%/i', $Settings['template_content'])) {
+               if ($Settings['template_type'] == 'Multi') {
                   $details[] = array('ASINS' => implode(',', $asins), 'Settings' => $Settings);
+               } elseif ($Settings['template_type'] == 'No ASIN') {
+                  $details[] = array('found' => 1, 'Settings' => $Settings );
                } else {
                   foreach ($asins as $asin) {
-                     if (strlen($asin) > 8) {
-                        if ((($Settings['live']) || (count($asins) > 1)) && $this->valid_keys()) {
+                     if ((strlen($asin) > 8) && (($Settings['live']) || (count($asins) > 1)) && $this->valid_keys()) {
+                        $lookup = $this->itemLookup($asin, $Settings);
+                        if (!$lookup['found'] && $Settings['localise'])
+                        {
+                           /* Not found - try the default locale */
+                           $Settings['localise'] = 0;
                            $lookup = $this->itemLookup($asin, $Settings);
-                           if (!$lookup['found'] && $Settings['localise'])
-                           {
-                              /* Not found - try the default locale */
-                              $Settings['localise'] = 0;
-                              $lookup = $this->itemLookup($asin, $Settings);
-                              $Settings['localise'] = 1;
-                           }
-                           $details[] = $lookup;
-                        } else {
-                           $details[] = array('ASIN' => $asin, 'found' => 1, 'Settings' => $Settings );
+                           $Settings['localise'] = 1;
                         }
+                        $details[] = $lookup;
+                     } else {
+                        $details[] = array('ASIN' => $asin, 'found' => 1, 'Settings' => $Settings );
                      }
                   }
                }
@@ -1087,7 +1126,6 @@ function al_gen_multi (id, term, def, chan) {
                   }
                }
             return $output;
-            }
          }
 
          $local_info = $this->get_local_info($settings);
@@ -1166,7 +1204,7 @@ function amazon_make_links($args)
 {
   global $awlfw;
   $awlfw->parseArgs($args);       // Get the default settings
-  return $awlfw->make_links($awlfw->Settings['asin'], $awlfw->Settings['text']);        // Return html
+  return $awlfw->make_links($awlfw->Settings['asin'], $awlfw->Settings['text'], $awlfw->Settings);        // Return html
 }
 
 function amazon_query($request)

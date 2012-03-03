@@ -65,6 +65,12 @@
     margin-bottom:1px;  
 } 
 
+.al_highlight { background:#fffbe4; }
+
+.al_highlight h4 {
+    background:#fffbe4;
+}
+
 .amazon-link-info-heading {
  padding: 2px;
  margin-top: 2px;
