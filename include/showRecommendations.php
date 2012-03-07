@@ -13,7 +13,7 @@
       $saved_tags = array_unique($this->tags);
       unset($this->tags);
       $this->tags = array();
-      $this->contentFilter($content, FALSE, FALSE);
+      $this->contentFilter($content, FALSE);
       $this->Settings = $Settings;                   // Reset settings as contentFilter will overwrite them
    }
 

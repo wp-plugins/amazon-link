@@ -4,7 +4,7 @@ Donate link: http://www.houseindorset.co.uk/plugins
 Tags: Amazon, links, wishlist, recommend, shortcode, ip2nation, localise, images, media library, affiliate, product, template
 Requires at least: 3.1
 Tested up to: 3.3.1
-Stable tag: 2.0.9
+Stable tag: 2.0.8
 
 
 Provides a facility to insert Amazon product links directly into your site's Pages, Posts and Widgets and Templates.
@@ -50,14 +50,18 @@ To generate a list of products relevant to the content of your site use the 'cat
 
 This is created by either putting the line `amazon_recommends(<Category>,<Number of Posts>)` in your template. Or putting the line `[amazon cat=<Category>&last=<Number of Posts>]` within a post or page. Where 'Category' is a list of category ids to search within (e.g. as expected by the 'cat' argument of [query_posts](http://codex.wordpress.org/Template_Tags/query_posts#Parameters) function. The 'last' parameter is the number of posts to search through.
 
-= Latest Version - 2.0.9 =
+= Latest Version - Development =
 
 
 
-* New Feature - Amazon search links for non-local links
-* Bug Fix - Fix so that searches from all Search Indices return valid results.
-* Bug Fix - Extra checks on ip2nation lookup failures.
-
+* New Feature - Simple Template Manager
+* New Feature - Add 'Template Type' option to identify templates that require no ASIN, or Multiple ASINS.
+* New Feature - Search using by 'ASIN' if 'Title' and 'Author' fields blank
+* Templates Update - Add 'Amazon Impression Tracking' to templates
+* Templates Update - Add 'Easy Banner' template example
+* Templates Update - Add 'Amazon Preview Script' template, add to the bottom of your post/page or include in your theme's footer
+* Bug Fix - Fix filtering of incomplete tags.
+Bug Fix - Move 'aws_signed_request' into the Class to avoid name clash with 'premiumtheme', thanks to *pst61* for spotting.
 
 == Installation ==
 
@@ -253,11 +257,21 @@ If some of the IDs are not supplied in a User's profile, or in a particular Chan
 
 The plugin adds a helper tool to the Post and Page administrative pages of your Wordpress site that can be used to generate shortcodes easily and quickly. 
 
-If you already know the ASIN then simply enter it into the ASIN input and click on 'Send To Editor'. If not then there is a facility to search Amazon, by Index, Product Title and or Product Author/Artist. Use this to find the product you wish to link to on your site, then select the appropriate template and other settings and press the 'Insert' button. This will insert the shortcode into your post, with all the settings required for the selected template pre-filled.
+If you already know the ASIN then simply enter it into the ASIN input and click on 'Send To Editor'. If not then there is a facility to search Amazon, by ASIN, Index, Product Title and or Product Author/Artist. Use this to find the product you wish to link to on your site, then select the appropriate template and other settings and press the 'Insert' button. This will insert the shortcode into your post, with all the settings required for the selected template pre-filled.
 
 If you are using 'live' data then it will only include keywords that must be provided by the author 'text', 'text1', etc. If you are using static data then it will also prefill the keywords with the product information retrieved from the Amazon site.
 
 There is also a facility to add cover images from the Amazon items into the local media library as attachments to the post (Press the 'Upload' button). The plugin will always use these local images in preference to ones fetched from the Amazon site. These images or the remote ones hosted on Amazon can be used to insert image or thumbnail links into your posts.
+
+= How do I add the 'Amazon Product Previews' to my posts/templates? =
+
+The Amazon Product Preview popups are powered by javascript hosted on the Amazon servers, and works in all locales except for Italy and Spain.
+
+However to add the popup to individual posts and pages simply ensure that the 'preview script' template is installed and add the shortcode `[amazon template=preview script]` to the *bottom* of your post.
+
+If you wish to add the script to your WordPress theme then you can add the following to the footer.php of the template:
+
+`<?php if (function_exists(amazon_make_links)) echo amazon_make_links("template=preview script"); ?>`
 
 = Can I create my own templates for product links? =
 
@@ -276,11 +290,27 @@ By specifying the 'Live Data' setting either in the settings page or within the 
 
 There are a number of keywords that are only used for static data, these are `'%TEXT%'`, `'%TEXT1%'`, `'%TEXT2%'`, `'%TEXT3%'`, `'%TEXT4%'`.
 
-The keyword `'%ASINS%'` can be used to indicate that this template will accept a string of comma separated ASINs to generate its output, for example the Amazon Carousel widget. Normally putting a list of ASINs in the shortcode will cause multiple links to be generated.
+You must ensure that the template type is set correctly when creating the template, it should be one of:
+
+
+* Product
+* Multi
+* No ASIN
+
+
+For most templates this should be 'Product', which is used to create links about a single Amazon product using the ASIN entered in the shortcode.
+
+If the template accepts a list of ASINS (e.g. like the Carousel widget) then the type should be set to 'Multi', and the template should include the keyword `'%ASINS%'` instead of `'%ASIN%'`.
+
+If the template does not require an ASIN to be specified then set the type to 'No ASIN', typically used for Banners, Scripts and more general items.
 
 Browse the default included templates to see some examples of how the keywords can be used.
 
-Note: the Amazon widgets are currently not supported in some locales (e.g. Canada, Spain & Italy).
+**Notes:**
+
+Widgets: The Amazon widgets are currently not supported in some locales (Canada, China, Italy and Spain).
+
+Banners: The code provided by Amazon to generate banners is very particular to the locale (e.g. the category specified is in the local language), so these don't tend to display properly when not viewed in the default locale (they drop back to the default Amazon banner).
 
 = What templates are included with the plugin? =
 
@@ -297,12 +327,28 @@ Currently the plugin has default templates for:
 * Amazon Carousel Widget
 * Amazon My Favourites Widget
 * Amazon MP3 Clips Widget
+* Amazon Enhanced Pop-up Script
+* Amazon Easy Banner
 * Wishlist Template
 
 
+Bear in mind that the Amazon templates are based on javascript hosted on the Amazon site, as such are often blocked by adblocker software. Also some of these 'Widget Source' based templates are not available in certain locales (Canada, China, Italy and Spain).
+
 The 'Wishlist' template is the default template used for any lists created by shortcodes, as such it must exist. Deleting this template will cause the plugin to recreate any of the default templates that do not exist. This can be used to reset the templates back to their factory settings.
 
+= How do I re-install the default templates? =
+
+
+On the Settings page the plugin provides access to the 'Default Templates'. These are the ones provided by the plugin. If you accidentally delete a template that you still want or  have edited one and it stops working, you can use this page to re-install the default templates.
+
+There are two options, either 'Install' which will add the template to your existing list (this creates a new copy of the default template, e.g. 'Thumbnail2' if it already exists). If the plugin detects that the default version has been upgraded then the 'Upgrade' option will be available this which will overwrite any existing template with the same Name with the new version.
+
+If you are viewing your existing installed templates there is also an option to 'Reset' the template back to its default content.
+
+The plugin includes some basic version tracking, based on the Name of the template and the version installed. If you rename the template then it will not be recognised as one of the defaults. The plugin does not track any changes you make to the template, so if you 'Upgrade' or 'Reset' a template your changes will be lost.
+
 = Does the plugin support multiple Amazon Tracking IDs? =
+
 
 The plugin allows the site author to create any number of 'Amazon Affiliate Channels' that specify a different set of Affiliate Tracking IDs. This allows the user to monitor how effective particular sections of the site are for generating referrals to Amazon.
 
@@ -326,12 +372,12 @@ Otherwise the Affiliate IDs in the 'default' channel will be used.
 
 If the Channel selected does not contain affiliate IDs for all locales then ones from the 'default' Channel will be automatically inserted.
 
-= Why doesn't the Wishlist function work? =
+= Why doesn't the Wishlist function or Search or Live data work? =
 
 
-For this to work you must have set up a working [Amazon Web Services](http://aws.amazon.com) account and set the AWS Public and Private key settings to those provided in the AWS->Security Credentials->Access Credentials section.
+For these features to work you must have set up an [Amazon Web Services](http://aws.amazon.com) account and set the AWS Public and Private key settings to those provided in the AWS->Security Credentials->Access Credentials section.
 
-You must also have inserted at least a few links to Amazon products using the  tag for it to generate a list of related product suggestions.
+For the wishlist to work you must also have inserted at least a few links to Amazon products using the `[amazon]` tag for it to generate a list of related product suggestions.
 
 = Can I change the styling of the wishlist? =
 
@@ -407,13 +453,12 @@ Will produce a link using a custom template filled in with the data included in 
 Will produce a link using a custom template filled in with live data from the Amazon site, but with the title set by the data included in the shortcode.
 
 
-`[amazon text=Recipe Books&cat=3,4,5&last=30&wishlist_type=Random]`
+`[amazon text=Recipe Books&cat=3,10&last=30&wishlist_type=Random]`
 Produce a wishlist using the default template containing a random selection of products found in the posts in categories 3, 4 and 5.
 
 
 `[amazon cat=local&template=My Favourites&wishlist_type=similar&text=Some Related Products]`
 Produce an Amazon My Favourites widget containing a selection of related products to those already displayed on the current page.
-
 
 == Settings ==
 

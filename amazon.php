@@ -80,8 +80,6 @@ To serve a page containing amazon links the plugin performs the following:
 *******************************************************************************************************/
 
 
-require_once('aws_signed_request.php');
-
 require_once('include/displayForm.php');
 
 require_once('include/translate.php');
@@ -131,7 +129,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          register_activation_hook(__FILE__, array($this, 'activate'));               // To perform options upgrade
          add_action('init', array($this, 'init'));                                   // Load i18n and initialise translatable vars
          add_filter('plugin_row_meta', array($this, 'registerPluginLinks'),10,2);    // Add extra links to plugins page
-         add_filter('the_posts', array($this, 'stylesNeeded'));                      // Run once to determine if styles needed
+         add_filter('the_posts', array($this, 'scripts_needed'));                    // Run once to determine if scripts needed
          add_filter('the_content', array($this, 'contentFilter'),15);                // Process the content
          add_action('admin_menu', array($this, 'optionsMenu'));                      // Add options page hooks
          add_filter('widget_text', array($this, 'widget_filter'), 16 );              // Filter widget text (after the content?)
@@ -383,22 +381,22 @@ function al_gen_multi (id, term, def, chan) {
       }
 
 
-      function stylesNeeded($posts){
+      function scripts_needed ($posts){
 
          // To determine if styles are required is too long winded, always bring them in.
          wp_enqueue_style('amazon-link-style');
 
          if (empty($posts)) return $posts;
-         $this->stylesNeeded = False;
+         $this->scripts_needed = False;
          foreach ($posts as $post) {
-            $post->post_content = $this->contentFilter($post->post_content, False, False);
-            if ($this->stylesNeeded) {
+            $post->post_content = $this->contentFilter($post->post_content, False);
+            if ($this->scripts_needed) {
                $this->amazon_scripts();
                add_action('wp_print_scripts', array($this, 'generate_multi_script'));
                break;
             }
          }
-         remove_filter('the_posts', array($this, 'stylesNeeded'));
+         remove_filter('the_posts', array($this, 'scripts_needed'));
          return $posts;
       }
 
@@ -621,7 +619,11 @@ function al_gen_multi (id, term, def, chan) {
           */
          foreach ($optionList as $key => $details) {
             if (isset($args[$key])) {
-               $this->Settings[$key] = trim(stripslashes($args[$key]),"\x22\x27");              // Local setting
+               if (is_array($args[$key])) {
+                  $this->Settings[$key] = array_map("trim", $args[$key]);
+               } else {
+                  $this->Settings[$key] = trim(stripslashes($args[$key]),"\x22\x27");              // Local setting
+               }
             } else if (isset($Opts[$key])) {
                $this->Settings[$key] = $Opts[$key];   // Global setting
                if (isset($details['OverrideBlank']) && ($Opts[$key] == '')) {
@@ -796,7 +798,7 @@ function al_gen_multi (id, term, def, chan) {
       }
 
       function widget_filter($content) {
-         return $this->contentFilter($content, TRUE, TRUE, FALSE);
+         return $this->contentFilter($content, TRUE, FALSE);
       }
 /*****************************************************************************************/
       /// Searches through the_content for our 'Tag' and replaces it with the lists or links
@@ -807,72 +809,61 @@ function al_gen_multi (id, term, def, chan) {
        *   3. Search through the content and record any Amazon ASIN numbers ready to generate a wishlist.
        */
 /*****************************************************************************************/
-      function contentFilter($content, $doRecs=TRUE, $doLinks=TRUE, $in_post=TRUE) {
+      function contentFilter($content, $doLinks=TRUE, $in_post=TRUE) {
 
-         $newContent='';
+         $new_content='';
          $index=0;
          $found = 0;
-        // echo "<!--"; print_r($content); echo "dorecs: $doRecs, dolinks $doLinks, in_post: $in_post --!>";
-        // return $content;
 
-         while ($found !== FALSE) {
-            $found = strpos($content, $this->TagHead, $index);
-            if ($found === FALSE) {
-               // Add the remaining content to the output
-               $newContent = $newContent . substr($content, $index);
-               break;
-            } else {
-               $output = '';
-               // Need to parse any arguments
-               $tagEnd = strpos($content, $this->TagTail, $found);
-               if ($tagEnd === FALSE) {
-                  // Add the remaining content to the output
-                  $newContent = $newContent . substr($content, $index);
-                  break;
-               } else {
-                  $arguments = substr($content, $found + strlen($this->TagHead), ($tagEnd-$found-strlen($this->TagHead)));
-                  $this->parseArgs($arguments);
-                  if (isset($this->Settings['cat'])) {
-                     if ($doRecs) {
-                        $this->Settings['in_post'] = $in_post;
-                        if ($this->Settings['debug']) {
-                           $output .= '<!-- Amazon Link: ' . $this->plugin_version . ' - ' . substr($content, $found, $tagEnd - $found+1) . "\n";
-                           $output .= print_r($this->Settings, true) . ' -->';
-                        }
-                        $output .= $this->showRecommendations($this->Settings['cat'], isset($this->Settings['last']) ? $this->Settings['last'] : 30);
-                     } elseif (!$this->stylesNeeded) {
-                        $output .= '<span id="al_popup" onmouseover="al_div_in()" onmouseout="al_div_out()"></span>' .
-                                  substr($content, $found, ($tagEnd - $found) + strlen($this->TagTail));
-                        $this->stylesNeeded = True;
-                     } else {
-                        $output .= substr($content, $found, ($tagEnd - $found) + strlen($this->TagTail));
-                     }
-                  } else if ($doLinks) {
-                     // Generate Amazon Link
-                     $this->tags = array_merge($this->Settings['asin'], $this->tags);
+         $reg_ex = '\[amazon +((?:[^\[\]]*(?:\[[a-z]*\]){0,1})*)\]';
+         $split_content = preg_split('/'.$reg_ex.'/', $content, NULL, PREG_SPLIT_DELIM_CAPTURE );
+
+         $index = 0;
+         while ($index <= count($split_content)) {
+            // Non-matching content - just add to output
+            if (isset($split_content[$index])) $new_content .= $split_content[$index];
+            $index++;
+ 
+            $output='';
+            // Matching content - parse arguments
+            if (isset($split_content[$index])) {
+               $this->parseArgs($split_content[$index]);
+               if (isset($this->Settings['cat'])) {
+                  if ($doLinks) {
                      $this->Settings['in_post'] = $in_post;
-                        if ($this->Settings['debug']) {
-                           $output .= '<!-- Amazon Link: ' . $this->plugin_version . ' - ' . substr($content, $found, $tagEnd - $found+1) . "\n";
-                           $output .= print_r($this->Settings, true) . ' -->';
-                        }
-                      $output .= $this->make_links($this->Settings['asin'], $this->Settings['text']);
-                  } else {
-                     $this->tags = array_merge($this->Settings['asin'], $this->tags);
-                     if ($this->Settings['multi_cc'] && !$this->stylesNeeded) {
-                        $this->stylesNeeded = True;
-                        $output .= '<span id="al_popup" onmouseover="al_div_in()" onmouseout="al_div_out()"></span>' .
-                                   substr($content, $found, ($tagEnd - $found) + strlen($this->TagTail));
-                     } else {
-                        $output .= substr($content, $found, ($tagEnd - $found) + strlen($this->TagTail));
+                     if ($this->Settings['debug']) {
+                        $output .= '<!-- Amazon Link: Version:' . $this->plugin_version . ' - Args: ' . $split_content[$index] . "\n";
+                        $output .= print_r($this->Settings, true) . ' -->';
                      }
+                     $output .= $this->showRecommendations($this->Settings['cat'], $this->Settings['last']);
+                  } else {
+                     $output .= '[amazon ' . $split_content[$index] . ']';
+                  }
+               } else if ($doLinks) {
+                  // Generate Amazon Link
+                  $this->tags = array_merge($this->Settings['asin'], $this->tags);
+                  $this->Settings['in_post'] = $in_post;
+                  if ($this->Settings['debug']) {
+                     $output .= '<!-- Amazon Link: Version:' . $this->plugin_version . ' - Args: ' . $split_content[$index] . "\n";
+                     $output .= print_r($this->Settings, true) . ' -->';
+                  }
+                  $output .= $this->make_links($this->Settings['asin'], $this->Settings['text']);
+               } else {
+                  $this->tags = array_merge($this->Settings['asin'], $this->tags);
+                  if (!$this->script_needed && $this->Settings['multi_cc']) {
+                     $this->scripts_needed = True;
+                     $output .= '<span id="al_popup" onmouseover="al_div_in()" onmouseout="al_div_out()"></span>';
+                     $output .= '[amazon ' . $split_content[$index] . ']';
+                  } else {
+                     $output .= '[amazon ' . $split_content[$index] . ']';
                   }
                }
-               $newContent = $newContent . substr($content, $index, ($found-$index));
-               $newContent = $newContent . $output;
-               $index = $tagEnd + strlen($this->TagTail);
+               $new_content .= $output;
             }
+            $index++;
          }
-         return $newContent;
+
+         return $new_content;
       }
 
 /*****************************************************************************************/
@@ -970,6 +961,15 @@ function al_gen_multi (id, term, def, chan) {
       }
 
 /*****************************************************************************************/
+      /// Helper Functions
+/*****************************************************************************************/
+
+      function aws_signed_request($region, $params, $public_key, $private_key)
+      {
+         return include('include/awsRequest.php');
+      }
+
+/*****************************************************************************************/
       /// Do Amazon Link Constructs
 /*****************************************************************************************/
 
@@ -1012,15 +1012,26 @@ function al_gen_multi (id, term, def, chan) {
                           'IdType'        => 'ASIN');
 
          $pxml = $this->doQuery($request, $settings);
+//echo "<PRE> "; print_r($pxml); echo "</PRE>";
 
          if (($pxml === False) || !isset($pxml['Items']['Item'])) {
-            $item = array('found' => 0, 'ASIN' => $asin);
+            // Failed to return any results
+            $items = array(array('ASIN' => $asin, 'Settings' => $settings, 'found' => 0));
          } else {
-            $item =array_merge($pxml['Items']['Item'], array('found' => 1));
+            if (array_key_exists('ASIN', $pxml['Items']['Item'])) {
+               // Returned a single result (not in an array)
+               $items =array($pxml['Items']['Item']);
+            } else {
+               // Returned several results
+               $items =$pxml['Items']['Item'];
+            }
+            for ($index=0; $index < count($items); $index++ ) {
+               $items[$index]['Settings'] = $settings;
+               $items[$index]['found'] = 1;
+            }
          }
-         $item['Settings'] = $settings;
-         //echo "<!-- "; print_r($item); echo "-->";
-         return $item;
+         return $items;
+
       }
 
       function doQuery($request, $Settings = NULL)
@@ -1035,7 +1046,7 @@ function al_gen_multi (id, term, def, chan) {
 
          if (!isset($request['AssociateTag'])) $request['AssociateTag'] = $li['tag'];
 
-         return aws_signed_request($tld, $request, $Settings['pub_key'], $Settings['priv_key']);
+         return $this->aws_signed_request($tld, $request, $Settings['pub_key'], $Settings['priv_key']);
       }
 
       function make_link($asin, $object, $settings = NULL, $local_info = NULL, $search = '')
@@ -1097,26 +1108,27 @@ function al_gen_multi (id, term, def, chan) {
                $details = array();
                unset($Settings['asin']);
                if ($Settings['template_type'] == 'Multi') {
-                  $details[] = array('ASINS' => implode(',', $asins), 'Settings' => $Settings);
+                  $details[] = array('ASINS' => implode(',', $asins), 'Settings' => $Settings, 'found' => 1);
                } elseif ($Settings['template_type'] == 'No ASIN') {
                   $details[] = array('found' => 1, 'Settings' => $Settings );
                } else {
                   foreach ($asins as $asin) {
                      if ((strlen($asin) > 8) && (($Settings['live']) || (count($asins) > 1)) && $this->valid_keys()) {
                         $lookup = $this->itemLookup($asin, $Settings);
-                        if (!$lookup['found'] && $Settings['localise'])
+                        if (!$lookup[0]['found'] && $Settings['localise'])
                         {
                            /* Not found - try the default locale */
                            $Settings['localise'] = 0;
                            $lookup = $this->itemLookup($asin, $Settings);
                            $Settings['localise'] = 1;
                         }
-                        $details[] = $lookup;
+                        $details = array_merge($details, $lookup);
                      } else {
-                        $details[] = array('ASIN' => $asin, 'found' => 1, 'Settings' => $Settings );
+                        $details[] = array('ASIN' => $asin, 'Settings' => $Settings, 'found' => 1 );
                      }
                   }
                }
+
                if (!empty($details))
                {
                   $items = array_shift($this->search->parse_results($details));

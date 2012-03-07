@@ -100,8 +100,10 @@
    $this->form->displayForm($optionList, $Opts);
 
 
-         $pxml = $this->search->do_search(array('s_title' => 'boot', 's_artist' =>'', 's_index' => 'Shoes' ));
-         echo "<!--PXML:"; print_r($pxml); echo "-->";
-  //       $pxml = $this->itemLookup('B002P3VPB8');
-     //    echo "<!--ITEMLOOKUP:"; print_r($pxml); echo "-->";
+//         $pxml = $this->search->do_search(array('s_title' => 'boot', 's_artist' =>'', 's_index' => 'Shoes' ));
+//         echo "<!--PXML:"; print_r($pxml); echo "-->";
+//$pxml = $this->itemLookup('B002P3VPB8');
+//echo "<!--ITEMLOOKUP:"; print_r($pxml); echo "-->";
+//$pxml = $this->itemLookup('0141194529,B000H2X2EW,0340993766,B002V092EC');
+//echo "<!--ITEMLOOKUP:"; print_r($pxml); echo "-->";
 ?>

@@ -120,10 +120,20 @@ if (!class_exists('AmazonLinkSearch')) {
          $Settings['multi_cc'] = '0';
          $Settings['found'] = 1;
          $Settings['localise'] = 0;
- 
-         $Items = $this->do_search($Opts);
 
-         print json_encode($this->parse_results($Items, $Settings));
+         if ( empty($Opts['s_title']) && empty($Opts['s_author']) ) {
+            $Items = $this->alink->itemLookup($Opts['asin'], $Settings);
+         } else {
+            $Items = $this->do_search($Opts);
+         }
+
+//         if (is_array($Items)) {
+            $full_results = $this->parse_results($Items, $Settings);
+//            foreach($full_results as $data);
+//            $results['success'] = True;
+//         }
+//         $full_results['items'][0]['template'] = '<PRE>TITLE:'. print_r(empty($Opts['s_title']),true). '! AUTHOR:'.print_r(empty($Opts['s_author']),true).'!</PRE>';
+         print json_encode($full_results);
          exit();
       }
 
@@ -332,7 +342,7 @@ if (!class_exists('AmazonLinkSearch')) {
 
       function parse_results ($Items, $Global_Settings=NULL, $Count=100) {
          if (count($Items) > 0) {
-            for ($counter = 0; ($counter < count($Items)) || ($counter > $Count) ; $counter++) {
+            for ($counter = 0; ($counter < count($Items)) && ($counter < $Count) ; $counter++) {
 
                $result = $Items[$counter];
                $Settings = isset($result['Settings']) ? $result['Settings'] : $Global_Settings;
@@ -471,7 +481,7 @@ if (!class_exists('AmazonLinkSearch')) {
 
          $ASIN = strtoupper($ASIN);
 
-         $result = $this->alink->itemLookup($ASIN);
+         $result = array_shift($this->alink->itemLookup($ASIN));
 
          $r_title  = $result['ItemAttributes']['Title'];
 
