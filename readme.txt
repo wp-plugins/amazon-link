@@ -4,7 +4,7 @@ Donate link: http://www.houseindorset.co.uk/plugins
 Tags: Amazon, links, wishlist, recommend, shortcode, ip2nation, localise, images, media library, affiliate, product, template
 Requires at least: 3.1
 Tested up to: 3.3.1
-Stable tag: 2.0.8
+Stable tag: 2.0.9
 
 
 Provides a facility to insert Amazon product links directly into your site's Pages, Posts and Widgets and Templates.
