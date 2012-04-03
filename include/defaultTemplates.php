@@ -91,7 +91,7 @@ $thumbnail_template = htmlspecialchars ('
 <img src="http://www.assoc-amazon.%TLD%/e/ir?t=%TAG%&l=as2&o=%MPLACE_ID%&a=%ASIN%" width="1" height="1" border="0" alt="" style="border:none !important; margin:0px !important;" />
 </div>');
 
-$preview_script_template = htmlspecialchars('
+$preview_script_template = ('
 <script type="text/javascript" src="http://wms.assoc-amazon.%TLD%/20070822/%MPLACE%/js/link-enhancer-common.js?tag=%TAG%">
 </script>
 <noscript>

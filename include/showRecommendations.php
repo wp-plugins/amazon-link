@@ -11,19 +11,17 @@
          $content .= $post->post_content;
       }
       $saved_tags = array_unique($this->tags);
-      unset($this->tags);
+
       $this->tags = array();
-      $this->contentFilter($content, FALSE);
-      $this->Settings = $Settings;                   // Reset settings as contentFilter will overwrite them
+      $this->content_filter($content, FALSE);
+      $this->Settings = $Settings;                   // Reset settings as content filter will overwrite them
    }
 
 
    if ((count($this->tags) != 0) && is_array($this->tags))
    {
-
       $this->tags = array_unique($this->tags);
       $output = '<div class="amazon_container">';
-
       if (strcasecmp($Settings['wishlist_type'],'similar') == 0) {
  
          $request = array("Operation" => "CartCreate",
@@ -41,15 +39,14 @@
                 $counter++;
              }
          }
-         //echo "<PRE>"; print_r($request); echo "</PRE>";
 
          $pxml = $this->doQuery($request);
          if (is_array($pxml['Cart']['SimilarProducts']['SimilarProduct']))
          {
             $Items=$pxml['Cart']['SimilarProducts']['SimilarProduct'];
          } else {
-            $output .= __('Amazon query failed to return any results - Have you configured the AWS settings?', 'amazon-link');
-            $output .= print_r($request, true);
+            $output .= '<p>'.__('Amazon query failed to return any results - Have you configured the AWS settings?', 'amazon-link').'</p>';
+            $output .= '<!-- '. print_r($request, true) . '-->';
             $Items=array();
          }
          
@@ -57,10 +54,8 @@
             $ASINs[] = $Details['ASIN'];
 
       } else if (strcasecmp($Settings['wishlist_type'],'random') == 0) {
-
          shuffle($this->tags);
          $ASINs = $this->tags;
-
       } else if (strcasecmp($Settings['wishlist_type'],'multi') == 0) {
 
          $ASINs = $this->tags;
@@ -69,9 +64,9 @@
       
       if ( is_array($ASINs) && !empty($ASINs)) {
          $ASINs = array_slice($ASINs,0,$Settings['wishlist_items']);
-         if (!isset($Settings['template'])) $this->Settings['template'] = $Settings['wishlist_template'];
-         $output .= $this->make_links($ASINs, $Settings['text']);
-
+         $Settings['live'] = 1;
+         if (!isset($Settings['template'])) $Settings['template'] = $Settings['wishlist_template'];
+         $output .= $this->make_links($ASINs, $Settings['text'], $Settings);
          $output .= "</div>";
       }
 
@@ -79,8 +74,7 @@
       $output .= "<!--". sprintf(__('No [amazon] tags found in the last %1$s posts in categories %2$s', 'amazon-link'), $last, $categories). "--!>";
    }
    if (isset($saved_tags)) {
-      $this->tags = array_unique($saved_tags);
-      unset($saved_tags);
+      $this->tags = $saved_tags;
    }
 
    return $output;

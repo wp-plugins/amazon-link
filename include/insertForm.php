@@ -18,9 +18,9 @@
    foreach ($this->search->keywords as $keyword => $details) {
       if (isset($details['live'])) {
          if ($item_details == '') {
-            $item_details = $keyword. ': \'%' . $keyword . '_S%\'';
+            $item_details = $keyword. ': \'%' . $keyword . '%S#\'';
          } else {
-            $item_details .= ', '. $keyword. ': \'%' . $keyword . '_S%\'';
+            $item_details .= ', '. $keyword. ': \'%' . $keyword . '%S#\'';
          }
       }
    }
@@ -30,31 +30,31 @@
 
    /* This is the template used for generating each line of the search results */
    $results_template = htmlspecialchars ('
-<div class="amazon_prod">
- <div class="amazon_img_container">%LINK_OPEN%<img src="%THUMB%" class="%IMAGE_CLASS%">%LINK_CLOSE%</div>
+<div class="al_found%FOUND%">
+ <div class="amazon_prod">
+  <div class="amazon_img_container">%LINK_OPEN%<img src="%THUMB%" class="%IMAGE_CLASS%">%LINK_CLOSE%</div>
 
- <div class="amazon_text_container">
-  <p>%LINK_OPEN%%TITLE%%LINK_CLOSE%</p>
+  <div class="amazon_text_container">
+   <p>%LINK_OPEN%%TITLE%%LINK_CLOSE%</p>
 
-  <div class="amazon_details">
-     <div style="float:right">
-      <div style="width:100%">
-       <input style="float:left" type="button" title="'. __('Add ASIN to list of ASINs above','amazon-link'). '"onClick="return wpAmazonLinkAd.addASIN(this.form, {asin: \'%ASIN%\'} );" value="'.__('+', 'amazon-link').'" class="button-secondary">
-       <input style="float:left" type="button" title="'. __('Insert a link into the post, based on the selected template','amazon-link'). '"onClick="return wpAmazonLinkAd.sendToEditor(this.form, { '. $item_details.' } );" value="'.__('Insert', 'amazon-link').'" class="button-secondary">
-       <input style="float:right" id="upload-button-%ASIN%" type="button" title="'. __('Upload cover image into media library','amazon-link'). '"onClick="return wpAmazonLinkSearch.grabMedia(this.form, {asin: \'%ASIN%\'} );" value="'.__('Upload', 'amazon-link').'" class="al_hide-%DOWNLOADED% button-secondary">
-       <input style="float:right" id="uploaded-button-%ASIN%" type="button" title="'. __('Remove image from media library','amazon-link'). '"onClick="return wpAmazonLinkSearch.removeMedia(this.form, {asin: \'%ASIN%\'} );" value="'.__('Delete', 'amazon-link').'" class="al_show-%DOWNLOADED% button-secondary">
-      %TEXT1%
+   <div class="amazon_details">
+      <div style="float:right">
+       <div style="width:100%">
+        <input style="float:left" type="button" title="'. __('Add ASIN to list of ASINs above','amazon-link'). '"onClick="return wpAmazonLinkAd.addASIN(this.form, {asin: \'%ASIN%\'} );" value="'.__('+', 'amazon-link').'" class="button-secondary">
+        <input style="float:left" type="button" title="'. __('Insert a link into the post, based on the selected template','amazon-link'). '"onClick="return wpAmazonLinkAd.sendToEditor(this.form, { '. $item_details.' } );" value="'.__('Insert', 'amazon-link').'" class="button-secondary">
+        <input style="float:right" id="upload-button-%ASIN%" type="button" title="'. __('Upload cover image into media library','amazon-link'). '"onClick="return wpAmazonLinkSearch.grabMedia(this.form, {asin: \'%ASIN%\'} );" value="'.__('Upload', 'amazon-link').'" class="al_hide-%DOWNLOADED% button-secondary">
+        <input style="float:right" id="uploaded-button-%ASIN%" type="button" title="'. __('Remove image from media library','amazon-link'). '"onClick="return wpAmazonLinkSearch.removeMedia(this.form, {asin: \'%ASIN%\'} );" value="'.__('Delete', 'amazon-link').'" class="al_show-%DOWNLOADED% button-secondary">
+       </div>
       </div>
-     </div>
    
-    <p>'. __('by %ARTIST% [%MANUFACTURER%]', 'amazon-link') .'<br />
-    '. __('Rank/Rating: %RANK%/%RATING%', 'amazon-link').'<br />
-    <b>' .__('Price', 'amazon-link').': <span style="color:red;">%PRICE%</span></b>
-   </p>
+     <p>'. __('by %ARTIST% [%MANUFACTURER%]', 'amazon-link') .'<br />
+     '. __('Rank/Rating: %RANK%/%RATING%', 'amazon-link').'<br />
+     <b>' .__('Price', 'amazon-link').': <span style="color:red;">%PRICE%</span></b>
+    </p>
+   </div>
+
   </div>
-
  </div>
-
 </div>');
 
    /* This defines the options table shown in the Amazon link widget */

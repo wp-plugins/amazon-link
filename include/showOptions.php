@@ -15,7 +15,7 @@
 
    // See if the user has posted us some information
    // If they did, the admin Nonce should be set.
-   $NotifyUpdate = False;
+   $update = False;
    if(  $Action == __('Update Options', 'amazon-link') ) {
 
       // Update Current Wishlist settings
@@ -27,7 +27,7 @@
             }
       }
       $this->saveOptions($Opts);
-      $NotifyUpdate = True;
+      $update = __('Options saved.', 'amazon-link' );
     } else if ( $Action == __('Install Database','amazon-link')) {
 
       // User requested installation of the ip2nation database
@@ -38,7 +38,34 @@
 </div>
 
 <?php
-    }
+/*****************************************************************************************/
+
+   // Cache Options
+   } else if ( $Action == __('Enable Cache', 'amazon-link')) {
+      if ($this->cache_install()) {
+         $update = __('Amazon Data Cache Enabled', 'amazon-link');
+         $Opts['cache_enabled'] = 1;
+      }
+   } else if ( $Action == __('Disable Cache', 'amazon-link')) {
+      if ($this->cache_remove()) {
+         $update = __('Amazon Data Cache Disabled and Removed', 'amazon-link');
+         $Opts['cache_enabled'] = 0;
+      }
+   } else if ( $Action == __('Flush Cache', 'amazon-link')) {
+      if ($this->cache_empty()) {
+         $update = __('Amazon Data Cache Emptied', 'amazon-link');
+      }
+   }
+
+   
+   // If Enabled then take the opportunity to flush old data
+   if ($Opts['cache_enabled']) {
+      $this->cache_flush();
+      $optionList['cache_c']['Buttons'][__('Enable Cache', 'amazon-link' )]['Disabled'] = 1;
+   } else {
+      $optionList['cache_c']['Buttons'][__('Disable Cache', 'amazon-link' )]['Disabled'] = 1;
+      $optionList['cache_c']['Buttons'][__('Flush Cache', 'amazon-link' )]['Disabled'] = 1;
+   }
 
 /*****************************************************************************************/
 
@@ -49,7 +76,7 @@
    foreach ($optionList as $optName => $optDetails) {
       if(!isset($Opts[$optName]) && isset($optDetails['Default']) && (!$optDetails['Name'])) {
          $Opts[$optName] = $optDetails['Default'];
-         $Update=True;
+         $Update = True;
       }
    }
    if ($Update && current_user_can('manage_options'))
@@ -58,13 +85,13 @@
 
 /*****************************************************************************************/
 
-   if ($NotifyUpdate) {
+   if ($update !== False) {
       // **********************************************************
       // Put an options updated message on the screen
 ?>
 
 <div class="updated">
- <p><strong><?php _e('Options saved.', 'amazon-link' ); ?></strong></p>
+ <p><strong><?php echo $update; ?></strong></p>
 </div>
 
 <?php
@@ -102,8 +129,6 @@
 
 //         $pxml = $this->search->do_search(array('s_title' => 'boot', 's_artist' =>'', 's_index' => 'Shoes' ));
 //         echo "<!--PXML:"; print_r($pxml); echo "-->";
-//$pxml = $this->itemLookup('B002P3VPB8');
-//echo "<!--ITEMLOOKUP:"; print_r($pxml); echo "-->";
 //$pxml = $this->itemLookup('0141194529,B000H2X2EW,0340993766,B002V092EC');
 //echo "<!--ITEMLOOKUP:"; print_r($pxml); echo "-->";
 ?>

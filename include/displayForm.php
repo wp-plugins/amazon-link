@@ -336,11 +336,12 @@ if (!class_exists('AmazonWishlist_Options')) {
          foreach ($buttons as $Value => $details) {
             $type = isset($details['Type']) ? $details['Type'] : 'submit';
             $script = isset($details['Script']) ? ' onClick="'.$details['Script'].'" ' : '';
-            $id = isset($details['Id']) ? 'id="'.$details['Id'].'"' : '';
-            $hint = isset($details['Hint']) ? 'title="'.$details['Hint'].'"' : '';
-            $value = isset($details['Value']) ? 'value="'.$details['Value'].'"' : '';
+            $id = isset($details['Id']) ? 'id="'.$details['Id'].'" ' : '';
+            $hint = isset($details['Hint']) ? 'title="'.$details['Hint'].'" ' : '';
+            $value = isset($details['Value']) ? 'value="'.$details['Value'].'" ' : '';
+            $disabled = isset($details['Disabled']) ? 'disabled="disabled" ' : '';
 ?>
-   <input <?php echo $id . ' ' . $value . ' ' . $hint;?> type="<?php echo $type;?>" <?php echo $script; ?> class="<?php echo $details['Class']; ?>" name="<?php echo $details['Action'] ?>" value="<?php echo $Value; ?>" />
+   <input <?php echo $id . $value . $hint . $disabled;?> type="<?php echo $type;?>" <?php echo $script; ?> class="<?php echo $details['Class']; ?>" name="<?php echo $details['Action'] ?>" value="<?php echo $Value; ?>" />
 <?php
          }
       }
