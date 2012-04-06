@@ -488,6 +488,7 @@ if (!class_exists('AmazonLinkSearch')) {
          $local_info   = $this->alink->get_local_info($item);
          $local_country = $local_info['cc'];
          $default_country = $item['default_cc'];
+         $item['home_cc'] = $default_country;
 
          // 'channel' used may be different for each shortcode or post so need to refresh every template
          $data = $this->regionalise($local_info, $local_country);
