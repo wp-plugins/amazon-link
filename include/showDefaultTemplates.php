@@ -49,6 +49,7 @@
       unset($options['template']);
       $options['template_type'] = $templateDetails['Type'];
       $options['template_content'] = $templateDetails['Content'];
+      $options['template_keywords'] = $this->search->keywords;
       if ( $templateDetails['Type'] == 'Multi' ) {
          $asins = array('B000056VJ7','B0000025UW','B001LR3576','B001KSJNWC','B001LWZCKY','B001GTPI7O','B001GTAGS0');
          $options['live'] = 0;

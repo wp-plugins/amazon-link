@@ -131,4 +131,13 @@
 //         echo "<!--PXML:"; print_r($pxml); echo "-->";
 //$pxml = $this->itemLookup('0141194529,B000H2X2EW,0340993766,B002V092EC');
 //echo "<!--ITEMLOOKUP:"; print_r($pxml); echo "-->";
+//$request = array('Operation'     => 'ItemLookup',
+// 'ResponseGroup' => 'Offers,ItemAttributes,Large,Reviews,Images,SalesRank,EditorialReview',
+// 'ResponseGroup' => 'ItemAttributes',
+// 'ItemId'        => 'B006FTFGUY', 
+// 'IdType'        => 'ASIN');
+//$settings = $this->getSettings();
+//$pxml = $this->doQuery($request, $settings);
+//echo "<PRE>"; print_r($pxml); echo "</PRE>";
+
 ?>

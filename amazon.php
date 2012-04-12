@@ -71,7 +71,6 @@ To serve a page containing amazon links the plugin performs the following:
         * Make links * 5:
           * get URL (get local info)
           * get local info
-        * Make unused link, image_link & thumb_link [REMOVE?]
         * Fill in template
 
 * If 'multinational' link found when doing the above then:
@@ -79,10 +78,11 @@ To serve a page containing amazon links the plugin performs the following:
 
 *******************************************************************************************************/
 
+define (TIMING, False);
 
 require_once('include/displayForm.php');
 
-require_once('include/translate.php');
+//require_once('include/translate.php');
 
 if (!class_exists('AmazonWishlist_ip2nation'))
    include_once ( 'include/ip2nation.php');
@@ -223,20 +223,6 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
             $this->saveTemplates($Templates);
             $Opts['version'] = 4;
             $this->saveOptions($Opts);
-         }
-
-         $templates = $this->getTemplates();
-         /*
-          * If first run need to create a default templates
-          */
-         if(!isset($templates['wishlist'])) {
-            $default_templates = $this->get_default_templates();
-            foreach ($default_templates as $templateName => $templateDetails) {
-               if(!isset($templates[$templateName])) {
-                  $templates[$templateName] = $templateDetails;
-               }
-            }
-            $this->saveTemplates($templates);
          }
       }
 
@@ -387,12 +373,12 @@ function al_gen_multi (id, term, def, chan) {
 
 
       function create_popup (){
-         if (!$this->scripts_done) {
+         if ($this->scripts_done) {
+             return '';
+         } else {
              $this->scripts_done = True;
              add_action('wp_print_footer_scripts', array($this, 'generate_multi_script'));
              return '<span id="al_popup" onmouseover="al_div_in()" onmouseout="al_div_out()"></span>';
-         } else {
-             return '';
          }
       }
 
@@ -603,10 +589,14 @@ function al_gen_multi (id, term, def, chan) {
          if (!is_array($channels)) {
             return;
          }
+         $defaults = $channels['default'];
+         unset($channels['default']);
          ksort($channels);
+         $channels = array('default' => $defaults) + $channels;
          update_option($this->channels_name, $channels);
          $this->channels = $channels;
       }
+
       /*
        * Parse the arguments passed in.
        */
@@ -917,7 +907,6 @@ function al_gen_multi (id, term, def, chan) {
             $index = 1;
             while ($index <= count($split_content)) {
                $this->parseArgs($split_content[$index]);
-               $this->tags = array_merge(explode (',', $this->Settings['asin']), $this->tags);
                if (isset($this->Settings['asin'][0])){
                   $this->tags = array_merge($this->Settings['asin'], $this->tags);
                }else{
@@ -1069,22 +1058,24 @@ function al_gen_multi (id, term, def, chan) {
 
          if ($settings === NULL)
             $settings = $this->getSettings();
-
+if (TIMING) $time_start = microtime(true);
          $result = NULL;
          if ($settings['cache_enabled']) {
             // Check if asin is already in the cache
             $li = $this->get_local_info($settings);
             $cc = $li['cc'];
-            $sql = "SELECT xml FROM $cache_table WHERE asin LIKE '$asin' AND cc LIKE '$cc' AND  updated >= DATE_SUB(NOW(),INTERVAL " . $settings['cache_age']. " HOURS)";
+            $sql = "SELECT xml FROM $cache_table WHERE asin LIKE '$asin' AND cc LIKE '$cc' AND  updated >= DATE_SUB(NOW(),INTERVAL " . $settings['cache_age']. " HOUR)";
             $result = $wpdb->get_row($sql, ARRAY_A);
             if ($result !== NULL) {
                $items = unserialize($result['xml']);
                $items[0]['cached'] = 1;
             }
          }
+if (TIMING) {$time_taken = microtime(true)-$time_start;echo "<!--Cache Lookup: $time_taken -->";}
 
          if ($result === NULL) {
 
+if (TIMING) $time_start = microtime(true);
             // Create query to retrieve the an item
             $request = array('Operation'     => 'ItemLookup',
                              'ResponseGroup' => 'Offers,ItemAttributes,Small,Reviews,Images,SalesRank',
@@ -1092,14 +1083,16 @@ function al_gen_multi (id, term, def, chan) {
                              'IdType'        => 'ASIN');
 
             $pxml = $this->doQuery($request, $settings);
+if (TIMING) {$time_taken = microtime(true)-$time_start;echo "<!--AWS Lookup: $time_taken -->";}
 
             if (($pxml === False) || !isset($pxml['Items']['Item'])) {
                // Failed to return any results
-               $items = array(array('ASIN' => $asin, 'Settings' => $settings, 'found' => 0));
+               $items = array(array('ASIN' => $asin, 'found' => 0));
                return $items;
             } else {
                if (array_key_exists('ASIN', $pxml['Items']['Item'])) {
                   // Returned a single result (not in an array)
+if (TIMING) $time_start = microtime(true);
                   $items =array($pxml['Items']['Item']);
 
                   if ($settings['cache_enabled']) {
@@ -1107,6 +1100,7 @@ function al_gen_multi (id, term, def, chan) {
                      $wpdb->query($sql);
                      $data = array( 'asin' => $asin, 'cc' => $cc, 'xml' => serialize($items), updated => current_time('mysql'));
                      $wpdb->insert($cache_table, $data);
+if (TIMING) {$time_taken = microtime(true)-$time_start;echo "<!--Cache Save: $time_taken -->";}
                   }
                } else {
                   // Returned several results
@@ -1116,7 +1110,6 @@ function al_gen_multi (id, term, def, chan) {
          }
 
          for ($index=0; $index < count($items); $index++ ) {
-            $items[$index]['Settings'] = $settings;
             $items[$index]['found'] = 1;
          }
          return $items;
@@ -1226,7 +1219,7 @@ function al_gen_multi (id, term, def, chan) {
                }
                $details[] = array_merge( array('asins' => $list),  $Settings);
             } elseif ($Settings['template_type'] == 'No ASIN') {
-               $details[] = array_merge(array('found' => 1),  $Settings);//array('found' => 1, 'Settings' => $Settings );
+               $details[] = array_merge(array('found' => 1),  $Settings);
             } elseif (!isset($asins[0])) {
                $details[] = array_merge($Settings, array( 'asin' => $asins, 'live' => 1));
             } else {
