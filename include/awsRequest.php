@@ -1,27 +1,27 @@
 <?php
 
-function unserialize_xml($input, $callback = null, $recurse = false)
-/* bool/array unserialize_xml ( string $input [ , callback $callback ] )
- * Unserializes an XML string, returning a multi-dimensional associative array, optionally runs a callback on all non-array data
- * Returns false on all failure
- * Notes:
-    * Root XML tags are stripped
-    * Due to its recursive nature, unserialize_xml() will also support SimpleXMLElement objects and arrays as input
-    * Uses simplexml_load_string() for XML parsing, see SimpleXML documentation for more info
- */
-{
-    // Get input, loading an xml string with simplexml if its the top level of recursion
-    $data = ((!$recurse) && is_string($input))? simplexml_load_string($input): $input;
-    // Convert SimpleXMLElements to array
-    if ($data instanceof SimpleXMLElement) $data = (array) $data;
-    // Recurse into arrays
-    if (is_array($data)) foreach ($data as &$item) $item = unserialize_xml($item, $callback, true);
-    // Run callback and return
-    return (!is_array($data) && is_callable($callback))? call_user_func($callback, $data): $data;
-}
+if (!function_exists('unserialize_xml')) {
 
-function aws_signed_request($region, $params, $public_key, $private_key)
-{
+   function unserialize_xml($input, $recurse = false)
+   /* bool/array unserialize_xml ( string $input )
+    * Unserializes an XML string, returning a multi-dimensional associative array, optionally runs a callback on all non-array data
+    * Returns false on all failure
+    * Notes:
+    *    Root XML tags are stripped
+    *    Due to its recursive nature, unserialize_xml() will also support SimpleXMLElement objects and arrays as input
+    *    Uses simplexml_load_string() for XML parsing, see SimpleXML documentation for more info
+    */
+   {
+       // Get input, loading an xml string with simplexml if its the top level of recursion
+       $data = ((!$recurse) && is_string($input))? simplexml_load_string($input): $input;
+       // Convert SimpleXMLElements to array
+       if ($data instanceof SimpleXMLElement) $data = (array) $data;
+       // Recurse into arrays
+       if (is_array($data)) foreach ($data as &$item) $item = unserialize_xml($item, true);
+
+       return $data;
+   }
+}
     /*
     Copyright (c) 2009 Ulrich Mierendorff
 
@@ -52,14 +52,15 @@ function aws_signed_request($region, $params, $public_key, $private_key)
         $public_key - your "Access Key ID"
         $private_key - your "Secret Access Key"
     */
-    $regions = array('ca'    => array( 'host' => 'ecs.amazonaws.ca', uri => '/onca/xml'), 
-                     'cn'    => array( 'host' => 'webservices.amazon.cn', uri => '/onca/xml'),
-                     'com'   => array( 'host' => 'ecs.amazonaws.com', uri => '/onca/xml'),
-                     'co.uk' => array( 'host' => 'ecs.amazonaws.co.uk', uri => '/onca/xml'),
-                     'de'    => array( 'host' => 'ecs.amazonaws.de', uri => '/onca/xml'),
-                     'fr'    => array( 'host' => 'ecs.amazonaws.fr', uri => '/onca/xml'),
-                     'it'    => array( 'host' => 'webservices.amazon.it', uri => '/onca/xml'),
-                     'jp'    => array( 'host' => 'ecs.amazonaws.jp', uri => '/onca/xml'));
+    $regions = array('ca'    => array( 'host' => 'ecs.amazonaws.ca', 'uri' => '/onca/xml'), 
+                     'cn'    => array( 'host' => 'webservices.amazon.cn', 'uri' => '/onca/xml'),
+                     'com'   => array( 'host' => 'ecs.amazonaws.com', 'uri' => '/onca/xml'),
+                     'co.uk' => array( 'host' => 'webservices.amazon.co.uk', 'uri' => '/onca/xml'),
+                     'de'    => array( 'host' => 'ecs.amazonaws.de', 'uri' => '/onca/xml'),
+                     'es'    => array( 'host' => 'webservices.amazon.es', 'uri' => '/onca/xml'),
+                     'fr'    => array( 'host' => 'ecs.amazonaws.fr', 'uri' => '/onca/xml'),
+                     'it'    => array( 'host' => 'webservices.amazon.it', 'uri' => '/onca/xml'),
+                     'jp'    => array( 'host' => 'ecs.amazonaws.jp', 'uri' => '/onca/xml'));
 
     if (!array_key_exists($region, $regions))
        $region = "com";
@@ -67,7 +68,7 @@ function aws_signed_request($region, $params, $public_key, $private_key)
     // some paramters
     $method = "GET";
     $host = $regions[$region]['host'];
-    $uri = $regions[$region]['uri'];
+    $uri = '/onca/xml';
     
     // additional parameters
     $params["Service"] = "AWSECommerceService";
@@ -75,7 +76,7 @@ function aws_signed_request($region, $params, $public_key, $private_key)
     // GMT timestamp
     $params["Timestamp"] = gmdate("Y-m-d\TH:i:s\Z");
     // API version
-    $params["Version"] = "2011-04-01";
+    $params["Version"] = "2011-08-01";
     
     // sort the parameters
     ksort($params);
@@ -102,10 +103,10 @@ function aws_signed_request($region, $params, $public_key, $private_key)
     // create request
     $request = "http://".$host.$uri."?".$canonicalized_query."&Signature=".$signature;
     
-  //   echo "<!-- REQ: "; print_r($request); echo "-->";
+    // echo "<!-- REQ: "; print_r($request); echo "-->";
     // do request
     $response = @file_get_contents($request);
-  //   echo "<!--RESP:"; print_r($response); echo "-->";
+    // echo "<!--RESP:"; print_r($response); echo "-->";
 
     if ($response === False)
     {
@@ -124,7 +125,4 @@ function aws_signed_request($region, $params, $public_key, $private_key)
             return $pxml;
         }
     }
-}
-
-
 ?>

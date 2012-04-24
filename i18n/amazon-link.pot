@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  \n"
 "Report-Msgid-Bugs-To: http://wordpress.org/tag/amazon-link\n"
-"POT-Creation-Date: 2011-08-04 14:08:03+00:00\n"
+"POT-Creation-Date: 2012-04-24 12:19:42+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -11,28 +11,26 @@ msgstr ""
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 
-#: amazon.php:397
-msgid " Affiliate Tag"
-msgstr ""
-
-#: include/insertForm.php:78
-#: include/insertForm.php:39
+#: include/insertForm.php:43
+#: include/insertForm.php:81
 msgid "+"
 msgstr ""
 
-#: include/insertForm.php:77
+#: include/insertForm.php:80
 msgid "-"
 msgstr ""
 
-#: include/amazonSearch.php:103
+#: include/amazonSearch.php:111
 msgid "1 if Images are in the local Wordpress media library"
 msgstr ""
 
-#: include/amazonSearch.php:104
+#: include/amazonSearch.php:112
 msgid "1 if product was found doing a live data request (also 1 if live not enabled."
 msgstr ""
 
-#: include/showTemplates.php:130
+#: include/showTemplates.php:144
+#: include/showDefaultTemplates.php:47
+#: include/showChannels.php:134
 msgid "<b>%s</b> - %s"
 msgstr ""
 
@@ -40,83 +38,115 @@ msgstr ""
 msgid "<b>WARNING!</b> You're <b>ip2nation</b> database is out of date. It was last updated on %1$s, the latest version available is dated: %2$s"
 msgstr ""
 
-#: amazon.php:688
+#: amazon.php:1001
 msgid "<p>Hover the mouse pointer over the keywords for more information.</p>"
 msgstr ""
 
-#: include/insertForm.php:59
+#: include/insertForm.php:63
 msgid "ASIN"
 msgstr ""
 
-#: amazon.php:384
+#: amazon.php:460
 msgid "AWS Access Keys"
 msgstr ""
 
-#: amazon.php:384
+#: amazon.php:460
 msgid "AWS Note"
 msgstr ""
 
-#: amazon.php:386
+#: amazon.php:462
 msgid "AWS Private key"
 msgstr ""
 
-#: amazon.php:385
+#: amazon.php:461
 msgid "AWS Public Key"
 msgstr ""
 
-#: amazon.php:225
+#: amazon.php:290
 msgid "About"
 msgstr ""
 
-#: amazon.php:385
+#: amazon.php:461
 msgid "Access Key ID provided by your AWS Account, found under Security Credentials/Access Keys of your AWS account"
 msgstr ""
 
-#: include/insertForm.php:39
+#: include/insertForm.php:43
 msgid "Add ASIN to list of ASINs above"
 msgstr ""
 
-#: amazon.php:387
+#: include/defaultTemplates.php:138
+msgid "Add Amazon Preview Pop-up script (limited locales"
+msgstr ""
+
+#: amazon.php:463
 msgid "Adds hidden debug output to the page source to aid debugging. <b>Do not enable on live sites</b>."
 msgstr ""
 
-#: include/insertForm.php:91
+#: include/insertForm.php:94
 msgid "Advanced settings"
 msgstr ""
 
-#: amazon.php:382
+#: include/showChannels.php:20
+msgid "Affiliate IDs"
+msgstr ""
+
+#: amazon.php:458
 msgid "Amazon Associate Information"
 msgstr ""
 
-#: include/defaultTemplates.php:93
-msgid "Amazon Carousel Widget"
+#: include/defaultTemplates.php:128
+msgid "Amazon Carousel Widget (limited locales"
 msgstr ""
 
-#: amazon.php:199
+#: amazon.php:466
+msgid "Amazon Data Cache"
+msgstr ""
+
+#: include/showOptions.php:51
+msgid "Amazon Data Cache Disabled and Removed"
+msgstr ""
+
+#: include/showOptions.php:56
+msgid "Amazon Data Cache Emptied"
+msgstr ""
+
+#: include/showOptions.php:46
+msgid "Amazon Data Cache Enabled"
+msgstr ""
+
+#: amazon.php:263
 msgid "Amazon Link"
 msgstr ""
 
-#: amazon.php:634
+#: amazon.php:495
+msgid "Amazon Link Affiliate IDs"
+msgstr ""
+
+#: amazon.php:932
 msgid "Amazon Link Options"
 msgstr ""
 
-#: include/insertForm.php:61
+#: include/insertForm.php:65
 msgid "Amazon Link text"
 msgstr ""
 
-#: include/defaultTemplates.php:99
-msgid "Amazon MP3 Clips Widget"
+#: include/defaultTemplates.php:134
+msgid "Amazon MP3 Clips Widget (limited locales"
 msgstr ""
 
-#: include/defaultTemplates.php:101
-msgid "Amazon My Favourites Widget"
+#: include/defaultTemplates.php:136
+msgid "Amazon My Favourites Widget (limited locales"
 msgstr ""
 
-#: include/amazonSearch.php:96
+#: include/amazonSearch.php:101
 msgid "Amazon Rank"
 msgstr ""
 
-#: include/insertForm.php:59
+#: amazon.php:289
+msgid "Amazon Tracking ID Channels"
+msgstr ""
+
+#: include/insertForm.php:63
 msgid "Amazon product ASIN"
 msgstr ""
 
@@ -124,490 +154,739 @@ msgstr ""
 msgid "Amazon query failed to return any results - Have you configured the AWS settings?"
 msgstr ""
 
-#: include/insertForm.php:74
+#: include/insertForm.php:77
 msgid "Author"
 msgstr ""
 
-#: include/insertForm.php:74
+#: include/insertForm.php:77
 msgid "Author or Artist to search for"
 msgstr ""
 
-#: amazon.php:336
+#: amazon.php:467
+msgid "Cache Data Age"
+msgstr ""
+
+#: amazon.php:408
 msgid "Canada"
 msgstr ""
 
-#: amazon.php:335
+#: include/insertForm.php:67
+#: include/showChannels.php:95
+msgid "Channel"
+msgstr ""
+
+#: include/showChannels.php:90
+msgid "Channel "%s" created from "%s"."
+msgstr ""
+
+#: include/showChannels.php:97
+msgid "Channel "%s" created."
+msgstr ""
+
+#: include/showChannels.php:82
+msgid "Channel "%s" deleted."
+msgstr ""
+
+#: include/showChannels.php:77
+msgid "Channel %s Updated"
+msgstr ""
+
+#: include/showChannels.php:18
+#: include/showChannels.php:95
+msgid "Channel Description"
+msgstr ""
+
+#: include/showChannels.php:19
+msgid "Channel Filter"
+msgstr ""
+
+#: include/showChannels.php:19
+msgid "Channel Filter Rules"
+msgstr ""
+
+#: include/showChannels.php:17
+msgid "Channel Name"
+msgstr ""
+
+#: amazon.php:407
 msgid "China"
 msgstr ""
 
-#: include/insertForm.php:62
+#: include/insertForm.php:67
+msgid "Choose which set of Amazon Tracking IDs to use."
+msgstr ""
+
+#: include/insertForm.php:66
 msgid "Choose which template is used to display the item."
 msgstr ""
 
-#: include/amazonSearch.php:94
+#: include/amazonSearch.php:99
 msgid "Class of Image as defined in settings"
 msgstr ""
 
-#: include/amazonSearch.php:82
+#: include/amazonSearch.php:87
 msgid "Comma seperated list of ASINs"
 msgstr ""
 
-#: include/showTemplates.php:21
-#: include/showTemplates.php:72
+#: include/showTemplates.php:24
+#: include/showChannels.php:33
+#: include/showChannels.php:83
+#: include/showTemplates.php:76
 msgid "Copy"
 msgstr ""
 
-#: include/amazonSearch.php:397
+#: include/translate.php:64
+msgid "Could not access Bing API: '.$url"
+msgstr ""
+
+#: include/amazonSearch.php:650
 msgid "Could not read downloaded image"
 msgstr ""
 
-#: include/amazonSearch.php:372
+#: include/amazonSearch.php:625
 msgid "Could not retrieve remote image file"
 msgstr ""
 
-#: include/amazonSearch.php:105
-msgid "Create a Amazon link with user defined content, of the form %LINK_OPEN%My Content%LINK_CLOSE%"
-msgstr ""
-
-#: amazon.php:387
-msgid "Debug Output"
-msgstr ""
-
-#: amazon.php:383
-msgid "Default Country"
-msgstr ""
-
-#: include/showTemplates.php:101
-msgid "Default Templates Created - Note: 'wishlist' template must exist."
-msgstr ""
-
-#: amazon.php:368
-msgid "Default template to use for the wishlist <em>* <a href="#aws_notes" title="AWS Access keys required for full functionality">AWS</a> *</em>"
-msgstr ""
-
-#: amazon.php:366
-msgid "Default text to display if none specified"
-msgstr ""
-
-#: include/insertForm.php:90
-msgid "Default type of wishlist to display, 'Similar' shows items similar to the ones found, 'Random' shows a random selection of the ones found "
-msgstr ""
-
-#: amazon.php:370
-msgid "Default type of wishlist to display, 'Similar' shows items similar to the ones found, 'Random' shows a random selection of the ones found <em>* <a href="#aws_notes" title="AWS Access keys required for full functionality">AWS</a> *</em>"
-msgstr ""
-
-#: include/insertForm.php:42
-#: include/showTemplates.php:68
-#: include/showTemplates.php:24
-msgid "Delete"
-msgstr ""
-
-#: amazon.php:364
-msgid "Display Options"
-msgstr ""
-
-#: include/insertForm.php:58
-msgid "Enter the following settings for a simple Amazon Link"
-msgstr ""
-
-#: include/insertForm.php:86
-msgid "Enter the following settings for an Amazon Wishlist"
-msgstr ""
-
-#: amazon.php:398
-msgid "Enter your affiliate tag for %1$s."
-msgstr ""
-
-#: include/insertForm.php:82
-msgid "Error - No results returned from your query."
-msgstr ""
-
-#: amazon.php:332
-msgid "France"
-msgstr ""
-
-#: amazon.php:331
-msgid "Germany"
-msgstr ""
-
-#: amazon.php:367
-msgid "Image Class"
-msgstr ""
-
-#: include/amazonSearch.php:165
-msgid "Images deleted"
-msgstr ""
-
-#: include/insertForm.php:40
-msgid "Insert"
-msgstr ""
-
-#: include/insertForm.php:60
-msgid "Insert Link"
-msgstr ""
-
-#: include/insertForm.php:88
-msgid "Insert Wishlist"
-msgstr ""
-
-#: include/insertForm.php:40
-msgid "Insert a link into the post, based on the selected template"
-msgstr ""
-
-#: include/insertForm.php:94
-#: amazon.php:374
-msgid "Insert links to all other Amazon sites after primary link."
-msgstr ""
-
-#: include/showOptions.php:31
-#: include/showOptions.php:80
-msgid "Install Database"
-msgstr ""
-
-#: amazon.php:334
-msgid "Italy"
-msgstr ""
-
-#: include/amazonSearch.php:90
-msgid "Item's Author, Artist or Creator"
-msgstr ""
-
-#: include/amazonSearch.php:91
-msgid "Item's Manufacturer"
-msgstr ""
-
-#: include/amazonSearch.php:83
-msgid "Item's Product Group"
+#: include/insertForm.php:97
+#: amazon.php:450
+msgid "Create Search Links"
 msgstr ""
 
 #: include/amazonSearch.php:84
+msgid "Create a Amazon link with user defined content, of the form %LINK_OPEN%My Content%LINK_CLOSE%"
+msgstr ""
+
+#: include/showTemplates.php:26
+msgid "Create a New blank template"
+msgstr ""
+
+#: amazon.php:463
+msgid "Debug Output"
+msgstr ""
+
+#: include/showChannels.php:108
+msgid "Default Channel Created - Note: 'default' channel must exist."
+msgstr ""
+
+#: amazon.php:459
+msgid "Default Country"
+msgstr ""
+
+#: amazon.php:451
+msgid "Default Search String"
+msgstr ""
+
+#: amazon.php:293
+msgid "Default Templates"
+msgstr ""
+
+#: include/showTemplates.php:115
+msgid "Default Templates Created - Note: 'wishlist' template must exist."
+msgstr ""
+
+#: amazon.php:451
+msgid "Default items to search for with "Search Links", uses the same system as the Templates below."
+msgstr ""
+
+#: amazon.php:441
+msgid "Default template to use for the wishlist <em>* <a href="#aws_notes" title="AWS Access keys required for full functionality">AWS</a> *</em>"
+msgstr ""
+
+#: amazon.php:439
+msgid "Default text to display if none specified"
+msgstr ""
+
+#: include/insertForm.php:93
+msgid "Default type of wishlist to display, 'Similar' shows items similar to the ones found, 'Random' shows a random selection of the ones found "
+msgstr ""
+
+#: amazon.php:443
+msgid "Default type of wishlist to display, 'Similar' shows items similar to the ones found, 'Random' shows a random selection of the ones found <em>* <a href="#aws_notes" title="AWS Access keys required for full functionality">AWS</a> *</em>"
+msgstr ""
+
+#: amazon.php:449
+msgid "Default values in the shortcode "title=xxxx" affect all locales, if not set only override the default locale."
+msgstr ""
+
+#: include/showChannels.php:79
+#: include/showTemplates.php:72
+#: include/insertForm.php:46
+#: include/showChannels.php:36
+#: include/showTemplates.php:27
+msgid "Delete"
+msgstr ""
+
+#: amazon.php:471
+msgid "Delete all data in the Amazon Link cache."
+msgstr ""
+
+#: include/showTemplates.php:27
+msgid "Delete this template"
+msgstr ""
+
+#: include/showOptions.php:49
+#: amazon.php:470
+#: include/showOptions.php:66
+msgid "Disable Cache"
+msgstr ""
+
+#: include/showTemplates.php:21
+msgid "Disable Preview"
+msgstr ""
+
+#: include/showTemplates.php:21
+msgid "Disable the preview if it contains a script that might conflict with the options pages."
+msgstr ""
+
+#: amazon.php:437
+msgid "Display Options"
+msgstr ""
+
+#: include/defaultTemplates.php:126
+msgid "Easy Banner (468x60"
+msgstr ""
+
+#: amazon.php:469
+#: include/showOptions.php:64
+#: include/showOptions.php:44
+msgid "Enable Cache"
+msgstr ""
+
+#: include/insertForm.php:62
+msgid "Enter the following settings for a simple Amazon Link"
+msgstr ""
+
+#: include/insertForm.php:89
+msgid "Enter the following settings for an Amazon Wishlist"
+msgstr ""
+
+#: include/showChannels.php:28
+#: amazon.php:503
+msgid "Enter your affiliate tag for %1$s."
+msgstr ""
+
+#: include/insertForm.php:85
+msgid "Error - No results returned from your query."
+msgstr ""
+
+#: include/defaultTemplates.php:144
+msgid "Example Multinational Template"
+msgstr ""
+
+#: amazon.php:471
+#: include/showOptions.php:67
+#: include/showOptions.php:54
+msgid "Flush Cache"
+msgstr ""
+
+#: amazon.php:404
+msgid "France"
+msgstr ""
+
+#: amazon.php:450
+msgid "Generate links to search for the items by "Author Title" for non local links, rather than direct links to the product by ASIN."
+msgstr ""
+
+#: amazon.php:402
+msgid "Germany"
+msgstr ""
+
+#: amazon.php:449
+msgid "Global Defaults"
+msgstr ""
+
+#: amazon.php:440
+msgid "Image Class"
+msgstr ""
+
+#: include/amazonSearch.php:160
+msgid "Images deleted"
+msgstr ""
+
+#: include/insertForm.php:44
+msgid "Insert"
+msgstr ""
+
+#: include/insertForm.php:64
+msgid "Insert Link"
+msgstr ""
+
+#: include/insertForm.php:91
+msgid "Insert Wishlist"
+msgstr ""
+
+#: include/insertForm.php:44
+msgid "Insert a link into the post, based on the selected template"
+msgstr ""
+
+#: include/insertForm.php:98
+#: amazon.php:447
+msgid "Insert links to all other Amazon sites after primary link."
+msgstr ""
+
+#: include/showTemplates.php:91
+#: include/showDefaultTemplates.php:25
+msgid "Install"
+msgstr ""
+
+#: include/showOptions.php:107
+#: include/showOptions.php:31
+msgid "Install Database"
+msgstr ""
+
+#: include/showDefaultTemplates.php:25
+msgid "Install a new Copy of this template"
+msgstr ""
+
+#: amazon.php:469
+msgid "Install the sql database table to cache data retrieved from Amazon."
+msgstr ""
+
+#: amazon.php:406
+msgid "Italy"
+msgstr ""
+
+#: include/amazonSearch.php:95
+msgid "Item's Author, Artist or Creator"
+msgstr ""
+
+#: include/amazonSearch.php:96
+msgid "Item's Manufacturer"
+msgstr ""
+
+#: include/amazonSearch.php:88
+msgid "Item's Product Group"
+msgstr ""
+
+#: include/amazonSearch.php:89
 msgid "Item's Title"
 msgstr ""
 
-#: include/amazonSearch.php:81
+#: include/amazonSearch.php:86
 msgid "Item's unique ASIN"
 msgstr ""
 
-#: include/insertForm.php:75
+#: include/insertForm.php:78
 msgid "Items Title to search for"
 msgstr ""
 
-#: amazon.php:333
+#: amazon.php:405
 msgid "Japan"
 msgstr ""
 
-#: include/insertForm.php:61
-#: amazon.php:366
+#: include/insertForm.php:65
+#: amazon.php:439
 msgid "Link Text"
 msgstr ""
 
-#: include/insertForm.php:87
+#: include/insertForm.php:90
 msgid "List of Categories to search through for amazon links"
 msgstr ""
 
-#: amazon.php:376
-#: include/insertForm.php:95
+#: include/insertForm.php:99
+#: amazon.php:452
 msgid "Live Data"
 msgstr ""
 
-#: amazon.php:375
-#: include/insertForm.php:93
+#: include/insertForm.php:96
+#: amazon.php:448
 msgid "Localise Amazon Link"
 msgstr ""
 
-#: include/amazonSearch.php:99
+#: include/amazonSearch.php:104
 msgid "Localised Amazon Associate Tag"
 msgstr ""
 
-#: include/amazonSearch.php:101
+#: include/amazonSearch.php:107
 msgid "Localised Amazon Marketplace Code (US, GB, etc."
 msgstr ""
 
-#: include/amazonSearch.php:100
+#: include/amazonSearch.php:105
 msgid "Localised Country Code (us, uk, etc."
 msgstr ""
 
-#: include/defaultTemplates.php:97
+#: include/amazonSearch.php:106
+msgid "Localised Country Flag Image URL"
+msgstr ""
+
+#: include/defaultTemplates.php:132
 msgid "Localised Image Link"
 msgstr ""
 
-#: include/defaultTemplates.php:103
+#: include/amazonSearch.php:108
+msgid "Localised Numeric Amazon Marketplace Code (2=uk, 8=fr, etc."
+msgstr ""
+
+#: include/amazonSearch.php:110
+msgid "Localised RCM site host domain (rcm.amazon.com, rcm-uk.amazon.co.uk, etc."
+msgstr ""
+
+#: include/defaultTemplates.php:140
 msgid "Localised Thumb Link"
 msgstr ""
 
-#: include/amazonSearch.php:102
+#: include/amazonSearch.php:109
 msgid "Localised Top Level Domain (.com, .co.uk, etc."
 msgstr ""
 
-#: include/insertForm.php:93
+#: include/showTemplates.php:24
+msgid "Make a Copy of this template"
+msgstr ""
+
+#: include/insertForm.php:97
+msgid "Make the link point to a search result on the Amazon site"
+msgstr ""
+
+#: amazon.php:448
+msgid "Make the link point to the user's local Amazon website, (you must have ip2nation installed for this to work."
+msgstr ""
+
+#: include/insertForm.php:96
 msgid "Make the link point to the users local Amazon website"
 msgstr ""
 
-#: amazon.php:375
-msgid "Make the link point to the users local Amazon website, (you must have ip2nation installed for this to work."
-msgstr ""
-
-#: amazon.php:199
+#: amazon.php:263
 msgid "Manage Amazon Link Options"
 msgstr ""
 
-#: amazon.php:369
+#: amazon.php:467
+msgid "Max age in hours of the data held in the Amazon Link Cache"
+msgstr ""
+
+#: amazon.php:442
 msgid "Maximum number of items to display in a wishlist (Amazon only returns a maximum of 5, for the 'Similar' type of list <em>* <a href="#aws_notes" title="AWS Access keys required for full functionality">AWS</a> *</em>"
 msgstr ""
 
-#: amazon.php:374
-#: include/insertForm.php:94
+#: amazon.php:447
+#: include/insertForm.php:98
 msgid "Multinational Link"
 msgstr ""
 
-#: include/amazonSearch.php:106
+#: include/amazonSearch.php:85
 msgid "Must follow a LINK_OPEN (translates to "</a>"."
 msgstr ""
 
-#: include/showTemplates.php:23
-#: include/showTemplates.php:80
+#: include/showChannels.php:91
+#: include/showTemplates.php:26
+#: include/showChannels.php:35
+#: include/showTemplates.php:84
 msgid "New"
 msgstr ""
 
-#: amazon.php:377
+#: amazon.php:453
 msgid "New Window Link"
 msgstr ""
 
-#: include/showRecommendations.php:78
+#: include/showRecommendations.php:74
 msgid "No [amazon] tags found in the last %1$s posts in categories %2$s"
 msgstr ""
 
-#: include/amazonSearch.php:335
+#: include/amazonSearch.php:600
 msgid "No images found"
 msgstr ""
 
-#: include/amazonSearch.php:162
+#: include/amazonSearch.php:157
 msgid "No matching image found"
 msgstr ""
 
-#: include/insertForm.php:89
+#: include/insertForm.php:92
 msgid "Number of Posts"
 msgstr ""
 
-#: include/insertForm.php:89
+#: include/insertForm.php:92
 msgid "Number of posts to search back through for amazon links"
 msgstr ""
 
-#: include/amazonSearch.php:97
+#: include/amazonSearch.php:102
 msgid "Numeric User Rating - (No longer Available"
 msgstr ""
 
-#: amazon.php:224
+#: amazon.php:288
 msgid "Options"
 msgstr ""
 
-#: include/showOptions.php:67
+#: include/showOptions.php:30
 msgid "Options saved."
 msgstr ""
 
-#: include/insertForm.php:76
+#: include/showDefaultTemplates.php:43
+msgid "Overwrite the existing template with this version"
+msgstr ""
+
+#: include/insertForm.php:79
 msgid "Page"
 msgstr ""
 
-#: include/insertForm.php:76
+#: include/insertForm.php:79
 msgid "Page of Search Results"
 msgstr ""
 
-#: include/insertForm.php:87
+#: include/insertForm.php:90
 msgid "Post Category"
 msgstr ""
 
-#: include/insertForm.php:48
+#: include/insertForm.php:52
 msgid "Price"
 msgstr ""
 
-#: include/amazonSearch.php:98
+#: include/amazonSearch.php:103
 msgid "Price of Item"
 msgstr ""
 
-#: include/insertForm.php:70
+#: include/insertForm.php:75
 msgid "Product Index"
 msgstr ""
 
-#: include/insertForm.php:47
+#: include/insertForm.php:51
 msgid "Rank/Rating: %RANK%/%RATING%"
 msgstr ""
 
-#: include/insertForm.php:42
+#: include/insertForm.php:46
 msgid "Remove image from media library"
+msgstr ""
+
+#: amazon.php:470
+msgid "Remove the Amazon Link cache database table."
+msgstr ""
+
+#: include/showTemplates.php:99
+#: include/showTemplates.php:151
+#: include/showTemplates.php:146
+msgid "Reset"
+msgstr ""
+
+#: include/showTemplates.php:151
+msgid "Reset this template back to the default version"
 msgstr ""
 
 #: include/insertForm.php:13
 msgid "Results: "
 msgstr ""
 
-#: include/insertForm.php:79
+#: include/showTemplates.php:25
+msgid "Save changes made to this template"
+msgstr ""
+
+#: include/insertForm.php:82
 msgid "Search"
 msgstr ""
 
-#: include/insertForm.php:67
+#: include/insertForm.php:72
 msgid "Search Amazon for Products"
 msgstr ""
 
-#: amazon.php:386
+#: amazon.php:462
 msgid "Secret Access Key ID provided by your AWS Account."
 msgstr ""
 
-#: amazon.php:289
+#: amazon.php:369
 msgid "Settings"
 msgstr ""
 
-#: include/defaultTemplates.php:95
+#: amazon.php:403
+msgid "Spain"
+msgstr ""
+
+#: include/defaultTemplates.php:130
 msgid "Standard Amazon Image Link"
 msgstr ""
 
-#: amazon.php:367
+#: amazon.php:440
 msgid "Style Sheet Class of image thumbnails"
 msgstr ""
 
-#: include/insertForm.php:62
-#: include/showTemplates.php:84
+#: include/showTemplates.php:88
+#: include/insertForm.php:66
 msgid "Template"
 msgstr ""
 
-#: include/showTemplates.php:79
+#: include/showTemplates.php:83
+#: include/showTemplates.php:98
 msgid "Template "%s" created from "%s"."
 msgstr ""
 
-#: include/showTemplates.php:86
+#: include/showTemplates.php:90
 msgid "Template "%s" created."
 msgstr ""
 
-#: include/showTemplates.php:71
+#: include/showTemplates.php:75
 msgid "Template "%s" deleted."
 msgstr ""
 
-#: include/showTemplates.php:66
+#: include/showTemplates.php:102
+msgid "Template "%s" overwritten with default version."
+msgstr ""
+
+#: include/showTemplates.php:70
 msgid "Template %s Updated"
 msgstr ""
 
-#: include/showTemplates.php:19
+#: include/showTemplates.php:22
+#: include/showDefaultTemplates.php:23
 msgid "Template Content"
 msgstr ""
 
-#: include/showTemplates.php:84
-#: include/showTemplates.php:18
+#: include/showDefaultTemplates.php:19
+#: include/showTemplates.php:88
+#: include/showTemplates.php:19
 msgid "Template Description"
 msgstr ""
 
-#: amazon.php:226
+#: amazon.php:291
 msgid "Template Help"
 msgstr ""
 
-#: include/showTemplates.php:17
+#: include/showTemplates.php:18
+#: include/showDefaultTemplates.php:18
 msgid "Template Name"
 msgstr ""
 
-#: amazon.php:227
+#: include/showTemplates.php:20
+#: include/showDefaultTemplates.php:20
+msgid "Template Type"
+msgstr ""
+
+#: include/showDefaultTemplates.php:21
+msgid "Template Version"
+msgstr ""
+
+#: amazon.php:292
 msgid "Templates"
 msgstr ""
 
-#: amazon.php:384
+#: amazon.php:460
 msgid "The AWS Keys are required for some of the features of the plugin to work (The ones marked with AWS above, visit <a href="http://aws.amazon.com/">Amazon Web Services</a> to sign up to get your own keys."
 msgstr ""
 
-#: include/showTemplates.php:19
+#: amazon.php:459
+msgid "The Amazon Affiliate Tags should be entered in the 'Channels' section below"
+msgstr ""
+
+#: include/showDefaultTemplates.php:23
+#: include/showTemplates.php:22
 msgid "The Template"
 msgstr ""
 
-#: include/amazonSearch.php:95
+#: include/amazonSearch.php:100
 msgid "The URL returned from the Item Search (not localised!"
 msgstr ""
 
-#: include/insertForm.php:75
+#: include/insertForm.php:78
 msgid "Title"
 msgstr ""
 
-#: include/amazonSearch.php:93
+#: include/showTemplates.php:20
+#: include/showDefaultTemplates.php:20
+msgid "Type of Template, 'Multi' templates are for multi-product ones that contain the %ASINS% keyword, 'No ASIN' templates are for non-product specific ones, e.g. Banners and Scripts"
+msgstr ""
+
+#: include/amazonSearch.php:98
 msgid "URL to Full size Image"
 msgstr ""
 
-#: include/amazonSearch.php:92
+#: include/amazonSearch.php:97
 msgid "URL to Thumbnail Image"
 msgstr ""
 
-#: amazon.php:329
+#: amazon.php:400
 msgid "United Kingdom"
 msgstr ""
 
-#: amazon.php:330
+#: amazon.php:401
 msgid "United States"
 msgstr ""
 
-#: include/showTemplates.php:43
-#: include/showTemplates.php:22
+#: include/showChannels.php:34
+#: include/showChannels.php:53
+#: include/showTemplates.php:25
+#: include/showTemplates.php:47
 msgid "Update"
 msgstr ""
 
 #: include/showOptions.php:19
-#: amazon.php:390
+#: amazon.php:474
 msgid "Update Options"
 msgstr ""
 
-#: include/insertForm.php:41
+#: include/showTemplates.php:149
+#: include/showDefaultTemplates.php:45
+#: include/showDefaultTemplates.php:43
+#: include/showTemplates.php:99
+#: include/showTemplates.php:145
+msgid "Upgrade"
+msgstr ""
+
+#: include/showTemplates.php:149
+msgid "Upgrade this template to the new default version"
+msgstr ""
+
+#: include/insertForm.php:45
 msgid "Upload"
 msgstr ""
 
-#: include/insertForm.php:41
+#: include/insertForm.php:45
 msgid "Upload cover image into media library"
 msgstr ""
 
-#: include/insertForm.php:92
+#: include/insertForm.php:95
 msgid "Use Defaults"
 msgstr ""
 
-#: include/insertForm.php:92
+#: include/insertForm.php:95
 msgid "Use the site default settings for the options below"
 msgstr ""
 
-#: include/defaultTemplates.php:105
+#: include/defaultTemplates.php:142
 msgid "Used to generate the wishlist"
 msgstr ""
 
-#: include/amazonSearch.php:86
-#: include/amazonSearch.php:87
-#: include/amazonSearch.php:89
-#: include/amazonSearch.php:85
-#: include/amazonSearch.php:88
+#: include/amazonSearch.php:93
+#: include/amazonSearch.php:90
+#: include/amazonSearch.php:94
+#: include/amazonSearch.php:92
+#: include/amazonSearch.php:91
 msgid "User Defined Text string"
 msgstr ""
 
-#: amazon.php:376
+#: include/showChannels.php:20
+#: amazon.php:495
+msgid "Valid affiliate IDs from all Amazon locales can be obtained from the relevant Amazon sites: "
+msgstr ""
+
+#: include/showDefaultTemplates.php:22
+msgid "Version Details"
+msgstr ""
+
+#: amazon.php:452
 msgid "When creating Amazon links, use live data from the Amazon site, otherwise populate the shortcode with static information. <em>* <a href="#aws_notes" title="AWS Access keys required for full functionality">AWS</a> *</em>"
 msgstr ""
 
-#: include/insertForm.php:95
+#: include/insertForm.php:99
 msgid "When displaying the link, use live data from amazon to populate the template"
 msgstr ""
 
-#: amazon.php:377
-msgid "When link is clicked on open it in a new browser window"
+#: amazon.php:453
+msgid "When link is clicked on, open it in a new browser window"
 msgstr ""
 
-#: include/insertForm.php:70
+#: include/insertForm.php:75
 msgid "Which Amazon Product Index to Search through"
 msgstr ""
 
-#: amazon.php:383
+#: amazon.php:459
 msgid "Which country's Amazon site to use by default"
 msgstr ""
 
-#: amazon.php:369
+#: amazon.php:442
 msgid "Wishlist Length"
 msgstr ""
 
-#: amazon.php:368
+#: amazon.php:441
 msgid "Wishlist Template"
 msgstr ""
 
-#: include/insertForm.php:90
-#: amazon.php:370
+#: amazon.php:443
+#: include/insertForm.php:93
 msgid "Wishlist Type"
 msgstr ""
 
@@ -627,8 +906,14 @@ msgstr ""
 msgid "You're <b>ip2nation</b> database was last updated on %1$s, the remote file is unavailable."
 msgstr ""
 
-#: include/insertForm.php:46
+#: include/insertForm.php:50
 msgid "by %ARTIST% [%MANUFACTURER%]"
+msgstr ""
+
+#: include/showChannels.php:97
+#: include/showChannels.php:95
+#: include/showChannels.php:93
+msgid "channel"
 msgstr ""
 
 #: include/ip2nation.php:125
@@ -655,13 +940,13 @@ msgstr ""
 msgid "ip2nation install: Failed to open temporary  file (%s."
 msgstr ""
 
-#: include/showTemplates.php:84
 #: include/showTemplates.php:86
-#: include/showTemplates.php:82
+#: include/showTemplates.php:88
+#: include/showTemplates.php:90
 msgid "template"
 msgstr ""
 
-#: include/insertForm.php:80
+#: include/insertForm.php:83
 msgid "x"
 msgstr ""
 

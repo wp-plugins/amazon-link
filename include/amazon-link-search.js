@@ -87,7 +87,7 @@ wpAmazonLinkSearcher.prototype = {
    },
 
    searchAmazon : function(event) {
-        var collection = jQuery(event).find("[id^=amazon-link-search]");
+        var collection = jQuery(event).find("[id^=amazon-link-search],input[name=asin]");
         var $ths = this;
 	if( !this['sendingAmazonRequest'] ) {
            this['sendingAmazonRequest'] = true;
