@@ -3,8 +3,8 @@ Contributors: paulstuttard
 Donate link: http://www.houseindorset.co.uk/plugins
 Tags: Amazon, links, wishlist, recommend, shortcode, ip2nation, localise, images, media library, affiliate, product, template
 Requires at least: 3.1
-Tested up to: 3.3.1
-Stable tag: 2.0.9
+Tested up to: 3.3.2
+Stable tag: 3.0.1
 
 
 Provides a facility to insert Amazon product links directly into your site's Pages, Posts and Widgets and Templates.
@@ -26,15 +26,15 @@ All product links will contain the Amazon affiliate ID of the site author and wi
 
 
 
-* [Search Tool](faq#search) to assist authors to create links in posts and pages
-* Simple `[amazon]` [shortcode](other_notes#shortcode) used to generate product links
-* [Localisation](faq#localise) of all links based on the nationality of the reader
+* [Search Tool](./faq#search) to assist authors to create links in posts and pages
+* Simple `[amazon]` [shortcode](./other_notes#shortcode) used to generate product links
+* [Localisation](./faq#localise) of all links based on the nationality of the reader
 * Optional multinational popup to allow the reader to choose which Amazon site to visit
-* [Global options](other_notes) to update the behaviour of all the links on your site
-* Ability to locally override the global options using the [shortcode](other_notes#shortcode) content
-* Affiliate Tracking IDs for User or by user specified ['Channels'](faq#channels).
-* Flexible [template facility](faq#templates) to enable the author to quickly create complex content quickly and consistently
-* Includes [built in templates](faq#defaults) for the major Amazon widgets (Carousel, My Favourites, etc.).
+* [Global options](./other_notes) to update the behaviour of all the links on your site
+* Ability to locally override the global options using the [shortcode](./other_notes#shortcode) content
+* Affiliate Tracking IDs for User or by user specified ['Channels'](./faq#channels).
+* Flexible [template facility](./faq#templates) to enable the author to quickly create complex content quickly and consistently
+* Includes [built in templates](./faq#defaults) for the major Amazon widgets (Carousel, My Favourites, etc.).
 
 
 = Quick Start =
@@ -50,47 +50,34 @@ To generate a list of products relevant to the content of your site use the 'cat
 
 This is created by either putting the line `amazon_recommends(<Category>,<Number of Posts>)` in your template. Or putting the line `[amazon cat=<Category>&last=<Number of Posts>]` within a post or page. Where 'Category' is a list of category ids to search within (e.g. as expected by the 'cat' argument of [query_posts](http://codex.wordpress.org/Template_Tags/query_posts#Parameters) function. The 'last' parameter is the number of posts to search through.
 
-= Latest Version - Development =
+= Latest Version - 3.0.1 =
 
 
 
 * New Feature - Simple Template Manager
+* New Feature - Amazon Product Cache to speed up page loading
 * New Feature - Add 'Template Type' option to identify templates that require no ASIN, or Multiple ASINS.
 * New Feature - Search using by 'ASIN' if 'Title' and 'Author' fields blank
+* New Feature - 'country' modifiers (UK#, DE#, US#, etc.) for Template keywords.
+* New Feature - 'country' specific shortcode modifiers (, , , etc.) for any Shortcode keyword.
 * Templates Update - Add 'Amazon Impression Tracking' to templates
 * Templates Update - Add 'Easy Banner' template example
 * Templates Update - Add 'Amazon Preview Script' template, add to the bottom of your post/page or include in your theme's footer
+* Templates Update - Add 'Multinational' template, example of using 'country' modifiers.
 * Bug Fix - Fix filtering of incomplete tags.
-Bug Fix - Move 'aws_signed_request' into the Class to avoid name clash with 'premiumtheme', thanks to *pst61* for spotting.
+* Bug Fix - Move 'aws_signed_request' into the Class to avoid name clash with 'premiumtheme', thanks to *pst61* for spotting.
+
 
 == Installation ==
 
 
-Simply:
 
 
-1. Download the [amazon-link plugin](http://wordpress.org/extend/plugins/amazon-link/) from the [Plugin Directory](http://wordpress.org/extend/plugins/).
-1. Unzip the amazon-link.zip file into your Wordpress `/wp-content/plugins/` directory.
-1. Activate the plugin through the 'Plugins' menu in WordPress.
+1. Install either via WordPress Plugin Installer (Go to: `'Plugins' > 'Add New'` admin page and Search Plugins using the term `'amazon link'`). Or by uploading the files to your server (in `'/wp-content/plugins/'`) after downloading the [amazon-link plugin](http://wordpress.org/extend/plugins/amazon-link/) from the [Plugin Directory](http://wordpress.org/extend/plugins/)
+Activate the plugin through the 'Plugins' menu in WordPress.
 1. Update the settings (at the very least enter the default Affiliate Tags)
 1. If you wish to use the advanced functionality: Wishlists, Search, Media Upload facilities or the live data option you must also set up an [Amazon Web Services](http://aws.amazon.com/) account. So that you can update the AWS Public and Private key settings.
 1. Insert links and wishlists into your content using the [amazon] tag as described above, or using the Amazon Link box on the Page/Post edit pages.
-
-
-== More Info ==
-
-
-If you have any questions about the plugin, please check the [Frequently Asked Questions](faq) section then either post a comment to this post or check the [Wordpress Forums](http://wordpress.org/tags/amazon-link?forum_id=10).
-
-Further information on the Plugin can be found on these pages:
-
-
-* [Frequently Asked Questions](faq" title="Frequently Asked Questions)
-* [Settings & Shortcode Info](other_notes" title="Settings)
-* [Technical Info](technical" title="Technical Info)
-* [Change History](changelog" title="Change Log)
-* [Upgrade Notices](upgrade-notice" title="Upgrade Notices)
-
 
 
 == Screenshots ==
@@ -106,7 +93,25 @@ Further information on the Plugin can be found on these pages:
 
 == Changelog ==
 
-= 2.0.9 =
+= 3.0.1 =
+
+
+
+* New Feature - Simple Template Manager
+* New Feature - Amazon Product Cache to speed up page loading
+* New Feature - Add 'Template Type' option to identify templates that require no ASIN, or Multiple ASINS.
+* New Feature - Search using by 'ASIN' if 'Title' and 'Author' fields blank
+* New Feature - 'country' modifiers (UK#, DE#, US#, etc.) for Template keywords.
+* New Feature - 'country' specific shortcode modifiers (, , , etc.) for any Shortcode keyword.
+* Templates Update - Add 'Amazon Impression Tracking' to templates
+* Templates Update - Add 'Easy Banner' template example
+* Templates Update - Add 'Amazon Preview Script' template, add to the bottom of your post/page or include in your theme's footer
+* Templates Update - Add 'Multinational' template, example of using 'country' modifiers.
+* Bug Fix - Fix filtering of incomplete tags.
+* Bug Fix - Move 'aws_signed_request' into the Class to avoid name clash with 'premiumtheme', thanks to *pst61* for spotting.
+
+
+= 2.0.9 =
 
 
 
@@ -312,6 +317,28 @@ Widgets: The Amazon widgets are currently not supported in some locales (Canada,
 
 Banners: The code provided by Amazon to generate banners is very particular to the locale (e.g. the category specified is in the local language), so these don't tend to display properly when not viewed in the default locale (they drop back to the default Amazon banner).
 
+= Can I force a template keyword to a particular locale? =
+
+
+If you want an item in the template to be forced to output information from a specific locale you can apply country modifiers to the template keywords.
+
+For example you wish to show the prices from a number of locales.
+
+This is possible by adding a country modifier to the end of the Template keyword, one of (UK#, CA#, CN#, DE#, ES#, FR#, IT#, JP#, US#). This can be applied to any of the template keywords.
+
+So `%PRICE%UK#, %PRICE%DE#, %PRICE%FR#` would generate a list of prices from the UK, Germany and France.
+
+= I am displaying a lot of Amazon links on my site, can I speed it up? =
+
+
+If you have a lot of Amazon links displayed this can slow down your site considerably as the plugin needs to retrieve data from the Amazon servers for every link.
+
+One way to improve page performance is to turn on the Amazon Link Cache function provided by the plugin. On the plugin Settings page there is a sub section related to the 'Amazon Data Cache', selecting 'Enable Cache' will install the cache that uses your local database.
+
+Select the maximum time that data should be stored in the cache by updating the 'Max Age' setting, this defaults to 48 hours. After which the information stored is cleared from the cache.
+
+To manually empty the cache simply select 'Flush Cache'.
+
 = What templates are included with the plugin? =
 
 The plugin contains a set of basic templates to show how the keywords can be used. The easiest way to create new ones is to copy one of the existing ones and update it to meet your needs.
@@ -323,6 +350,7 @@ Currently the plugin has default templates for:
 
 * Thumbnail link
 * Image link
+* Multinational Template
 * Amazon Iframe based Image link
 * Amazon Carousel Widget
 * Amazon My Favourites Widget
@@ -371,6 +399,21 @@ If the post or page is authored by a user who has specified their own affiliate 
 Otherwise the Affiliate IDs in the 'default' channel will be used.
 
 If the Channel selected does not contain affiliate IDs for all locales then ones from the 'default' Channel will be automatically inserted.
+
+= Can I specify different ASINs for different locales? =
+
+
+If you want to provide different ASINs for different locales then this can be done using the shortcode country modifiers .
+
+For example if you want to generate a link for a book and the ASIN for France is '2020479893', the UK is '0340993782' and Germany is '3548602045'. Then putting the following in the shortcode will ensure that any localised links will use the appropriate ASIN.
+
+`asin[uk]=0340993782&asin[fr]=2020479893&asin[de]=3548602045`
+
+If you have 'live' data enabled then if the link is localised all other aspects (Title, images, etc.) will be generated using the appropriate ASIN.
+
+If the link is localised to a locale that does not have a user specified ASIN then it will use the one from the default locale.
+
+Alternatively if you have 'search link' enabled the plugin will generate a link that will cause Amazon to search for the keywords related to the product rather than a specific ASIN.
 
 = Why doesn't the Wishlist function or Search or Live data work? =
 
@@ -618,11 +661,14 @@ Features I will be adding to the plugin in the future:
 
 
 * Allow the wishlist to search for legacy amazon links not just ones embedded in the shortcode.
-* Cache product queries to the Amazon sites (by locality).
 
 == Upgrade Notice ==
 
-= 2.0.9 =
+= 3.0.1 =
+
+Upgrade to take advantage of the Template Manager and the new default templates, to improve page loading by activating the Product Cache, or to take advantage of the 'country' modifiers in the shortcode and templates.
+
+= 2.0.9 =
 
 Upgrade to enable 'search for product' type links or having problems with the search tool.
 
