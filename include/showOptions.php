@@ -23,6 +23,10 @@
       foreach ($optionList as $optName => $optDetails) {
          if (isset($optDetails['Name'])) {
             // Read their posted value
+            if ((($optName == 'pub_key') || ($optName == 'priv_key')) &&
+                ($Opts[$optName] != stripslashes($_POST[$optName]))) {
+              $AWS_keys_updated = 1;
+            }
             $Opts[$optName] = stripslashes($_POST[$optName]);
             }
       }
@@ -68,7 +72,24 @@
    }
 
 /*****************************************************************************************/
+  // echo "<PRE>"; print_r($Opts); echo "</pRE>";
+   /* AWS Keys not yet validate, do a dummy request to see if we get any errors */
+   if (strlen($Opts['pub_key']) > 0) {
+      if ((isset($AWS_keys_updated) || !$Opts['aws_valid'])) {
+         $result = $this->validate_keys($Opts);
+         $Opts['aws_valid'] = $result['Valid'];
+         if (!$result['Valid']) {
+            $optionList['aws_valid']['Description'] = '<span style="color:red">' .
+                                                       __('AWS Request Failed, please check keys - Error Message: ','amazon-link') .
+                                                       $result['Message'] . 
+                                                       '</span>';
+         }
+      }
+   } else {
+      $Opts['aws_valid'] = 0;
+   }
 
+/*****************************************************************************************/
    /*
     * If first run need to create a default settings
     */
@@ -79,6 +100,7 @@
          $Update = True;
       }
    }
+
    if ($Update && current_user_can('manage_options'))
       $this->saveOptions($Opts);
 
@@ -129,12 +151,12 @@
 
 //         $pxml = $this->search->do_search(array('s_title' => 'boot', 's_artist' =>'', 's_index' => 'Shoes' ));
 //         echo "<!--PXML:"; print_r($pxml); echo "-->";
-//$pxml = $this->itemLookup('0141194529,B000H2X2EW,0340993766,B002V092EC');
+//$pxml = $this->itemLookup('0141194529');//,B000H2X2EW,0340993766,B002V092EC');
 //echo "<!--ITEMLOOKUP:"; print_r($pxml); echo "-->";
 //$request = array('Operation'     => 'ItemLookup',
-// 'ResponseGroup' => 'Offers,ItemAttributes,Large,Reviews,Images,SalesRank,EditorialReview',
+// 'ResponseGroup' => 'ItemAttributes,Large,Reviews,Images,SalesRank,EditorialReview',
 // 'ResponseGroup' => 'ItemAttributes',
-// 'ItemId'        => 'B006FTFGUY', 
+// 'ItemId'        => 'B000H2X2EW', 
 // 'IdType'        => 'ASIN');
 //$settings = $this->getSettings();
 //$pxml = $this->doQuery($request, $settings);

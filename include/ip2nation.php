@@ -30,7 +30,7 @@ if (!class_exists('AmazonWishlist_ip2nation')) {
          $sql = "SHOW TABLE STATUS WHERE Name LIKE '". $this->db ."'";
          $db_info = $wpdb->get_row($sql);
          if ($db_info != NULL) {
-            $ip2nationdb_ts = strtotime($db_info->Update_time);
+            $ip2nationdb_ts = ($db_info->Update_time != NULL) ? strtotime($db_info->Update_time) : strtotime($db_info->Create_time);
             $ip2nationdb_time = date('D, d M Y H:i:s', $ip2nationdb_ts);
          } else {
             $ip2nationdb_ts = False;

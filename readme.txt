@@ -74,7 +74,7 @@ This is created by either putting the line `amazon_recommends(<Category>,<Number
 
 
 1. Install either via WordPress Plugin Installer (Go to: `'Plugins' > 'Add New'` admin page and Search Plugins using the term `'amazon link'`). Or by uploading the files to your server (in `'/wp-content/plugins/'`) after downloading the [amazon-link plugin](http://wordpress.org/extend/plugins/amazon-link/) from the [Plugin Directory](http://wordpress.org/extend/plugins/)
-Activate the plugin through the 'Plugins' menu in WordPress.
+1. Activate the plugin through the 'Plugins' menu in WordPress.
 1. Update the settings (at the very least enter the default Affiliate Tags)
 1. If you wish to use the advanced functionality: Wishlists, Search, Media Upload facilities or the live data option you must also set up an [Amazon Web Services](http://aws.amazon.com/) account. So that you can update the AWS Public and Private key settings.
 1. Insert links and wishlists into your content using the [amazon] tag as described above, or using the Amazon Link box on the Page/Post edit pages.

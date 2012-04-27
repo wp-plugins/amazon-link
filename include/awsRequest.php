@@ -103,17 +103,24 @@ if (!function_exists('unserialize_xml')) {
     // create request
     $request = "http://".$host.$uri."?".$canonicalized_query."&Signature=".$signature;
     
-    // echo "<!-- REQ: "; print_r($request); echo "-->";
+//     echo "<!-- REQ: "; print_r($request); echo "-->";
     // do request
     $response = @file_get_contents($request);
-    // echo "<!--RESP:"; print_r($response); echo "-->";
 
-    if ($response === False)
+    if( !class_exists( 'WP_Http' ) )
+        include_once( ABSPATH . WPINC. '/class-http.php' );
+
+    $http_request = new WP_Http;
+    $result = $http_request->request( $request );
+//     echo "<!--RESP:"; print_r($result); echo "-->";
+
+    if ($result instanceof WP_Error )
     {
         return False;
     }
     else
     {
+        $response=$result['body'];
         // parse XML
         $pxml = unserialize_xml($response);
         if ($pxml === False)

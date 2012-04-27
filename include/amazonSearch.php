@@ -486,13 +486,13 @@ if (!class_exists('AmazonLinkSearch')) {
 
          // 'channel' used may be different for each shortcode or post so need to refresh every template
          $data = $this->regionalise($local_info, $local_country);
-
+//         $data = $this->regionalise(array('asin' =>$item['asin']), $default_country, $data);
+         if (!is_array($item['asin'])) $item['asin'] = array($default_country => $item['asin']);
          if ($item['global_over']) {
             $data = $this->globalise($item, $data);
          } else {
             $data = $this->regionalise($item, $local_country, $data);
          }
-//         echo "<PRE>DATA: "; print_r($data); echo "</pRE>";
          $input = htmlspecialchars_decode (stripslashes($item['template_content']));
 
          $local_settings = $item;
@@ -569,6 +569,7 @@ if (!class_exists('AmazonLinkSearch')) {
                   } else {
                      $data         = $this->regionalise($local_info, $country, $data);
                      if (!isset($data[$keyword][$country])) $data[$keyword][$country] = 'NL';
+                     $data['found'][$country] = 1;
                   }
                }
                $phrase = $data[$keyword][$country];

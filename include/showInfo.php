@@ -10,7 +10,7 @@
 <dd><a href="http://wordpress.org/extend/plugins/amazon-link/">Wordpress Plugin Page</a></dd>
 <dl>
 <dt>Homepage:</dt>
-<dd><a href="http://www.houseindorset.co.uk/plugins/amazon-link/">My Plugin Page</a></dd>
+<dd><a href="<?php echo $this->plugin_home;?>">My Plugin Page</a></dd>
 <dl>
 <dt>Version:</dt>
 <dd><?php echo $this->plugin_version;?></dd>

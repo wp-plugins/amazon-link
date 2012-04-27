@@ -100,13 +100,15 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
       var $TagHead       = '[amazon';
       var $TagTail       = ']';
       var $cache_table   = 'amazon_link_cache';
-      var $option_version= 4;
+      var $option_version= 5;
       var $plugin_version= '3.0.1';
       var $optionName    = 'AmazonLinkOptions';
       var $user_options  = 'amazonlinkoptions';
       var $templatesName = 'AmazonLinkTemplates';
       var $channels_name = 'AmazonLinkChannels';
       var $settings_slug = 'amazon-link-options';
+
+      var $plugin_home   = 'http://www.houseindorset.co.uk/plugins/amazon-link/';
 
       var $multi_id      = 0;
       var $scripts_done  = False;
@@ -224,6 +226,16 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
             $Opts['version'] = 4;
             $this->saveOptions($Opts);
          }
+         
+         if ($Opts['version'] == 4) {
+            /* Upgrade from 4 to 5:
+             * Add 'aws_valid' to indicate validity of the AWS keys.
+             */
+            $result = $this->validate_keys($Opts);
+            $Opts['aws_valid'] = $result['Valid'];
+            $Opts['version'] = 5;
+            $this->saveOptions($Opts);
+         }
       }
 
       // On wordpress initialisation - load text domain and register styles & scripts
@@ -273,11 +285,19 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          add_action( "admin_print_scripts-post-new.php", array($this,'edit_scripts') );
          add_action( "admin_print_styles-post-new.php", array($this,'amazon_admin_styles') );
          add_action( "admin_print_styles-post.php", array($this,'amazon_admin_styles') );
+      }
 
+      function admin_help($contextual_help, $page, $screen) {
+         if ($page== $this->opts_page ) {
+            $contextual_help = __('Use this page to set up the global settings, provide Affiliate tags for each country locale, configure your AWS keys and select and edit any Templates you might require.','amazon-link');
+         }
+         return $contextual_help;
       }
 
       // Hooks required to bring up options page with meta boxes:
       function load_options_page() {
+
+         $screen = get_current_screen();
 
          add_filter('screen_layout_columns', array(&$this, 'adminColumns'), 10, 2);
 
@@ -291,6 +311,39 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          add_meta_box( 'alTemplateHelp', __( 'Template Help', 'amazon-link' ), array (&$this, 'displayTemplateHelp' ), $this->opts_page, 'side', 'low' );
          add_meta_box( 'alTemplates', __( 'Templates', 'amazon-link' ), array (&$this, 'show_templates' ), $this->opts_page, 'advanced', 'core' );
          add_meta_box( 'alManageTemplates', __( 'Default Templates', 'amazon-link' ), array (&$this, 'show_default_templates' ), $this->opts_page, 'advanced', 'low' );
+
+         if ( $screen->id != $this->opts_page)
+            return;
+
+         // Add Contextual Help
+
+         $screen->add_help_tab( array( 'id'      => 'amazon-options-tab',
+                                       'title'   => __('Options', 'amazon-link'),
+                                       'content' => '<p>' . __('Use this section to set up the global <b>Display Options</b> that change how links are displayed and their behaviour, to enable advance options like \'<code>live data</code>\', the Product search tool or \'<code>Wishlist</code>\' facility you must also configure your AWS keys in the <b>Amazon Associate Information</b> sub section.','amazon-link') . '</p>' .
+                                                    '<p>' . __('Within this section you can also set up the Amazon Product Data Cache, select Enable to install the cache, Disable to remove it, and Flush to empty any cached data.','amazon-link') . '</p>' .
+                                                    '<p>' . __('The status of the ip2nation database is displayed at the bottom of this section, with options to Install the database if it is not already installed or a new version is available on the ip2nation website.','amazon-link') . '</p>')
+                              );
+         $screen->add_help_tab( array( 'id'      => 'amazon-channels-tab',
+                                       'title'   => __('Channels', 'amazon-link'),
+                                       'content' => '<p>' . __('Use this section to set up the global default <b>Amazon Affiliate Tags</b>, as well as create named Channels that can be used on the Amazon Affiliate Site to track the performance of different sections of your site. </p><p> You can also set Affiliate tags in the WordPress User\'s Profile page, these will automatically be used on any post authored by that user','amazon-link') . '</p>')
+                              );
+         $screen->add_help_tab( array( 'id'      => 'amazon-templates-tab',
+                                       'title'   => __('Templates', 'amazon-link'),
+                                       'content' => '<p>' . __('Use this section to edit, create and delete Templates used to create the Amazon Links on your site, the content is standard HTML with special <code>%</code> delimited keywords that are replaced by appropriate product information, see the \'Template Help\' section for a list of all valid keywords.','amazon-link') . '</p>')
+                              );
+         $screen->add_help_tab( array( 'id'      => 'amazon-templates-help-tab',
+                                       'title'   => __('Templates Keywords', 'amazon-link'),
+                                       'callback'=> array($this, 'displayTemplateHelp'))
+                              );
+         $screen->add_help_tab( array( 'id'      => 'amazon-templates-default-tab',
+                                       'title'   => __('Default Templates', 'amazon-link'),
+                                       'content'=> '<p>' . __('This section lists all the default templates included with the plugin, use it to re-install or your update your active templates.','amazon-link') . '</p>')
+                              );
+         $screen->set_help_sidebar('<p><b>'. __('For more information:'). '</b></p>' .
+                                   '<p><a target="_blank" href="'. $this->plugin_home . '">' . __('Plugin Home Page','amazon-link') . '</a></p>' .
+                                   '<p><a target="_blank" href="'. $this->plugin_home . 'faq/">' . __('Plugin FAQ','amazon-link') . '</a></p>' .
+                                   '<p><a target="_blank" href="'. $this->plugin_home . 'faq/#channels">' . __('Channels Help','amazon-link') . '</a></p>' .
+                                   '<p><a target="_blank" href="'. $this->plugin_home . 'faq/#templates">' . __('Template Help','amazon-link') . '</a></p>');
       }
 
       function adminColumns($columns, $screen) {
@@ -448,7 +501,7 @@ function al_gen_multi (id, term, def, chan) {
             'localise' => array('Name' => __('Localise Amazon Link', 'amazon-link'), 'Description' => __('Make the link point to the user\'s local Amazon website, (you must have ip2nation installed for this to work).', 'amazon-link'), 'Default' => '1', 'Type' => 'checkbox', 'Class' => 'al_border' ),
             'global_over' => array('Name' => __('Global Defaults', 'amazon-link'), 'Description' => __('Default values in the shortcode "title=xxxx" affect all locales, if not set only override the default locale.', 'amazon-link'), 'Default' => '1', 'Type' => 'checkbox', 'Class' => 'alternate al_border' ),
             'search_link' => array('Name' => __('Create Search Links', 'amazon-link'), 'Description' => __('Generate links to search for the items by "Author Title" for non local links, rather than direct links to the product by ASIN.', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox', 'Class' => 'al_border' ),
-            'search_text' => array( 'Name' => __('Default Search String', 'amazon-link'), 'Description' => __('Default items to search for with "Search Links", uses the same system as the Templates below.', 'amazon-link'), 'Default' => '%AUTHOR% | %TITLE%', 'Type' => 'text', 'Size' => '40', 'Class' => 'alternate al_border' ),
+            'search_text' => array( 'Name' => __('Default Search String', 'amazon-link'), 'Description' => __('Default items to search for with "Search Links", uses the same system as the Templates below.', 'amazon-link'), 'Default' => '%ARTIST% | %TITLE%', 'Type' => 'text', 'Size' => '40', 'Class' => 'alternate al_border' ),
             'live' => array ( 'Name' => __('Live Data', 'amazon-link'), 'Description' => __('When creating Amazon links, use live data from the Amazon site, otherwise populate the shortcode with static information. <em>* <a href="#aws_notes" title="AWS Access keys required for full functionality">AWS</a> *</em>', 'amazon-link'), 'Default' => '1', 'Type' => 'checkbox', 'Class' => 'al_border' ),
             'new_window' => array('Name' => __('New Window Link', 'amazon-link'), 'Description' => __('When link is clicked on, open it in a new browser window', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox', 'Class' => 'alternate' ),
    
@@ -457,9 +510,10 @@ function al_gen_multi (id, term, def, chan) {
             /* Options related to the Amazon backend */
             'hd2s' => array ( 'Type' => 'section', 'Value' => __('Amazon Associate Information','amazon-link'), 'Section_Class' => 'al_subhead1'),
             'default_cc' => array( 'Name' => __('Default Country', 'amazon-link'), 'Hint' => __('The Amazon Affiliate Tags should be entered in the \'Channels\' section below', 'amazon-link'),'Description' => __('Which country\'s Amazon site to use by default', 'amazon-link'), 'Default' => 'uk', 'Type' => 'selection', 'Class' => 'al_border' ),
-            'aws_help' => array( 'Name' => __('AWS Note', 'amazon-link'), 'Value' => __('AWS Access Keys', 'amazon-link'), 'Description' => __('The AWS Keys are required for some of the features of the plugin to work (The ones marked with AWS above), visit <a href="http://aws.amazon.com/">Amazon Web Services</a> to sign up to get your own keys.', 'amazon-link'), 'Title_Class' => 'al_subheading', 'Id' => 'aws_notes', 'Default' => '', 'Type' => 'title', 'Class' => 'alternate al_border' ),
-            'pub_key' => array( 'Name' => __('AWS Public Key', 'amazon-link'), 'Description' => __('Access Key ID provided by your AWS Account, found under Security Credentials/Access Keys of your AWS account', 'amazon-link'), 'Default' => '', 'Type' => 'text', 'Size' => '40', 'Class' => 'alternate al_border' ),
-            'priv_key' => array( 'Name' => __('AWS Private key', 'amazon-link'), 'Description' => __('Secret Access Key ID provided by your AWS Account.', 'amazon-link'), 'Default' => '', 'Type' => 'text', 'Size' => '40', 'Class' => 'al_border' ),
+            'aws_help' => array( 'Value' => __('AWS Access Keys', 'amazon-link'), 'Description' => __('The AWS Keys are required for some of the features of the plugin to work (The ones marked with AWS above), visit <a href="http://aws.amazon.com/">Amazon Web Services</a> to sign up to get your own keys.', 'amazon-link'), 'Title_Class' => 'al_subheading', 'Id' => 'aws_notes', 'Default' => '', 'Type' => 'title', 'Class' => 'alternate al_border' ),
+            'pub_key' => array( 'Name' => __('AWS Public Key', 'amazon-link'), 'Description' => __('Access Key ID provided by your AWS Account, found under Security Credentials/Access Keys of your AWS account', 'amazon-link'), 'Default' => '', 'Type' => 'text', 'Size' => '40', 'Class' => 'alternate' ),
+            'priv_key' => array( 'Name' => __('AWS Private key', 'amazon-link'), 'Description' => __('Secret Access Key ID provided by your AWS Account.', 'amazon-link'), 'Default' => '', 'Type' => 'text', 'Size' => '40', 'Class' => '' ),
+            'aws_valid' => array ( 'Type' => 'checkbox', 'Read_Only' => 1, 'Name' => 'AWS Keys Validated', 'Default' => '0', 'Class' => 'al_border'),
             'debug' => array( 'Name' => __('Debug Output', 'amazon-link'), 'Description' => __('Adds hidden debug output to the page source to aid debugging. <b>Do not enable on live sites</b>.', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox', 'Size' => '40', 'Class' => 'al_border' ),
             'hd2e' => array ( 'Type' => 'end'),
 
@@ -666,6 +720,24 @@ function al_gen_multi (id, term, def, chan) {
          if ( (strlen($Settings['pub_key']) > 10) && (strlen($Settings['priv_key']) > 10))
             return True;
          return False;
+      }
+
+      function validate_keys($Settings = NULL) {
+        if (Settings === NULL) $Settings = $this->getSettings();
+
+        $result['Valid'] = 0;
+        $result['Message'] = 'AWS query failed to get a response - try again later.';
+        $request = array('Operation'     => 'ItemLookup', 
+                         'ResponseGroup' => 'ItemAttributes',
+                         'IdType'        => 'ASIN', 'ItemId' => 'B000H2X2EW');
+         $pxml = $this->doQuery($request, $Settings);
+         if (isset($pxml['Items'])) {
+            $result['Valid'] = 1;
+         } else if (isset($pxml['Error'])) {
+            $result['Valid'] = 0;
+            $result['Message'] = $pxml['Error']['Message'];
+         }
+         return $result;
       }
 
 /*****************************************************************************************/
@@ -1140,7 +1212,6 @@ if (TIMING) {$time_taken = microtime(true)-$time_start;echo "<!--Cache Save: $ti
             $local_info = $this->get_local_info($settings);
 
          if (!isset($settings['home_cc'])) $settings['home_cc'] = $settings['default_cc'];
-
          if ($settings['multi_cc']) {
             // Need to check all locales...
             $sep = '{';
