@@ -151,14 +151,14 @@
 
 //         $pxml = $this->search->do_search(array('s_title' => 'boot', 's_artist' =>'', 's_index' => 'Shoes' ));
 //         echo "<!--PXML:"; print_r($pxml); echo "-->";
-//$pxml = $this->itemLookup('0141194529');//,B000H2X2EW,0340993766,B002V092EC');
+//$settings = $this->getSettings();
+//$pxml = $this->itemLookup('0141194529', $settings);//,B000H2X2EW,0340993766,B002V092EC');
 //echo "<!--ITEMLOOKUP:"; print_r($pxml); echo "-->";
 //$request = array('Operation'     => 'ItemLookup',
 // 'ResponseGroup' => 'ItemAttributes,Large,Reviews,Images,SalesRank,EditorialReview',
 // 'ResponseGroup' => 'ItemAttributes',
 // 'ItemId'        => 'B000H2X2EW', 
 // 'IdType'        => 'ASIN');
-//$settings = $this->getSettings();
 //$pxml = $this->doQuery($request, $settings);
 //echo "<PRE>"; print_r($pxml); echo "</PRE>";
 

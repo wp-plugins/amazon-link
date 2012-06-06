@@ -67,7 +67,7 @@ if (!class_exists('AmazonWishlist_Options')) {
                   $id     = isset($optDetails['Id']) ? 'id="'.$optDetails['Id'].'"' : '';
                   $class  = isset($optDetails['Class']) ? 'class="'.$optDetails['Class'].' al_opt_container"' : 'class="al_opt_container"';
                   $script = isset($optDetails['Script']) ? ' onClick="'.$optDetails['Script'].'" ' : '';
-                  $readonly = isset($optDetails['Read_Only']) ? 'readonly="readonly" ' : '';
+                  $readonly = isset($optDetails['Read_Only']) ? 'readonly disabled ' : '';
 ?>
    <dl <?php echo $class ?>>
     <dt class="al_label"><label for="<?php echo $optName; ?>"><?php echo $optDetails['Name']; ?></label></dt>
@@ -86,7 +86,7 @@ if (!class_exists('AmazonWishlist_Options')) {
                   $id = isset($optDetails['Id']) ? 'id="'.$optDetails['Id'].'" ' : '';
                   $class  = isset($optDetails['Class']) ? 'class="'.$optDetails['Class'].' al_opt_container"' : 'class="al_opt_container"';
                   $hint   = isset($optDetails['Hint']) ? ' title = "'.$optDetails['Hint'].'"' : '';
-                  $readonly = isset($optDetails['Read_Only']) ? 'readonly="readonly" ' : '';
+                  $readonly = isset($optDetails['Read_Only']) ? 'readonly disabled ' : '';
 ?>
    <dl <?php echo $class ?>>
     <dt class="al_label"><label for="<?php echo $optName; ?>"><?php echo $optDetails['Name']; ?></label></dt>
@@ -120,7 +120,8 @@ if (!class_exists('AmazonWishlist_Options')) {
                   $id = isset($optDetails['Id']) ? ' id="'.$optDetails['Id'].'" ' : '';
                   $class  = isset($optDetails['Class']) ? 'class="'.$optDetails['Class'].' al_opt_container"' : 'class="al_opt_container"';
                   $rows = isset($optDetails['Rows']) ? ' rows="'.$optDetails['Rows'].'" ' : '';
-                  $readonly = isset($optDetails['Read_Only']) ? 'readonly="readonly" ' : '';
+                  $readonly = isset($optDetails['Read_Only']) ? 'readonly ' : '';
+                  $readonly .= isset($optDetails['Disabled']) ? 'disabled ' : '';
 ?>
    <dl <?php echo $class ?>>
     <dt class="al_label"><label for="<?php echo $optName; ?>"><?php echo $optName; ?></label></dt>
@@ -140,7 +141,7 @@ if (!class_exists('AmazonWishlist_Options')) {
                   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
                   $class  = isset($optDetails['Class']) ? 'class="'.$optDetails['Class'].' al_opt_container"' : 'class="al_opt_container"';
-                  $readonly = isset($optDetails['Read_Only']) ? 'readonly="readonly" ' : '';
+                  $readonly = isset($optDetails['Read_Only']) ? 'readonly disabled ' : '';
 ?>
    <dl <?php echo $class ?>>
     <dt class="al_label"><label for="<?php echo $optName; ?>"><?php echo $optDetails['Name']; ?></label>
@@ -206,7 +207,8 @@ if (!class_exists('AmazonWishlist_Options')) {
                   $hint = isset($optDetails['Hint']) ? $optDetails['Hint'] : '';
                   $id = isset($optDetails['Id']) ? 'id="'.$optDetails['Id'].'"' : '';
                   $class  = isset($optDetails['Class']) ? 'class="'.$optDetails['Class'].' al_opt_container"' : 'class="al_opt_container"';
-                  $readonly = isset($optDetails['Read_Only']) ? 'readonly="readonly" ' : '';
+                  $readonly = isset($optDetails['Read_Only']) ? 'readonly ' : '';
+                  $readonly .= isset($optDetails['Disabled']) ? 'disabled ' : '';
                   if ($NoTable) {
 ?>
    <dl <?php echo $class ?>>

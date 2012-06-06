@@ -77,7 +77,7 @@ if (!function_exists('unserialize_xml')) {
     $params["Timestamp"] = gmdate("Y-m-d\TH:i:s\Z");
     // API version
     $params["Version"] = "2011-08-01";
-    
+
     // sort the parameters
     ksort($params);
     

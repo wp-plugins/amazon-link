@@ -12,7 +12,7 @@ License: GPL2
 */
 
 /*
-Copyright 2011-2012 Paul Stuttard (email : wordpress_amazonlink@ redtom.co.uk)
+Copyright 2012-2013 Paul Stuttard (email : wordpress_amazonlink@ redtom.co.uk)
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -230,9 +230,11 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          if ($Opts['version'] == 4) {
             /* Upgrade from 4 to 5:
              * Add 'aws_valid' to indicate validity of the AWS keys.
+             * Correct invalid %AUTHOR% keyword in search_text option.
              */
             $result = $this->validate_keys($Opts);
             $Opts['aws_valid'] = $result['Valid'];
+            $Opts['search_text'] = preg_replace( '!%AUTHOR%!', '%ARTIST%', $Opts['search_text']);
             $Opts['version'] = 5;
             $this->saveOptions($Opts);
          }
@@ -380,7 +382,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
 
          $TARGET = $Settings['new_window'] ? 'target="_blank"' : '';
          ?>
-
+<span id="al_popup" onmouseover="al_div_in()" onmouseout="al_div_out()"></span>
 <script type='text/javascript'> 
 function al_gen_multi (id, term, def, chan) {
    var country_data = new Array();
@@ -426,12 +428,10 @@ function al_gen_multi (id, term, def, chan) {
 
 
       function create_popup (){
-         if ($this->scripts_done) {
-             return '';
-         } else {
+         if (!$this->scripts_done) {
              $this->scripts_done = True;
              add_action('wp_print_footer_scripts', array($this, 'generate_multi_script'));
-             return '<span id="al_popup" onmouseover="al_div_in()" onmouseout="al_div_out()"></span>';
+             return;
          }
       }
 
@@ -702,6 +702,7 @@ function al_gen_multi (id, term, def, chan) {
                $this->Settings[$key] = $details['OverrideBlank'];      // Use default
             }
          }
+
          return $this->Settings;
       }
 
@@ -1118,8 +1119,10 @@ function al_gen_multi (id, term, def, chan) {
          $arg  = substr($term,2);
          if ($type == 'A')
             $text='http://www.amazon.' . $tld . '/gp/product/'. $arg. '?ie=UTF8&linkCode=as2&camp=1634&creative=6738&tag=' . $tag .'&creativeASIN='. $arg;
-         else {
+         else if ($type == 'S') {
             $text='http://www.amazon.' . $tld . '/mn/search/?_encoding=UTF8&linkCode=ur2&camp=1634&creative=19450&tag=' . $tag. '&field-keywords=' . $arg;
+         } else {
+            $text='http://www.amazon.' . $tld . '/review/'. $arg. '?_encoding=UTF8&linkCode=ur2&camp=1634&creative=19450&tag=' . $tag. '&field-keywords=' . $arg;
          }
          return $text;
       }
@@ -1159,7 +1162,7 @@ if (TIMING) {$time_taken = microtime(true)-$time_start;echo "<!--AWS Lookup: $ti
 
             if (($pxml === False) || !isset($pxml['Items']['Item'])) {
                // Failed to return any results
-               $items = array(array('ASIN' => $asin, 'found' => 0));
+               $items = array(array('ASIN' => $asin, 'found' => 0, 'error' => (isset($pxml['Error']['Message'])? $pxml['Error']['Message'] : 'No Items Found') ));
                return $items;
             } else {
                if (array_key_exists('ASIN', $pxml['Items']['Item'])) {
@@ -1190,6 +1193,7 @@ if (TIMING) {$time_taken = microtime(true)-$time_start;echo "<!--Cache Save: $ti
 
       function doQuery($request, $Settings = NULL)
       {
+
          if ($Settings === NULL)
             $Settings = $this->getSettings();
          else
@@ -1203,7 +1207,7 @@ if (TIMING) {$time_taken = microtime(true)-$time_start;echo "<!--Cache Save: $ti
          return $this->aws_signed_request($tld, $request, $Settings['pub_key'], $Settings['priv_key']);
       }
 
-      function make_link($asin, $object, $settings = NULL, $local_info = NULL, $search = '')
+      function make_link($asin, $object, $settings = NULL, $local_info = NULL, $search = '', $type = 'product')
       {
          if ($settings === NULL)
             $settings = $this->getSettings();
@@ -1230,16 +1234,21 @@ if (TIMING) {$time_taken = microtime(true)-$time_start;echo "<!--Cache Save: $ti
          }
          $term .= '}';
 
+         if ($type == 'review') {
+            $type = 'R-';
+         } else if ($type == 'product') {
+            $type = 'A-';
+         }
 
          if (isset($asin[$local_info['cc']])) {
 
             // User Specified ASIN always use
-            $url_term = 'A-' . $asin[$local_info['cc']];
+            $url_term = $type . $asin[$local_info['cc']];
 
          } else if ($settings['search_link']) {
             $url_term = 'S-'. ($search);
          } else {
-            $url_term = 'A-' . $asin[$settings['home_cc']];
+            $url_term = $type . $asin[$settings['home_cc']];
          }
 
          /*
@@ -1249,12 +1258,12 @@ if (TIMING) {$time_taken = microtime(true)-$time_start;echo "<!--Cache Save: $ti
          $URL    = $this->getURL($url_term, $local_info['tld'], $local_info['tag']);
 
          if ($settings['multi_cc']) {
-            $text  = $this->create_popup();
-            $text .='<a '. $TARGET .' onMouseOut="al_link_out()" href="' . $URL .'" onMouseOver="al_gen_multi('. $this->multi_id . ', ' . $term. ', \''. $local_info['cc']. '\', \''. $local_info['channel'] .'\');">';
+           $this->create_popup();
+            $text ='<a rel="nofollow" '. $TARGET .' onMouseOut="al_link_out()" href="' . $URL .'" onMouseOver="al_gen_multi('. $this->multi_id . ', ' . $term. ', \''. $local_info['cc']. '\', \''. $local_info['channel'] .'\');">';
             $text .= $object. '</a>';
             $this->multi_id++;
          } else {
-            $text='<a '. $TARGET .' href="' . $URL .'">' . $object . '</a>';
+            $text='<a rel="nofollow" '. $TARGET .' href="' . $URL .'">' . $object . '</a>';
          }
          return $text;
       }

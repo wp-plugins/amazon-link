@@ -81,7 +81,9 @@ if (!class_exists('AmazonLinkSearch')) {
 
          $this->alink    = $parent;
          $this->keywords = array(
-                                  'link_open'    => array( 'Description' => __('Create a Amazon link with user defined content, of the form %LINK_OPEN%My Content%LINK_CLOSE%', 'amazon-link'), 'link' => '1'),
+                                  'link_open'    => array( 'Description' => __('Create an Amazon link to a product with user defined content, of the form %LINK_OPEN%My Content%LINK_CLOSE%', 'amazon-link'), 'link' => '1'),
+                                  'rlink_open'   => array( 'Description' => __('Create an Amazon link to product reviews with user defined content, of the form %RLINK_OPEN%My Content%LINK_CLOSE%', 'amazon-link'), 'link' => '1'),
+                                  'slink_open'   => array( 'Description' => __('Create an Amazon link to a search page with user defined content, of the form %SLINK_OPEN%My Content%LINK_CLOSE%', 'amazon-link'), 'link' => '1'),
                                   'link_close'   => array( 'Description' => __('Must follow a LINK_OPEN (translates to "</a>").', 'amazon-link')),
                                   'asin'         => array( 'Description' => __('Item\'s unique ASIN', 'amazon-link'), 'live' => '1'),
                                   'asins'        => array( 'Description' => __('Comma seperated list of ASINs', 'amazon-link')),
@@ -363,6 +365,8 @@ if (!class_exists('AmazonLinkSearch')) {
          }
 
          $data['link_open'][$local_info['cc']] = substr($this->alink->make_link($asin,'',$settings, $local_info, $search),0,-4);
+         $data['rlink_open'][$local_info['cc']] = substr($this->alink->make_link($asin,'',$settings, $local_info, $search, 'review'),0,-4);
+         $data['slink_open'][$local_info['cc']] = substr($this->alink->make_link($asin,'',$settings, $local_info, $search, 'search'),0,-4);
          $data['link_close'][$local_info['cc']] = '</a>';
          return $data;
       }
@@ -410,7 +414,7 @@ if (!class_exists('AmazonLinkSearch')) {
                                      (isset($result['ItemAttributes']['ListPrice']['FormattedPrice']) ? $result['ItemAttributes']['ListPrice']['FormattedPrice'] : '-'))));
          if (!isset($data['type'][$country])) $data['type'][$country]    = 'Amazon';
          if (!isset($data['product'][$country])) $data['product'][$country] = (isset($result['ItemAttributes']['ProductGroup']) ? $result['ItemAttributes']['ProductGroup'] : '-');
-         if (!isset($data['found'][$country])) $data['found'][$country]   = (isset($result['found']) ? $result['found'] : 0);
+         if (!isset($data['found'][$country])) $data['found'][$country]   = (isset($result['found']) ? $result['found'] : 1);
 
          if (!isset($data['thumb'][$country])) {
             if (isset($result['MediumImage']))
@@ -555,21 +559,26 @@ if (!class_exists('AmazonLinkSearch')) {
                   }
                   if ($key_data['live'] && !isset($data[$keyword][$country]) ) {
                      if ($local_settings['live']) {
-//echo "<PRE>DATA: "; print_r($local_settings); echo "</pRE>";
                         $item_data = array_shift($this->alink->itemLookup($asin, $local_settings));
                         if ($localised && !$item_data['found'] && $item['localise'] && ($country != $item['default_cc'])) {
                            $local_settings['default_cc'] = $item['default_cc'];
                            $local_settings['localise']   = 0;
                            $item_data = array_shift($this->alink->itemLookup($asin, $local_settings));
                         }
+                        if ($item['debug'] && isset($item_data['error'])) {
+                           echo "<!-- amazon-link ERROR: "; print_r($item_data); echo "-->";
+//echo "<PRE>DATA: "; print_r($data); echo "</pRE>";
+                        }
                         $data = $this->parse_xml($item_data, $country, $data);
                      } else {
                         $data[$keyword][$country] = 'Undefined';
+                        $data['found'][$country] = 1;
                      }
+                  } else if (($keyword == 'found') && !isset($data[$keyword][$country])) {
+                     $data[$keyword][$country] = 1;
                   } else {
-                     $data         = $this->regionalise($local_info, $country, $data);
+                     $data = $this->regionalise($local_info, $country, $data);
                      if (!isset($data[$keyword][$country])) $data[$keyword][$country] = 'NL';
-                     $data['found'][$country] = 1;
                   }
                }
                $phrase = $data[$keyword][$country];
