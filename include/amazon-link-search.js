@@ -106,9 +106,10 @@ wpAmazonLinkSearcher.prototype = {
    showResults : function (response, status){
       wpAmazonLinkSearch['sendingAmazonRequest'] = false;
       jQuery('#amazon-link-status').addClass('ajax-feedback');
-      if( response["success"] == false ) {
+      if( response["success"] == 0 ) {
          jQuery('#amazon-link-results').hide();
          jQuery('#amazon-link-error').show();
+         jQuery('#amazon-link-error').text((response['message']));
       } else {
          jQuery('#amazon-link-error').hide();
          jQuery('#amazon-link-results').show();

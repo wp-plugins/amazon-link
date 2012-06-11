@@ -134,15 +134,18 @@ if (!class_exists('AmazonLinkSearch')) {
             $Items = $this->do_search($Opts);
          }
 
-         $results['success'] = False;
-         if (is_array($Items) && (count($Items) >0)) {
+        $results['success'] = 0;
+        if (isset($Items['Error']))
+         {
+            $results['message'] = 'Error: ' . $Items['Error'];
+         }  else if (is_array($Items) && (count($Items) >0)) {
             foreach($Items as $Item) {
                $Item['found'] = 1;
                $item = $this->parse_xml($Item, $Settings['default_cc']);
                $item = array_merge($Settings,$item);
                $results['items'][]['template'] = $this->parse_template($item);
             }
-            $results['success'] = True;
+            $results['success'] = 1;
          }
 
          print json_encode($results);
@@ -295,10 +298,14 @@ if (!class_exists('AmazonLinkSearch')) {
 
          if (($pxml === False) || !isset($pxml['Items']['Item'])) {
             $Items = array();
+            if (isset($pxml['Error'])) {
+               $Items['Error'] = $pxml['Error']['Message'];
+            }  else {
+               $Items['Error'] = 'Query returned no results.';
+            }
          } else {
             $Items=$pxml['Items']['Item'];
          }
-
 /* Test Code to check availibility at all sites... 
  //        if( !class_exists( 'WP_Http' ) )
    //         include_once( ABSPATH . WPINC. '/class-http.php' );
