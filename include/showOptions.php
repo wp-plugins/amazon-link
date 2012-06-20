@@ -25,10 +25,12 @@
             // Read their posted value
             if ((($optName == 'pub_key') || ($optName == 'priv_key')) &&
                 ($Opts[$optName] != stripslashes($_POST[$optName]))) {
-              $AWS_keys_updated = 1;
+               $AWS_keys_updated = 1;
+               $Opts[$optName] = trim(stripslashes($_POST[$optName]));
+            } else {
+               $Opts[$optName] = stripslashes($_POST[$optName]);
             }
-            $Opts[$optName] = stripslashes($_POST[$optName]);
-            }
+         }
       }
       $this->saveOptions($Opts);
       $update = __('Options saved.', 'amazon-link' );

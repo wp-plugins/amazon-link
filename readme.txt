@@ -3,8 +3,8 @@ Contributors: paulstuttard
 Donate link: http://www.houseindorset.co.uk/plugins
 Tags: Amazon, links, wishlist, recommend, shortcode, ip2nation, localise, images, media library, affiliate, product, template
 Requires at least: 3.1
-Tested up to: 3.3.2
-Stable tag: 3.0.1
+Tested up to: 3.4
+Stable tag: 3.0.2
 
 
 Provides a facility to insert Amazon product links directly into your site's Pages, Posts and Widgets and Templates.
@@ -29,6 +29,7 @@ All product links will contain the Amazon affiliate ID of the site author and wi
 * [Search Tool](./faq#search) to assist authors to create links in posts and pages
 * Simple `[amazon]` [shortcode](./other_notes#shortcode) used to generate product links
 * [Localisation](./faq#localise) of all links based on the nationality of the reader
+* Amazon Product Details Cache to ensure pages load quickly
 * Optional multinational popup to allow the reader to choose which Amazon site to visit
 * [Global options](./other_notes) to update the behaviour of all the links on your site
 * Ability to locally override the global options using the [shortcode](./other_notes#shortcode) content
@@ -44,28 +45,25 @@ To quickly add a simple text link add the following lines into an entry (page, p
 
 Where ASIN Number is the unique amazon number used to identify products e.g. "1405235675". The Link Text is simply what you want to be shown for the link, e.g. "Mr. Good".
 
-To utilise one of the templates simply specify the template option with the name of the template to use. For example: `[amazon asin=<ASIN Number>&title=<link text>&template=thumbnail]`.
+To utilise one of the templates simply specify the template option with the name of the template to use. For example: `[amazon asin=<ASIN Number>&title=<link text>&thumb=<image url>&template=thumbnail]`.
 
-To generate a list of products relevant to the content of your site use the 'cat' option, to specify where the plugin should search for Amazon product links. This option can be either 'local' to search the current content or a list of category ids to search specific sections of your site. For example I use this feature to provide friends and family some ideas for presents. This feature is based on the Amazon Web Service API and uses the 'CartSimilarities' feature to generate the list of items.
+To take full advantage of the plugin features it is recommended that you have an Amazon Web Services account, and enter the Access Key ID and Secret Access Key in the Amazon Link Settings page. Once your AWS account settings are entered the plugin can be configured to dynamically fill in the templates with live information from the appropriate Amazon site. Alternatively you can use the Amazon Search tool on the Page/Post edit screen to find Amazon products and let the plugin pre-fill the Amazon Link shortcode with all the details needed to create the appropriate template.
+
+To generate a list of products relevant to the content of your site use the 'cat' option, to specify where the plugin should search for Amazon product links. This option can be either 'local' to search the current content or a list of category ids to search specific sections of your site. For example I use this feature to provide friends and family some ideas for presents. This feature also needs access to the Amazon Web Service API and uses the 'CartSimilarities' feature to generate the list of items.
 
 This is created by either putting the line `amazon_recommends(<Category>,<Number of Posts>)` in your template. Or putting the line `[amazon cat=<Category>&last=<Number of Posts>]` within a post or page. Where 'Category' is a list of category ids to search within (e.g. as expected by the 'cat' argument of [query_posts](http://codex.wordpress.org/Template_Tags/query_posts#Parameters) function. The 'last' parameter is the number of posts to search through.
 
-= Latest Version - 3.0.1 =
+= Latest Version - 3.0.2 =
 
 
 
-* New Feature - Simple Template Manager
-* New Feature - Amazon Product Cache to speed up page loading
-* New Feature - Add 'Template Type' option to identify templates that require no ASIN, or Multiple ASINS.
-* New Feature - Search using by 'ASIN' if 'Title' and 'Author' fields blank
-* New Feature - 'country' modifiers (UK#, DE#, US#, etc.) for Template keywords.
-* New Feature - 'country' specific shortcode modifiers (, , , etc.) for any Shortcode keyword.
-* Templates Update - Add 'Amazon Impression Tracking' to templates
-* Templates Update - Add 'Easy Banner' template example
-* Templates Update - Add 'Amazon Preview Script' template, add to the bottom of your post/page or include in your theme's footer
-* Templates Update - Add 'Multinational' template, example of using 'country' modifiers.
-* Bug Fix - Fix filtering of incomplete tags.
-* Bug Fix - Move 'aws_signed_request' into the Class to avoid name clash with 'premiumtheme', thanks to *pst61* for spotting.
+* New Feature - Add basic contextual help to the plugin Settings page.
+* New Feature - Validate AWS keys when entered on the Setting page.
+* New Feature - Add support for 'Link to Reviews' rather than the product in templates
+* New Feature - Add 'rel="nofollow"' to all links.
+* Bug Fix - Check for Creation Date when checking the ip2nation database, thanks to Ken Paulson for spotting
+* Bug Fix - Position of 'multinational popup' made more consistent
+
 
 
 == Installation ==
@@ -77,6 +75,8 @@ This is created by either putting the line `amazon_recommends(<Category>,<Number
 1. Activate the plugin through the 'Plugins' menu in WordPress.
 1. Update the settings (at the very least enter the default Affiliate Tags)
 1. If you wish to use the advanced functionality: Wishlists, Search, Media Upload facilities or the live data option you must also set up an [Amazon Web Services](http://aws.amazon.com/) account. So that you can update the AWS Public and Private key settings.
+1. If you wish to use link localisation then you need to install the ip2nation database using the option in the Amazon Link Settings page.
+1. If you would like to take advantage of the Amazon Link Product caching then you will need to enable this on the Amazon Link Settings page.
 1. Insert links and wishlists into your content using the [amazon] tag as described above, or using the Amazon Link box on the Page/Post edit pages.
 
 
@@ -93,7 +93,19 @@ This is created by either putting the line `amazon_recommends(<Category>,<Number
 
 == Changelog ==
 
-= 3.0.1 =
+= 3.0.2 =
+
+
+
+* New Feature - Add basic contextual help to the plugin Settings page.
+* New Feature - Validate AWS keys when entered on the Setting page.
+* New Feature - Add support for 'Link to Reviews' rather than the product in templates
+* New Feature - Add 'rel="nofollow"' to all links.
+* Bug Fix - Check for Creation Date when checking the ip2nation database, thanks to Ken Paulson for spotting
+* Bug Fix - Position of 'multinational popup' made more consistent
+
+
+= 3.0.1 =
 
 
 
@@ -245,7 +257,7 @@ First Release
 = I've tried the plugin and it doesn't do what I want, help? =
 
 
-If you think the plugin doesn't work, please try contacting me and I will endeavour to help. You can either start a forum topic on the [Wordpress site](http://wordpress.org/tags/amazon-link?forum_id=10) or leave a comment on my site on the plugin page [Amazon Link Page](http://www.houseindorset.co.uk/plugins/amazon-link).
+If you think the plugin doesn't work, please try contacting me and I will endeavour to help. You can either start a forum topic on the [Wordpress site](http://wordpress.org/support/plugin/amazon-link) or leave a comment on my site on the plugin page [Amazon Link Page](http://www.houseindorset.co.uk/plugins/amazon-link).
 
 = Where do I enter my Amazon Affiliate IDs? =
 
@@ -262,7 +274,9 @@ If some of the IDs are not supplied in a User's profile, or in a particular Chan
 
 The plugin adds a helper tool to the Post and Page administrative pages of your Wordpress site that can be used to generate shortcodes easily and quickly. 
 
-If you already know the ASIN then simply enter it into the ASIN input and click on 'Send To Editor'. If not then there is a facility to search Amazon, by ASIN, Index, Product Title and or Product Author/Artist. Use this to find the product you wish to link to on your site, then select the appropriate template and other settings and press the 'Insert' button. This will insert the shortcode into your post, with all the settings required for the selected template pre-filled.
+If you already know the ASIN then simply enter it into the ASIN input and click on 'Send To Editor', this can be used to generate simple text links to products. 
+
+If not then there is a facility to search Amazon, by ASIN, Index, Product Title and or Product Author/Artist. Use this to find the product you wish to link to on your site, then select the appropriate template and other settings and press the 'Insert' button. This will insert the shortcode into your post, with all the settings required for the selected template pre-filled. This feature is only available if you have entered your Amazon Web Services access keys in the plugin settings.
 
 If you are using 'live' data then it will only include keywords that must be provided by the author 'text', 'text1', etc. If you are using static data then it will also prefill the keywords with the product information retrieved from the Amazon site.
 
@@ -664,7 +678,11 @@ Features I will be adding to the plugin in the future:
 
 == Upgrade Notice ==
 
-= 3.0.1 =
+= 3.0.2 =
+
+Upgrade to fix a few bugs in the last release, and add support for AWS ID validation and Contextual help.
+
+= 3.0.1 =
 
 Upgrade to take advantage of the Template Manager and the new default templates, to improve page loading by activating the Product Cache, or to take advantage of the 'country' modifiers in the shortcode and templates.
 

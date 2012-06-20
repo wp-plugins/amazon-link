@@ -4,7 +4,7 @@
 Plugin Name: Amazon Link
 Plugin URI: http://www.houseindorset.co.uk/plugins/amazon-link
 Description: Insert a link to Amazon using the passed ASIN number, with the required affiliate info.
-Version: 3.0.1
+Version: 3.0.2
 Text Domain: amazon-link
 Author: Paul Stuttard
 Author URI: http://www.houseindorset.co.uk
@@ -101,7 +101,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
       var $TagTail       = ']';
       var $cache_table   = 'amazon_link_cache';
       var $option_version= 5;
-      var $plugin_version= '3.0.1';
+      var $plugin_version= '3.0.2';
       var $optionName    = 'AmazonLinkOptions';
       var $user_options  = 'amazonlinkoptions';
       var $templatesName = 'AmazonLinkTemplates';
@@ -341,7 +341,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
                                        'title'   => __('Default Templates', 'amazon-link'),
                                        'content'=> '<p>' . __('This section lists all the default templates included with the plugin, use it to re-install or your update your active templates.','amazon-link') . '</p>')
                               );
-         $screen->set_help_sidebar('<p><b>'. __('For more information:'). '</b></p>' .
+         $screen->set_help_sidebar('<p><b>'. __('For more information:', 'amazon-link'). '</b></p>' .
                                    '<p><a target="_blank" href="'. $this->plugin_home . '">' . __('Plugin Home Page','amazon-link') . '</a></p>' .
                                    '<p><a target="_blank" href="'. $this->plugin_home . 'faq/">' . __('Plugin FAQ','amazon-link') . '</a></p>' .
                                    '<p><a target="_blank" href="'. $this->plugin_home . 'faq/#channels">' . __('Channels Help','amazon-link') . '</a></p>' .
