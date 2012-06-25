@@ -279,9 +279,11 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          add_action( "admin_print_styles-" . $this->opts_page, array($this,'amazon_admin_styles') );
          add_action( "admin_print_scripts-" . $this->opts_page, array($this,'amazon_admin_scripts') );
 
-         // Add support for Post/Page edit metabox, this requires our styles and post edit AJAX scripts.
-         add_meta_box('amazonLinkID', 'Add Amazon Link', array($this,'insertForm'), 'post', 'normal');
-         add_meta_box('amazonLinkID', 'Add Amazon Link', array($this,'insertForm'), 'page', 'normal');
+         // Add support for Post edit metabox, this requires our styles and post edit AJAX scripts.
+         $post_types = get_post_types();
+         foreach ( $post_types as $post_type ) {
+            add_meta_box('amazonLinkID', 'Add Amazon Link', array($this,'insertForm'), $post_type, 'normal');
+         }
 
          add_action( "admin_print_scripts-post.php", array($this,'edit_scripts') );
          add_action( "admin_print_scripts-post-new.php", array($this,'edit_scripts') );
