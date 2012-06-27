@@ -102,6 +102,7 @@ if (!class_exists('AmazonLinkSearch')) {
                                   'url'          => array( 'Description' => __('The URL returned from the Item Search (not localised!)', 'amazon-link'), 'live' => '1'),
                                   'rank'         => array( 'Description' => __('Amazon Rank', 'amazon-link'), 'live' => '1'),
                                   'rating'       => array( 'Description' => __('Numeric User Rating - (No longer Available)', 'amazon-link'), 'live' => '1'),
+                                  'editorial'    => array( 'Description' => __('Editorial Reviews (non-copyrighted only)', 'amazon-link'), 'live' => '1', 'group' => 'EditorialReview'),
                                   'price'        => array( 'Description' => __('Price of Item', 'amazon-link'), 'live' => '1'),
                                   'tag'          => array( 'Description' => __('Localised Amazon Associate Tag', 'amazon-link')),
                                   'cc'           => array( 'Description' => __('Localised Country Code (us, uk, etc.)', 'amazon-link')),
@@ -269,10 +270,10 @@ if (!class_exists('AmazonLinkSearch')) {
                        'xsrelevancerank' => array('Shoes'));
 
          // Create query to retrieve the first 10 matching items
-         $request = array("Operation" => "ItemSearch",
-                          "ResponseGroup" => "Offers,ItemAttributes,Small,Reviews,Images,SalesRank",
-                          "SearchIndex"=>$Opts['s_index'],
-                          "ItemPage"=>$Opts['s_page']);
+         $request = array('Operation' => 'ItemSearch',
+                          'ResponseGroup' => 'Offers,ItemAttributes,Small,EditorialReview,Images,SalesRank',
+                          'SearchIndex'=>$Opts['s_index'],
+                          'ItemPage'=>$Opts['s_page']);
 
          foreach ($Sort as $Term => $Indices) {
             if (in_array($Opts['s_index'], $Indices)) {
@@ -415,6 +416,8 @@ if (!class_exists('AmazonLinkSearch')) {
          if (!isset($data['url'][$country])) $data['url'][$country]     = (isset($result['DetailPageURL']) ? $result['DetailPageURL'] : '');
          if (!isset($data['rank'][$country])) $data['rank'][$country]    = (isset($result['SalesRank']) ? $result['SalesRank'] : '');
          if (!isset($data['rating'][$country])) $data['rating'][$country]  = (isset($result['CustomerReviews']['AverageRating']) ? $result['CustomerReviews']['AverageRating'] : '-');
+         if (!isset($data['editorial'][$country])) $data['editorial'][$country]  = (isset($result['EditorialReviews']['EditorialReview']) ? $this->merge_items($result['EditorialReviews']['EditorialReview'], array('Source' => array('Pre' => '<div class="al_editorial_source">', 'Post' => '</div>'), 'Content' => array('Pre' => '<div class="al_editorial_content">', 'Post' =>'</div>'))) : '-');
+
          if (!isset($data['price'][$country])) $data['price'][$country]   = (isset($result['Offers']['Offer']['OfferListing']['Price']['FormattedPrice']) ? $result['Offers']['Offer']['OfferListing']['Price']['FormattedPrice'] : 
                                    (isset($result['OfferSummary']['LowestNewPrice']['FormattedPrice']) ? $result['OfferSummary']['LowestNewPrice']['FormattedPrice'] :
                                     (isset($result['OfferSummary']['LowestUsedPrice']['FormattedPrice']) ? $result['OfferSummary']['LowestUsedPrice']['FormattedPrice'] :
@@ -574,8 +577,9 @@ if (!class_exists('AmazonLinkSearch')) {
                         }
                         if ($item['debug'] && isset($item_data['error'])) {
                            echo "<!-- amazon-link ERROR: "; print_r($item_data); echo "-->";
-//echo "<PRE>DATA: "; print_r($data); echo "</pRE>";
+
                         }
+//echo "<PRE>DATA: "; print_r($item_data); echo "</pRE>";
                         $data = $this->parse_xml($item_data, $country, $data);
                      } else {
                         $data[$keyword][$country] = 'Undefined';
@@ -592,7 +596,7 @@ if (!class_exists('AmazonLinkSearch')) {
 
                if ($item['multi_cc']) unset ($data['link_open'][$country]); // Only use once
 
-               if ($escaped) $phrase = addslashes($phrase); //urlencode
+               if ($escaped) $phrase = htmlspecialchars(addslashes($phrase)); //urlencode
                $output .= substr($input, $index, ($key_start-$index)) . $phrase;
                $index  = $key_end;
             }
@@ -667,6 +671,19 @@ if (!class_exists('AmazonLinkSearch')) {
             return new WP_Error(__('Could not read downloaded image','amazon-link'));
          }
          return $attach_id;
+      }
+
+      function merge_items($Items, $Elements) {
+         if (!isset($Items[0])) {
+            $Items = array('0' => $Items);
+         }
+         $result = '';
+         foreach ($Items as $Item) {
+            foreach($Elements as $Element => $Info) {
+               $result .= isset ($Item[$Element]) ? $Info['Pre'] . $Item[$Element] . $Info['Post'] : '';
+            }
+         }
+         return $result;
       }
 
       function remove_parents ($array) {

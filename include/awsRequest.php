@@ -103,7 +103,7 @@ if (!function_exists('unserialize_xml')) {
     // create request
     $request = "http://".$host.$uri."?".$canonicalized_query."&Signature=".$signature;
     
-//     echo "<!-- REQ: "; print_r($request); echo "-->";
+//   echo "<!-- REQ: "; print_r($request); echo "-->";
     // do request
     $response = @file_get_contents($request);
 

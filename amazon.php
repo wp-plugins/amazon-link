@@ -1155,7 +1155,7 @@ if (TIMING) {$time_taken = microtime(true)-$time_start;echo "<!--Cache Lookup: $
 if (TIMING) $time_start = microtime(true);
             // Create query to retrieve the an item
             $request = array('Operation'     => 'ItemLookup',
-                             'ResponseGroup' => 'Offers,ItemAttributes,Small,Reviews,Images,SalesRank',
+                             'ResponseGroup' => 'Offers,ItemAttributes,Small,EditorialReview,Images,SalesRank',
                              'ItemId'        => $asin, 
                              'IdType'        => 'ASIN');
 
