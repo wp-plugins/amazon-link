@@ -105,13 +105,7 @@ if (!function_exists('unserialize_xml')) {
     
 //   echo "<!-- REQ: "; print_r($request); echo "-->";
     // do request
-    $response = @file_get_contents($request);
-
-    if( !class_exists( 'WP_Http' ) )
-        include_once( ABSPATH . WPINC. '/class-http.php' );
-
-    $http_request = new WP_Http;
-    $result = $http_request->request( $request );
+    $result = wp_remote_request( $request ); 
 //     echo "<!--RESP:"; print_r($result); echo "-->";
 
     if ($result instanceof WP_Error )

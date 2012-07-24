@@ -80,40 +80,6 @@ if (!class_exists('AmazonLinkSearch')) {
          add_action('wp_ajax_amazon-link-remove-image', array($this, 'removeImage'));  // Handle ajax image removal
 
          $this->alink    = $parent;
-         $this->keywords = array(
-                                  'link_open'    => array( 'Description' => __('Create an Amazon link to a product with user defined content, of the form %LINK_OPEN%My Content%LINK_CLOSE%', 'amazon-link'), 'link' => '1'),
-                                  'rlink_open'   => array( 'Description' => __('Create an Amazon link to product reviews with user defined content, of the form %RLINK_OPEN%My Content%LINK_CLOSE%', 'amazon-link'), 'link' => '1'),
-                                  'slink_open'   => array( 'Description' => __('Create an Amazon link to a search page with user defined content, of the form %SLINK_OPEN%My Content%LINK_CLOSE%', 'amazon-link'), 'link' => '1'),
-                                  'link_close'   => array( 'Description' => __('Must follow a LINK_OPEN (translates to "</a>").', 'amazon-link')),
-                                  'asin'         => array( 'Description' => __('Item\'s unique ASIN', 'amazon-link'), 'live' => '1'),
-                                  'asins'        => array( 'Description' => __('Comma seperated list of ASINs', 'amazon-link')),
-                                  'product'      => array( 'Description' => __('Item\'s Product Group', 'amazon-link'), 'live' => '1'),
-                                  'title'        => array( 'Description' => __('Item\'s Title', 'amazon-link'), 'live' => '1'),
-                                  'text'         => array( 'Description' => __('User Defined Text string', 'amazon-link'), 'user' => '1'),
-                                  'text1'        => array( 'Description' => __('User Defined Text string', 'amazon-link'), 'user' => '1'),
-                                  'text2'        => array( 'Description' => __('User Defined Text string', 'amazon-link'), 'user' => '1'),
-                                  'text3'        => array( 'Description' => __('User Defined Text string', 'amazon-link'), 'user' => '1'),
-                                  'text4'        => array( 'Description' => __('User Defined Text string', 'amazon-link'), 'user' => '1'),
-                                  'artist'       => array( 'Description' => __('Item\'s Author, Artist or Creator', 'amazon-link'), 'live' => '1'),
-                                  'manufacturer' => array( 'Description' => __('Item\'s Manufacturer', 'amazon-link'), 'live' => '1'),
-                                  'thumb'        => array( 'Description' => __('URL to Thumbnail Image', 'amazon-link'), 'live' => '1', 'image' => '1'),
-                                  'image'        => array( 'Description' => __('URL to Full size Image', 'amazon-link'), 'live' => '1', 'image' => '1'),
-                                  'image_class'  => array( 'Description' => __('Class of Image as defined in settings', 'amazon-link')),
-                                  'url'          => array( 'Description' => __('The URL returned from the Item Search (not localised!)', 'amazon-link'), 'live' => '1'),
-                                  'rank'         => array( 'Description' => __('Amazon Rank', 'amazon-link'), 'live' => '1'),
-                                  'rating'       => array( 'Description' => __('Numeric User Rating - (No longer Available)', 'amazon-link'), 'live' => '1'),
-                                  'editorial'    => array( 'Description' => __('Editorial Reviews (non-copyrighted only)', 'amazon-link'), 'live' => '1', 'group' => 'EditorialReview'),
-                                  'price'        => array( 'Description' => __('Price of Item', 'amazon-link'), 'live' => '1'),
-                                  'tag'          => array( 'Description' => __('Localised Amazon Associate Tag', 'amazon-link')),
-                                  'cc'           => array( 'Description' => __('Localised Country Code (us, uk, etc.)', 'amazon-link')),
-                                  'flag'         => array( 'Description' => __('Localised Country Flag Image URL', 'amazon-link')),
-                                  'mplace'       => array( 'Description' => __('Localised Amazon Marketplace Code (US, GB, etc.)', 'amazon-link')),
-                                  'mplace_id'    => array( 'Description' => __('Localised Numeric Amazon Marketplace Code (2=uk, 8=fr, etc.)', 'amazon-link')),
-                                  'tld'          => array( 'Description' => __('Localised Top Level Domain (.com, .co.uk, etc.)', 'amazon-link')),
-                                  'rcm'          => array( 'Description' => __('Localised RCM site host domain (rcm.amazon.com, rcm-uk.amazon.co.uk, etc.)', 'amazon-link')),
-                                  'downloaded'   => array( 'Description' => __('1 if Images are in the local Wordpress media library', 'amazon-link')),
-                                  'found'        => array( 'Description' => __('1 if product was found doing a live data request (also 1 if live not enabled).', 'amazon-link'))
-                                  );
       }
 
 
@@ -129,20 +95,17 @@ if (!class_exists('AmazonLinkSearch')) {
          $Settings['localise'] = 0;
 
          if ( empty($Opts['s_title']) && empty($Opts['s_author']) ) {
-            $Items = $this->alink->itemLookup($Opts['asin'], $Settings);
+            $Items = $this->alink->cached_query($Opts['asin'], $Settings);
          } else {
             $Settings['found'] = 1;
             $Items = $this->do_search($Opts);
          }
 
-        $results['success'] = 0;
-        if (isset($Items['Error']))
-         {
+         $results['success'] = 0;
+         if (isset($Items['error'])) {
             $results['message'] = 'Error: ' . $Items['Error'];
-         }  else if (is_array($Items) && (count($Items) >0)) {
-            foreach($Items as $Item) {
-               $Item['found'] = 1;
-               $item = $this->parse_xml($Item, $Settings['default_cc']);
+         } else if (is_array($Items) && (count($Items) >0)) {
+            foreach($Items as $item) {
                $item = array_merge($Settings,$item);
                $results['items'][]['template'] = $this->parse_template($item);
             }
@@ -295,193 +258,62 @@ if (!class_exists('AmazonLinkSearch')) {
             $request['Title'] = $Opts['s_title'];
          }
 
-         $pxml = $this->alink->doQuery($request, $Settings);
+         $items = $this->alink->cached_query($request, $Settings);
 
-         if (($pxml === False) || !isset($pxml['Items']['Item'])) {
-            $Items = array();
-            if (isset($pxml['Error'])) {
-               $Items['Error'] = $pxml['Error']['Message'];
-            }  else {
-               $Items['Error'] = 'Query returned no results.';
-            }
-         } else {
-            $Items=$pxml['Items']['Item'];
-         }
-/* Test Code to check availibility at all sites... 
- //        if( !class_exists( 'WP_Http' ) )
-   //         include_once( ABSPATH . WPINC. '/class-http.php' );
-
-         foreach($Items as $item => $item_info) {
-         $map = '<div class="al_flags">';
-            $country_data = $this->alink->get_country_data();
-            foreach ($country_data as $cc => $data) {
-               $this->alink->Settings['localise'] = 0;
-               $this->alink->Settings['default_cc'] = $cc;
-               $url = $this->alink->getURL($item_info['ASIN'], $data['tld'], $data['default_tag']);
-               //$request = new WP_Http;
-               //$result = $request->request( $url, array('timeout' => 3, 'method' => 'GET'));
-               $result = $this->get_headers($url);
-               $map .= '<PRE>'.$result[0].'</PRE>';
-               if (!is_wp_error($result) && ($result['response']['code'] == 200)) {
-                  $map .= '<img height=8px src="'. $this->alink->URLRoot. '/'. $data['flag'].'">';
-               }
-               break;
-            }
-
-            $map .= '</div>';
-            $Items[$item]['Settings'] = $Settings;
-            $Items[$item]['Settings']['text1'] = $map;
-         }
- */
-         return $Items;
-      }
-
-      function get_headers($url,$format=0,$httpn=0) { 
-         $fp = fsockopen($url, 80, $errno, $errstr, 30); 
-         if ($fp) { 
-            $out = "GET / HTTP/1.1\r\n"; 
-            $out .= "Host: $url\r\n"; 
-            $out .= "Connection: Close\r\n\r\n"; 
-            fwrite($fp, $out); 
-            while (!feof($fp)) { 
-               $var.=fgets($fp, 1280); 
-            } 
-            $var=explode("<",$var); 
-            $var=$var[0]; 
-            $var=explode("\n",$var); 
-            fclose($fp); 
-            return $var;
-         }
-         return array();
+         return $items;
       }
 
       function preg_replacement_quote($str) {
          return preg_replace('/(\$|\\\\)(?=\d)/', '\\\\\1', $str);
       }
 
-      function get_links ($asin, $settings, $local_info, $data) {
-         if ($settings['search_link']) {
-            if (!isset($data['search_text_s'])) {
-               $data['search_text_s'] = $settings['search_text'];
-               foreach ($this->keywords as $keyword => $key_data) {
-                  $data['search_text_s'] = preg_replace('/%(' . $keyword . ')%/i' , '%$1%S#', $data['search_text_s']);
-               }
-            }
-            $search = $data['search_text_s'];
-         } else {
-            $search ='';
-         }
+      function get_links ($asin, $settings, $local_info, &$data) {
 
-         $data['link_open'][$local_info['cc']] = substr($this->alink->make_link($asin,'',$settings, $local_info, $search),0,-4);
-         $data['rlink_open'][$local_info['cc']] = substr($this->alink->make_link($asin,'',$settings, $local_info, $search, 'review'),0,-4);
-         $data['slink_open'][$local_info['cc']] = substr($this->alink->make_link($asin,'',$settings, $local_info, $search, 'search'),0,-4);
-         $data['link_close'][$local_info['cc']] = '</a>';
-         return $data;
+         if (!isset($data['search_text_s'])) {
+            $data['search_text_s'] = $settings['search_text'];
+            foreach ($this->alink->get_keywords() as $keyword => $key_data) {
+               $data['search_text_s'] = preg_replace('/%(' . $keyword . ')%/i' , '%$1%S#', $data['search_text_s']);
+            }
+         }
+         $search = $data['search_text_s'];
+
+         if (!isset($data[$local_info['cc']]['link_open'])) $data[$local_info['cc']]['link_open'] = substr($this->alink->make_link($asin,'',$settings, $local_info, $search),0,-4);
+         if (!isset($data[$local_info['cc']]['rlink_open'])) $data[$local_info['cc']]['rlink_open'] = substr($this->alink->make_link($asin,'',$settings, $local_info, $search, 'review'),0,-4);
+         if (!isset($data[$local_info['cc']]['slink_open'])) $data[$local_info['cc']]['slink_open'] = substr($this->alink->make_link($asin,'',$settings, $local_info, $search, 'search'),0,-4);
+         if (!isset($data[$local_info['cc']]['link_close'])) $data[$local_info['cc']]['link_close'] = '</a>';
+
       }
 
-      function get_images ($asin, $country, $data) {
+      function get_images ($asin, &$data) {
          /*
           * Check for image in uploads 
           */
          $media_ids = $this->find_attachments( $asin );
          if (!is_wp_error($media_ids)) {
-            // Only do this country, as other countries may have a different ASIN specified.
-            $data['media_id'][$country] = $media_ids[0]->ID;
-            $data['downloaded'][$country] = '1';
-            $data['thumb'][$country] = wp_get_attachment_thumb_url($data['media_id'][$country]);
-            $data['image'][$country] = wp_get_attachment_url($data['media_id'][$country]);
+            // Only do one country, as other countries may have a different ASIN specified.
+            $data['media_id'] = $media_ids[0]->ID;
+            $data['downloaded'] = '1';
+            $data['thumb'] = wp_get_attachment_thumb_url($data['media_id']);
+            $data['image'] = wp_get_attachment_url($data['media_id']);
          } else {
-            $data['media_id'][$country] = 0;
-            $data['downloaded'][$country] = '0';
+            $data['media_id'] = 0;
+            $data['downloaded'] = '0';
          }
-
-         return $data;
       }
 
-      function parse_xml ($result, $country, $data = array()) {
-
-         if (!isset($data['asin'][$country])) $data['asin'][$country]   = (isset($result['ASIN']) ? $result['ASIN'] : 0);
-         if (!isset($data['asins'][$country])) $data['asins'][$country]  = (isset($result['ASINS']) ? $result['ASINS'] :  0);
-         if (!isset($data['title'][$country])) $data['title'][$country]  = (isset($result['ItemAttributes']['Title']) ?  $result['ItemAttributes']['Title'] : '');
-         if (!isset($data['artist'][$country])) {
-            $data['artist'][$country] = (isset($result['ItemAttributes']['Artist']) ? $result['ItemAttributes']['Artist'] :
-                                  (isset($result['ItemAttributes']['Author']) ? $result['ItemAttributes']['Author'] :
-                                   (isset($result['ItemAttributes']['Director'])  ? $result['ItemAttributes']['Director'] :
-                                   (isset($result['ItemAttributes']['Creator']) ? $result['ItemAttributes']['Creator'] : 
-                                    (isset($result['ItemAttributes']['Brand']) ? $result['ItemAttributes']['Brand'] : '-') ))) );
-            $data['artist'][$country] = $this->remove_parents($data['artist'][$country]);
-         }
-
-         if (!isset($data['manufacturer'][$country])) $data['manufacturer'][$country]  = (isset($result['ItemAttributes']['Manufacturer']) ?  $result['ItemAttributes']['Manufacturer'] : (isset($result['ItemAttributes']['Brand']) ?  $result['ItemAttributes']['Brand'] : '-'));
-         if (!isset($data['url'][$country])) $data['url'][$country]     = (isset($result['DetailPageURL']) ? $result['DetailPageURL'] : '');
-         if (!isset($data['rank'][$country])) $data['rank'][$country]    = (isset($result['SalesRank']) ? $result['SalesRank'] : '');
-         if (!isset($data['rating'][$country])) $data['rating'][$country]  = (isset($result['CustomerReviews']['AverageRating']) ? $result['CustomerReviews']['AverageRating'] : '-');
-         if (!isset($data['editorial'][$country])) $data['editorial'][$country]  = (isset($result['EditorialReviews']['EditorialReview']) ? $this->merge_items($result['EditorialReviews']['EditorialReview'], array('Source' => array('Pre' => '<div class="al_editorial_source">', 'Post' => '</div>'), 'Content' => array('Pre' => '<div class="al_editorial_content">', 'Post' =>'</div>'))) : '-');
-
-         if (!isset($data['price'][$country])) $data['price'][$country]   = (isset($result['Offers']['Offer']['OfferListing']['Price']['FormattedPrice']) ? $result['Offers']['Offer']['OfferListing']['Price']['FormattedPrice'] : 
-                                   (isset($result['OfferSummary']['LowestNewPrice']['FormattedPrice']) ? $result['OfferSummary']['LowestNewPrice']['FormattedPrice'] :
-                                    (isset($result['OfferSummary']['LowestUsedPrice']['FormattedPrice']) ? $result['OfferSummary']['LowestUsedPrice']['FormattedPrice'] :
-                                     (isset($result['ItemAttributes']['ListPrice']['FormattedPrice']) ? $result['ItemAttributes']['ListPrice']['FormattedPrice'] : '-'))));
-         if (!isset($data['type'][$country])) $data['type'][$country]    = 'Amazon';
-         if (!isset($data['product'][$country])) $data['product'][$country] = (isset($result['ItemAttributes']['ProductGroup']) ? $result['ItemAttributes']['ProductGroup'] : '-');
-         if (!isset($data['found'][$country])) $data['found'][$country]   = (isset($result['found']) ? $result['found'] : 1);
-
-         if (!isset($data['thumb'][$country])) {
-            if (isset($result['MediumImage']))
-               $data['thumb'][$country] = $result['MediumImage']['URL'];
-            else
-               $data['thumb'][$country] = "http://images-eu.amazon.com/images/G/02/misc/no-img-lg-uk.gif";
-         }
-
-         if (!isset($data['image'][$country])) {
-            if (isset($result['LargeImage']))
-                $data['image'][$country] = $result['LargeImage']['URL'];
-            else
-                $data['image'][$country] = $data['thumb'][$country];
-         }
- 
-         return $data;
-      }
-
-      /*
-       * item = asin => XXXXX,
-                title => array ('uk' => Title, 'us' => Title2),
-                image => url)
-
-       * cc = uk:
-
-       * out  = asin[uk] => XXXX,
-                title    => array('uk' => Title, 'us'...
-                image[uk] => url)
-       */
-
-      function regionalise ($data, $index, $output = array()) {
-         foreach($data as $key => $info) {
+      function remap_data ($data, $indexes, &$output) {
+         foreach ($data as $key => $info) {
             if (is_array($info)) {
-               if (!isset($output[$key])) $output[$key] = $info;
+               /* Transpose data */
+               foreach ($info as $cc => $item) $output[$cc][$key] = $item;
             } else {
-               if (!isset($output[$key][$index])) $output[$key][$index] = $info;
+               /* Apply to all 'indexes' */
+               foreach($indexes as $cc) $output[$cc][$key] = $info;
             }
          }
-         return $output;
       }
 
-
-      function globalise ($data, $output = array()) {
-         $country_data = $this->alink->get_country_data();
-         foreach($data as $key => $info) {
-            if (is_array($info)) {
-               $output[$key] = $info;
-            } else {
-               foreach($country_data as $index => $country_info) {
-                  $output[$key][$index] = $info;
-               }
-            }
-         }
-         return $output;
-      }
-
-      function find_keywords($content) {
+/*      function find_keywords($content) {
          $keywords=array();
          foreach ($this->keywords as $keyword => $key_data) {
             if (stripos($content, '%'.$keyword.'%') !== FALSE) {
@@ -489,32 +321,35 @@ if (!class_exists('AmazonLinkSearch')) {
             }
          }
          return $keywords;
-      }
+      }*/
 
       function parse_template ($item) {
-         $country_data = $this->alink->get_country_data();
-         $local_info   = $this->alink->get_local_info($item);
-         $local_country = $local_info['cc'];
+         $countries       = array_keys($this->alink->get_country_data());
+         $local_info      = $this->alink->get_local_info($item);
+         $local_country   = $local_info['cc'];
          $default_country = $item['default_cc'];
          $item['home_cc'] = $default_country;
 
+         
          // 'channel' used may be different for each shortcode or post so need to refresh every template
-         $data = $this->regionalise($local_info, $local_country);
-//         $data = $this->regionalise(array('asin' =>$item['asin']), $default_country, $data);
+         $data = array( $local_country => $local_info);
+
          if (!is_array($item['asin'])) $item['asin'] = array($default_country => $item['asin']);
+         $asins = $item['asin'];
+
          if ($item['global_over']) {
-            $data = $this->globalise($item, $data);
+            $this->remap_data($item, $countries, $data);
          } else {
-            $data = $this->regionalise($item, $local_country, $data);
+            $this->remap_data($item, array($local_country), $data);
          }
          $input = htmlspecialchars_decode (stripslashes($item['template_content']));
 
          $local_settings = $item;
-         foreach ($this->keywords as $keyword => $key_data) {
+         foreach ($this->alink->get_keywords() as $keyword => $key_data) {
             $index=0;
             $output = '';
             while (($key_start = stripos($input, '%'.$keyword.'%' , $index)) !== FALSE) {
-               $key_end = $key_start + 2+strlen ($keyword);
+               $key_end = $key_start + 2 + strlen ($keyword);
 
                $country = $local_country;
                $localised = true;
@@ -531,7 +366,7 @@ if (!class_exists('AmazonLinkSearch')) {
                   $modifier_s = NULL;
                   if ($mod_end >= 2) {
                      $modifier_cc = strtolower(substr($modifiers, $mod_end-2, 2));
-                     if (!array_key_exists($modifier_cc, $country_data)) {
+                     if (!in_array($modifier_cc, $countries)) {
                         $modifier_cc = False;
                      }
                   }
@@ -542,6 +377,7 @@ if (!class_exists('AmazonLinkSearch')) {
                      }
                   }
 
+                  /* If no error in parsing the modifiers then process them */
                   if (($modifier_cc !== False) && ($modifier_s !== False)) {
                      $key_end +=$mod_end+1;
                      if ($modifier_cc != NULL) {
@@ -557,46 +393,50 @@ if (!class_exists('AmazonLinkSearch')) {
                   }
                }
 
-               if (!isset($this->$data[$keyword][$country])) {
+               if (!isset($this->$data[$country][$keyword])) {
                   $local_info = $this->alink->get_local_info($local_settings);
-                  $asin = (isset($data['asin'][$country]) ? $data['asin'][$country] : $data['asin'][$default_country]);
+                  $asin = (isset($data[$country]['asin']) ? $data[$country]['asin'] : $data[$default_country]['asin']);
                   if ($key_data['link']) {
-                     $data = $this->get_links($data['asin'], $local_settings, $local_info, $data);
+                     $this->get_links($asins, $local_settings, $local_info, $data);
                   }
-                  if ($key_data['image']) {
+                  if ($key_data['Image']) {
                      /* First try and get uploaded image info */
-                     $data = $this->get_images($asin, $country, $data);
+                     $this->get_images($asin, $data[$country]);
                   }
-                  if ($key_data['live'] && !isset($data[$keyword][$country]) ) {
+                  if ($key_data['Live'] && !isset($data[$country][$keyword]) ) {
                      if ($local_settings['live']) {
-                        $item_data = array_shift($this->alink->itemLookup($asin, $local_settings));
+                        $item_data = array_shift($this->alink->cached_query($asin, $local_settings));
                         if ($localised && !$item_data['found'] && $item['localise'] && ($country != $item['default_cc'])) {
                            $local_settings['default_cc'] = $item['default_cc'];
                            $local_settings['localise']   = 0;
-                           $item_data = array_shift($this->alink->itemLookup($asin, $local_settings));
+                           $item_data = array_shift($this->alink->cached_query($asin, $local_settings));
                         }
                         if ($item['debug'] && isset($item_data['error'])) {
                            echo "<!-- amazon-link ERROR: "; print_r($item_data); echo "-->";
 
                         }
 //echo "<PRE>DATA: "; print_r($item_data); echo "</pRE>";
-                        $data = $this->parse_xml($item_data, $country, $data);
+                          $data[$country] = array_merge($item_data, (array)$data[$country]);
+//echo "<PRE>DATA: "; print_r($data); echo "</pRE>";
                      } else {
-                        $data[$keyword][$country] = 'Undefined';
-                        $data['found'][$country] = 1;
+                        $data[$country][$keyword] = 'Undefined';
+                        $data[$country]['found'] = 1;
                      }
-                  } else if (($keyword == 'found') && !isset($data[$keyword][$country])) {
-                     $data[$keyword][$country] = 1;
+                  } else if (($keyword == 'found') && !isset($data[$country][$keyword])) {
+                     $data[$country][$keyword] = 1;
                   } else {
-                     $data = $this->regionalise($local_info, $country, $data);
-                     if (!isset($data[$keyword][$country])) $data[$keyword][$country] = 'NL';
+                     $data[$country] = array_merge($local_info, $data[$country]);
+                     if (!isset($data[$country][$keyword])) $data[$country][$keyword] = 'NL';
                   }
                }
-               $phrase = $data[$keyword][$country];
+               $phrase = $data[$country][$keyword];
 
-               if ($item['multi_cc']) unset ($data['link_open'][$country]); // Only use once
-
-               if ($escaped) $phrase = htmlspecialchars(addslashes($phrase)); //urlencode
+               if ($item['multi_cc'] && $key_data['link']) unset ($data[$country][$keyword]); // Only use links once
+               /*
+                * We url_encode the "'","\r" and "\n" so the javascript parses correctly.
+                * We encode the "&" so the parse_args & html_entity_decode do not see it as a field seperator.
+                */
+               if ($escaped) $phrase = addslashes(htmlspecialchars(preg_replace(array( '/&/', "/'/",'/\r/', '/\n/'), array('%26', '&#39;','%0D','%0A'), $phrase))); //urlencode
                $output .= substr($input, $index, ($key_start-$index)) . $phrase;
                $index  = $key_end;
             }
@@ -607,11 +447,11 @@ if (!class_exists('AmazonLinkSearch')) {
          $this->alink->Settings['localise'] = $item['localise'];
          return $input;
       }
-/**/
-      function find_attachments ($asin, $number = '-1') {
+
+      function find_attachments ($asin) {
 
          // Do we already have a local image ? 
-         $args = array( 'post_type' => 'attachment', 'numberposts' => $number, 'post_status' => 'all', 'no_filters' => true,
+         $args = array( 'post_type' => 'attachment', 'numberposts' => -1, 'post_status' => 'all', 'no_filters' => true,
                         'meta_query' => array(array('key' => 'amazon-link-ASIN', 'value' => $asin)));
          $query = new WP_Query( $args );
          $media_ids = $query->posts;
@@ -626,9 +466,7 @@ if (!class_exists('AmazonLinkSearch')) {
 
          $ASIN = strtoupper($ASIN);
 
-         $result = array_shift($this->alink->itemLookup($ASIN));
-
-         $data = $this->parse_xml($result, '0');
+         $data = array_shift($this->alink->cached_query($ASIN));
 
          if ( ! ( ( $uploads = wp_upload_dir() ) && false === $uploads['error'] ) )
             return new WP_Error($uploads['error']);
@@ -637,13 +475,9 @@ if (!class_exists('AmazonLinkSearch')) {
          $filename = '/' . wp_unique_filename( $uploads['path'], basename($filename));
          $filename_full = $uploads['path'] . $filename;
 
-         if( !class_exists( 'WP_Http' ) )
-            include_once( ABSPATH . WPINC. '/class-http.php' );
-
-         $request = new WP_Http;
-         $result = $request->request( $data['image']['0']);
-         if ($result instanceof WP_Error )
-            return new WP_Error(__('Could not retrieve remote image file','amazon-link'));
+         $result = wp_remote_get($data['image']);
+         if (is_wp_error($result))
+            return $result; //new WP_Error(__('Could not retrieve remote image file','amazon-link'));
 
          // Save file to media library
          $content = $result['body'];
@@ -655,8 +489,8 @@ if (!class_exists('AmazonLinkSearch')) {
             $attachment = array(
                'guid' => $filename,
                'post_mime_type' => $wp_filetype['type'],
-               'post_title' => $data['artist']['0'] . ' - ' . $data['title']['0'],   // Title
-               'post_excerpt' => $data['title']['0'],                     // Caption
+               'post_title' => $data['artist'] . ' - ' . $data['title'],   // Title
+               'post_excerpt' => $data['title'],                     // Caption
                'post_content' => '',                           // Description
                'post_status' => 'inherit');
             $attach_id = wp_insert_attachment( $attachment, $filename_full, $post_id);
@@ -672,28 +506,6 @@ if (!class_exists('AmazonLinkSearch')) {
          }
          return $attach_id;
       }
-
-      function merge_items($Items, $Elements) {
-         if (!isset($Items[0])) {
-            $Items = array('0' => $Items);
-         }
-         $result = '';
-         foreach ($Items as $Item) {
-            foreach($Elements as $Element => $Info) {
-               $result .= isset ($Item[$Element]) ? $Info['Pre'] . $Item[$Element] . $Info['Post'] : '';
-            }
-         }
-         return $result;
-      }
-
-      function remove_parents ($array) {
-         if (is_array($array)) {
-            return $this->remove_parents($array[0]);
-         } else {
-            return $array;
-         }
-      }
-
    }
 }
 ?>

@@ -162,11 +162,11 @@
       $options['template_type'] = $templateDetails['Type'];
       $options['template_content'] = $templateDetails['Content'];
       $options['template_keywords'] = $templateDetails['Keywords'];
+      $asins = explode(',',$options['template_asins']);
       if ( $templateDetails['Type'] == 'Multi' ) {
-         $asins = array('B000056VJ7','B0000025UW','B001LR3576','B001KSJNWC','B001LWZCKY','B001GTPI7O','B001GTAGS0');
          $options['live'] = 0;
       } else if ( $templateDetails['Type'] == 'Product' ) {
-         $asins = array('B000056VJ7');
+         $asins = array($asins[0]);
          $options['live'] = 1;
       } else {
          $options['live'] = 0;

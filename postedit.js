@@ -93,7 +93,7 @@ wpAmazonLinkAdmin.prototype = {
         var sep = '';
         jQuery.each(options, function(name, value){
             if (value != ' ') {
-                attrs += sep + name + '=' + value;
+                attrs += sep + name + '='+value;
                 sep = '&';
             }
         });

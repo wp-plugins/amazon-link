@@ -80,6 +80,7 @@
       if ((isset($AWS_keys_updated) || !$Opts['aws_valid'])) {
          $result = $this->validate_keys($Opts);
          $Opts['aws_valid'] = $result['Valid'];
+         if (current_user_can('manage_options')) $this->saveOptions($Opts);
          if (!$result['Valid']) {
             $optionList['aws_valid']['Description'] = '<span style="color:red">' .
                                                        __('AWS Request Failed, please check keys - Error Message: ','amazon-link') .
@@ -149,19 +150,5 @@
    // Now display the options editing screen
 
    $this->form->displayForm($optionList, $Opts);
-
-
-//         $pxml = $this->search->do_search(array('s_title' => 'boot', 's_artist' =>'', 's_index' => 'Shoes' ));
-//         echo "<!--PXML:"; print_r($pxml); echo "-->";
-//$settings = $this->getSettings();
-//$pxml = $this->itemLookup('0141194529', $settings);//,B000H2X2EW,0340993766,B002V092EC');
-//echo "<!--ITEMLOOKUP:"; print_r($pxml); echo "-->";
-//$request = array('Operation'     => 'ItemLookup',
-// 'ResponseGroup' => 'ItemAttributes,Large,Reviews,Images,SalesRank,EditorialReview',
-// 'ResponseGroup' => 'ItemAttributes',
-// 'ItemId'        => 'B000H2X2EW', 
-// 'IdType'        => 'ASIN');
-//$pxml = $this->doQuery($request, $settings);
-//echo "<PRE>"; print_r($pxml); echo "</PRE>";
 
 ?>

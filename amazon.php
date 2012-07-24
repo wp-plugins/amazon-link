@@ -100,7 +100,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
       var $TagHead       = '[amazon';
       var $TagTail       = ']';
       var $cache_table   = 'amazon_link_cache';
-      var $option_version= 5;
+      var $option_version= 6;
       var $plugin_version= '3.0.2';
       var $optionName    = 'AmazonLinkOptions';
       var $user_options  = 'amazonlinkoptions';
@@ -153,91 +153,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
       }
 
       function upgrade_settings($Opts) {
-
-         // Options structure changed so need to update the 'version' option and upgrade as appropriate...
-         if (!isset($Opts['version'])) {
-
-            $cc_map = array('co.uk' => 'uk', 'com' => 'us', 'fr' => fr, 'de' => 'de', 'ca' => 'ca', 'jp' => 'jp');
-
-            // Move from version 1.2 to 1.3 of the plugin (Option Version Null => 1)
-            if (isset($Opts['tld'])) {
-               $cc = isset($cc_map[$Opts['tld']]) ? $cc_map[$Opts['tld']] : 'uk';
-               $Opts['default_cc'] = $cc;
-               if (isset($Opts['tag'])) $Opts['tag_' . $cc] = $Opts['tag'];
-            }
-            unset($Opts['tld']);
-            unset($Opts['tag']);
-            $Opts['version'] = 1;
-            $this->saveOptions($Opts);
-         }
-
-         if ($Opts['version'] == 1) {
-
-            /* Upgrade from 1 to 2:
-             * force Template ids to lower case & update 'wishlist_template'.
-             */
-            $Templates = $this->getTemplates();
-            foreach ($Templates as $Name => $value)
-            {
-               $renamed_templates[strtolower($Name)] = $value;
-            }
-            $this->saveTemplates($renamed_templates);
-            $Templates = $renamed_templates;
-            if (isset($Opts['wishlist_template'])) 
-               $Opts['wishlist_template'] = strtolower($Opts['wishlist_template']);
-            $Opts['version'] = 2;
-            $this->saveOptions($Opts);
-         }
-
-         if ($Opts['version'] == 2) {
-            /* Upgrade from 2 to 3:
-             * copy affiliate Ids to new channels section.
-             */
-            $country_data = $this->get_country_data();
-            foreach ($country_data as $cc => $data)
-            {
-               $channels['default']['tag_'.$cc] = isset($Opts['tag_'.$cc]) ? $Opts['tag_'.$cc] : '';
-            }
-            $channels['default']['Name'] = 'Default';
-            $channels['default']['Description'] = 'Default Affiliate Tags';
-            $channels['default']['Filter'] = '';
-            $Opts['version'] = 3;
-            $this->save_channels($channels);
-            $this->saveOptions($Opts);
-         }
-
-         if ($Opts['version'] == 3) {
-            /* Upgrade from 3 to 4:
-             * Add Template 'Type' field and 'Version'
-             */
-            $Templates = $this->getTemplates();
-            foreach ($Templates as $Name => $Data)
-            {
-               if (preg_match('/%ASINS%/i', $Data['Content'])) {
-                  $Templates[$Name]['Type'] = 'Multi';
-               } else {
-                  $Templates[$Name]['Type'] = 'Product';
-               }
-               $Templates[$Name]['Version'] = '1';
-               $Templates[$Name]['Preview_Off'] = '0';
-            }
-
-            $this->saveTemplates($Templates);
-            $Opts['version'] = 4;
-            $this->saveOptions($Opts);
-         }
-         
-         if ($Opts['version'] == 4) {
-            /* Upgrade from 4 to 5:
-             * Add 'aws_valid' to indicate validity of the AWS keys.
-             * Correct invalid %AUTHOR% keyword in search_text option.
-             */
-            $result = $this->validate_keys($Opts);
-            $Opts['aws_valid'] = $result['Valid'];
-            $Opts['search_text'] = preg_replace( '!%AUTHOR%!', '%ARTIST%', $Opts['search_text']);
-            $Opts['version'] = 5;
-            $this->saveOptions($Opts);
-         }
+         include('include/upgradeSettings.php');
       }
 
       // On wordpress initialisation - load text domain and register styles & scripts
@@ -268,6 +184,9 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          wp_register_script('amazon-link-admin-script', $admin_script, false, $this->plugin_version);
 
          add_action('wp_enqueue_scripts', array($this, 'amazon_styles'));             // Add base stylesheet
+
+         add_filter('amazon_link_editorial', array($this, 'editorial_filter'), 5, 2);
+
       }
 
       // If in admin section then register options page and required styles & metaboxes
@@ -405,8 +324,10 @@ function al_gen_multi (id, term, def, chan) {
       if (cc != def) {
          if ( type == 'A' ) {
             var url = 'http://www.amazon.' + country_data[cc].tld + '/gp/product/' + arg+ '?ie=UTF8&linkCode=as2&camp=1634&creative=6738&tag=' + country_data[cc]['tag_'+chan] + '&creativeASIN='+ arg;
-         } else {
+         } else if( type == 'S') {
             var url = 'http://www.amazon.' + country_data[cc].tld + '/mn/search/?_encoding=UTF8&linkCode=ur2&camp=1634&creative=19450&tag=' + country_data[cc]['tag_'+chan] + '&field-keywords=' + arg;
+         } else {
+            var url = 'http://www.amazon.' + country_data[cc].tld + '/review/' + arg+ '?ie=UTF8&linkCode=ur2&camp=1634&creative=6738&tag=' + country_data[cc]['tag_'+chan];
          }
          content = content +'<a <?php echo $TARGET; ?> href="' + url + '"><img src="' + country_data[cc].flag + '"></a>';
       }
@@ -440,6 +361,85 @@ function al_gen_multi (id, term, def, chan) {
 /*****************************************************************************************/
       /// Options & Templates Handling
 /*****************************************************************************************/
+
+      function get_keywords() {
+
+         if (!isset($this->keywords)) {
+            $this->keywords = array(
+             'link_open'    => array( 'Description' => __('Create an Amazon link to a product with user defined content, of the form %LINK_OPEN%My Content%LINK_CLOSE%', 'amazon-link'), 'link' => '1'),
+             'rlink_open'   => array( 'Description' => __('Create an Amazon link to product reviews with user defined content, of the form %RLINK_OPEN%My Content%LINK_CLOSE%', 'amazon-link'), 'link' => '1'),
+             'slink_open'   => array( 'Description' => __('Create an Amazon link to a search page with user defined content, of the form %SLINK_OPEN%My Content%LINK_CLOSE%', 'amazon-link'), 'link' => '1'),
+             'link_close'   => array( 'Description' => __('Must follow a LINK_OPEN (translates to "</a>").', 'amazon-link')),
+
+             'asin'         => array( 'Description' => __('Item\'s unique ASIN', 'amazon-link'), 'Live' => '1', 'Group' => 'ItemAttributes', 'Default' => '0',
+                                      'Position' => array(array('ASIN'))),
+             'asins'        => array( 'Description' => __('Comma seperated list of ASINs', 'amazon-link'), 'Default' => '0'),
+             'product'      => array( 'Description' => __('Item\'s Product Group', 'amazon-link'), 'Live' => '1', 'Group' => 'ItemAttributes', 'Default' => '-',
+                                      'Position' => array(array('ItemAttributes','ProductGroup'))),
+             'title'        => array( 'Description' => __('Item\'s Title', 'amazon-link'), 'Live' => '1', 'Group' => 'ItemAttributes',
+                                      'Position' => array(array('ItemAttributes','Title'))),
+
+             'artist'       => array( 'Description' => __('Item\'s Author, Artist or Creator', 'amazon-link'), 'Live' => '1', 'Group' => 'ItemAttributes', 'Default' => '-',
+                                      'Position' => array(array('ItemAttributes','Artist'),
+                                                          array('ItemAttributes','Author'),
+                                                          array('ItemAttributes','Director'),
+                                                          array('ItemAttributes','Creator'),
+                                                          array('ItemAttributes','Brand'))),
+             'manufacturer' => array( 'Description' => __('Item\'s Manufacturer', 'amazon-link'), 'Live' => '1', 'Group' => 'ItemAttributes', 'Default' => '-',
+                                      'Position' => array(array('ItemAttributes','Manufacturer'),
+                                                          array('ItemAttributes','Brand'))),
+             'thumb'        => array( 'Description' => __('URL to Thumbnail Image', 'amazon-link'), 'Live' => '1', 'Image' => '1', 'Group' => 'Images', 'Default' => 'http://images-eu.amazon.com/images/G/02/misc/no-img-lg-uk.gif',
+                                      'Position' => array(array('MediumImage','URL'))),
+             'image'        => array( 'Description' => __('URL to Full size Image', 'amazon-link'), 'Live' => '1', 'Image' => '1', 'Group' => 'Images', 'Default' => 'http://images-eu.amazon.com/images/G/02/misc/no-img-lg-uk.gif',
+                                      'Position' => array(array('LargeImage','URL'),
+                                                          array('MediumImage','URL'))),
+             'image_class'  => array( 'Description' => __('Class of Image as defined in settings', 'amazon-link')),
+             'url'          => array( 'Description' => __('The URL returned from the Item Search (not localised!)', 'amazon-link'), 'Live' => '1', 'Group' => 'Small',
+                                      'Position' => array(array('DetailPageURL'))),
+             'rank'         => array( 'Description' => __('Amazon Rank', 'amazon-link'), 'Live' => '1', 'Group' => 'SalesRank', 'Default' => '-',
+                                      'Position' => array(array('SalesRank'))),
+             'rating'       => array( 'Description' => __('Numeric User Rating - (No longer Available)', 'amazon-link'), 'Live' => '1', 'Default' => '-',
+                                      'Position' => array(array('CustomerReviews','AverageRating'))),
+             'editorial'    => array( 'Description' => __('Editorial Reviews (non-copyrighted only)', 'amazon-link'), 'Group' => 'EditorialReview', 'Filter' => 'amazon_link_editorial', 'Default' => '-', 'Live' => '1',
+                                      'Position' => array(array('EditorialReviews','EditorialReview'))),
+             'price'        => array( 'Description' => __('Price of Item', 'amazon-link'), 'Live' => '1', 'Group' => 'Offers', 'Default' => '-',
+                                      'Position' => array(array('Offers','Offer','OfferListing','Price','FormattedPrice'),
+                                                          array('OfferSummary','LowestNewPrice','FormattedPrice'),
+                                                          array('OfferSummary','LowestUsedPrice','FormattedPrice'),
+                                                          array('ItemAttributes','ListPrice','FormattedPrice'))),
+
+             'text'         => array( 'Description' => __('User Defined Text string', 'amazon-link'), 'User' => '1'),
+             'text1'        => array( 'Description' => __('User Defined Text string', 'amazon-link'), 'User' => '1'),
+             'text2'        => array( 'Description' => __('User Defined Text string', 'amazon-link'), 'User' => '1'),
+             'text3'        => array( 'Description' => __('User Defined Text string', 'amazon-link'), 'User' => '1'),
+             'text4'        => array( 'Description' => __('User Defined Text string', 'amazon-link'), 'User' => '1'),
+
+             'tag'          => array( 'Description' => __('Localised Amazon Associate Tag', 'amazon-link')),
+             'cc'           => array( 'Description' => __('Localised Country Code (us, uk, etc.)', 'amazon-link')),
+             'flag'         => array( 'Description' => __('Localised Country Flag Image URL', 'amazon-link')),
+             'mplace'       => array( 'Description' => __('Localised Amazon Marketplace Code (US, GB, etc.)', 'amazon-link')),
+             'mplace_id'    => array( 'Description' => __('Localised Numeric Amazon Marketplace Code (2=uk, 8=fr, etc.)', 'amazon-link')),
+             'tld'          => array( 'Description' => __('Localised Top Level Domain (.com, .co.uk, etc.)', 'amazon-link')),
+             'rcm'          => array( 'Description' => __('Localised RCM site host domain (rcm.amazon.com, rcm-uk.amazon.co.uk, etc.)', 'amazon-link')),
+
+             'downloaded'   => array( 'Description' => __('1 if Images are in the local Wordpress media library', 'amazon-link')),
+             'found'        => array( 'Description' => __('1 if product was found doing a live data request (also 1 if live not enabled).', 'amazon-link'))
+                                  );
+             $this->keywords = apply_filters('amazon_link_keywords', $this->keywords);
+         }
+         return $this->keywords;
+      }
+
+      function get_response_groups() {
+         if (!isset($this->response_groups)) {
+            $this->response_groups = array();
+            foreach ($this->get_keywords() as $key => $key_data) {
+               if (isset($key_data['Group']) && !in_array($key_data['Group'],$this->response_groups)) $this->response_groups[] = $key_data['Group'];
+            }
+            $this->response_groups=implode(',',$this->response_groups);
+         }
+         return $this->response_groups;
+      }
 
       function get_country_data() {
 
@@ -516,7 +516,7 @@ function al_gen_multi (id, term, def, chan) {
             'pub_key' => array( 'Name' => __('AWS Public Key', 'amazon-link'), 'Description' => __('Access Key ID provided by your AWS Account, found under Security Credentials/Access Keys of your AWS account', 'amazon-link'), 'Default' => '', 'Type' => 'text', 'Size' => '40', 'Class' => 'alternate' ),
             'priv_key' => array( 'Name' => __('AWS Private key', 'amazon-link'), 'Description' => __('Secret Access Key ID provided by your AWS Account.', 'amazon-link'), 'Default' => '', 'Type' => 'text', 'Size' => '40', 'Class' => '' ),
             'aws_valid' => array ( 'Type' => 'checkbox', 'Read_Only' => 1, 'Name' => 'AWS Keys Validated', 'Default' => '0', 'Class' => 'al_border'),
-            'debug' => array( 'Name' => __('Debug Output', 'amazon-link'), 'Description' => __('Adds hidden debug output to the page source to aid debugging. <b>Do not enable on live sites</b>.', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox', 'Size' => '40', 'Class' => 'al_border' ),
+            'template_asins' => array( 'Name' => __('Template ASINs', 'amazon-link'), 'Description' => __('ASIN values to use when previewing the templates in the templates manager.', 'amazon-link'), 'Default' => 'B000056VJ7,B0000025UW,B001LR3576,B001KSJNWC,B001LWZCKY,B001GTPI7O,B001GTAGS0', 'Type' => 'text', 'Size' => '40', 'Class' => 'al_border' ),            'debug' => array( 'Name' => __('Debug Output', 'amazon-link'), 'Description' => __('Adds hidden debug output to the page source to aid debugging. <b>Do not enable on live sites</b>.', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox', 'Size' => '40', 'Class' => 'al_border' ),
             'hd2e' => array ( 'Type' => 'end'),
 
             'hd3s' => array ( 'Type' => 'section', 'Value' => __('Amazon Data Cache','amazon-link'), 'Section_Class' => 'al_subhead1'),
@@ -535,12 +535,10 @@ function al_gen_multi (id, term, def, chan) {
                $this->optionList['default_cc']['Options'][$cc]['Name'] = $data['name'];
             }
 
-            if (isset($this->search->keywords)) {
-               // Populate the hidden Template Keywords
-               foreach ($this->search->keywords as $keyword => $details) {
-                  if (!isset($this->optionList[$keyword]))
-                     $this->optionList[$keyword] = array( 'Type' => 'hidden' );
-               }
+            // Populate the hidden Template Keywords
+            foreach ($this->get_keywords() as $keyword => $details) {
+               if (!isset($this->optionList[$keyword]))
+                  $this->optionList[$keyword] = array( 'Type' => 'hidden' );
             }
          }
          return $this->optionList;
@@ -686,7 +684,23 @@ function al_gen_multi (id, term, def, chan) {
                $this->Settings[$key] = $details['OverrideBlank'];      // Use default
             }
          }
-         if (!is_array($this->Settings['asin']))  $this->Settings['asin'] = isset($this->Settings['asin']) ? explode (',', $this->Settings['asin']) : array();
+
+         if (!is_array($this->Settings['asin'])) {
+            $this->Settings['asin'] = array( $this->Settings['default_cc'] => $this->Settings['asin']);
+         }
+         $max = 0;
+         foreach ($this->Settings['asin'] as $cc => $asins)
+         {
+            $temp_asins[$cc] = explode (',', $asins);
+            if (count($temp_asins[$cc]) > $max) {
+               $max = count($temp_asins[$cc]);
+            }
+         }
+         $this->Settings['asin'] = array();
+         for ($index=0; $index < $max; $index++) {
+            foreach ($temp_asins as $cc => $cc_asins)
+               $this->Settings['asin'][$index][$cc] = (isset ($cc_asins[$index]) ? $cc_asins[$index] : NULL);
+         }
       }
 
       /*
@@ -717,22 +731,22 @@ function al_gen_multi (id, term, def, chan) {
 	 update_usermeta( $ID, $this->user_options,  $options );
       }
 
-      function valid_keys() {
+      /*function valid_keys() {
          $Settings = $this->getSettings();
 
          if ( (strlen($Settings['pub_key']) > 10) && (strlen($Settings['priv_key']) > 10))
             return True;
          return False;
-      }
+      }*/
 
       function validate_keys($Settings = NULL) {
-        if (Settings === NULL) $Settings = $this->getSettings();
+         if (Settings === NULL) $Settings = $this->getSettings();
 
-        $result['Valid'] = 0;
-        $result['Message'] = 'AWS query failed to get a response - try again later.';
-        $request = array('Operation'     => 'ItemLookup', 
-                         'ResponseGroup' => 'ItemAttributes',
-                         'IdType'        => 'ASIN', 'ItemId' => 'B000H2X2EW');
+         $result['Valid'] = 0;
+         $result['Message'] = 'AWS query failed to get a response - try again later.';
+         $request = array('Operation'     => 'ItemLookup', 
+                          'ResponseGroup' => 'ItemAttributes',
+                          'IdType'        => 'ASIN', 'ItemId' => 'B000H2X2EW');
          $pxml = $this->doQuery($request, $Settings);
          if (isset($pxml['Items'])) {
             $result['Valid'] = 1;
@@ -754,7 +768,7 @@ function al_gen_multi (id, term, def, chan) {
                  asin varchar(10) NOT NULL,
                  cc varchar(5) NOT NULL,
                  updated datetime NOT NULL,
-                 xml longtext NOT NULL,
+                 xml blob NOT NULL,
                  PRIMARY KEY  (asin, cc)
                  );";
          require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
@@ -961,11 +975,7 @@ function al_gen_multi (id, term, def, chan) {
                      $output .= $this->showRecommendations($this->Settings['cat'], $this->Settings['last']);
                   } else {
                      // Generate Amazon Link
-                     if (isset($this->Settings['asin'][0])) {
-                        $this->tags = array_merge($this->Settings['asin'], $this->tags);
-                     }else{
-                        $this->tags = array_merge(array($this->Settings['asin']), $this->tags);
-                     }
+                     $this->tags = array_merge($this->Settings['asin'], $this->tags);
                      $this->Settings['in_post'] = $in_post;
                      if ($this->Settings['debug']) {
                         $output .= '<!-- Amazon Link: Version:' . $this->plugin_version . ' - Args: ' . $split_content[$index] . "\n";
@@ -982,11 +992,7 @@ function al_gen_multi (id, term, def, chan) {
             $index = 1;
             while ($index <= count($split_content)) {
                $this->parseArgs($split_content[$index]);
-               if (isset($this->Settings['asin'][0])){
-                  $this->tags = array_merge($this->Settings['asin'], $this->tags);
-               }else{
-                  $this->tags = array_merge(array($this->Settings['asin']), $this->tags);
-               }
+               $this->tags = array_merge($this->Settings['asin'], $this->tags);
                $index += 2;
             }
          }
@@ -1074,7 +1080,7 @@ function al_gen_multi (id, term, def, chan) {
           * Populate the help popup.
           */
          $text = __('<p>Hover the mouse pointer over the keywords for more information.</p>', 'amazon-link');
-         foreach ($this->search->keywords as $keyword => $details) {
+         foreach ($this->get_keywords() as $keyword => $details) {
             $text = $text . '<p><abbr title="'. htmlspecialchars($details['Description']) .'">%' . strtoupper($keyword) . '%</abbr></p>';
          }
          echo $text;
@@ -1094,6 +1100,39 @@ function al_gen_multi (id, term, def, chan) {
       function aws_signed_request($region, $params, $public_key, $private_key)
       {
          return include('include/awsRequest.php');
+      }
+
+      function editorial_filter($editorial, $settings) {
+
+         if (is_array($editorial)) {
+            return $this->merge_items($editorial, array('Source' => array('Pre' => '<div class="al_editorial_source">', 
+                                                                          'Post' => '</div>'), 
+                                                        'Content' => array('Pre' => '<div class="al_editorial_content">', 
+                                                                           'Post' =>'</div>')));
+         } else {
+            return $editorial;
+         }
+      }
+
+      function merge_items($Items, $Elements) {
+         if (!isset($Items[0])) {
+            $Items = array('0' => $Items);
+         }
+         $result = '';
+         foreach ($Items as $Item) {
+            foreach($Elements as $Element => $Info) {
+               $result .= isset ($Item[$Element]) ? $Info['Pre'] . $Item[$Element] . $Info['Post'] : '';
+            }
+         }
+         return $result;
+      }
+
+      function remove_parents ($array) {
+         if (is_array($array)) {
+            return $this->remove_parents($array[0]);
+         } else {
+            return $array;
+         }
       }
 
 /*****************************************************************************************/
@@ -1129,68 +1168,111 @@ function al_gen_multi (id, term, def, chan) {
          return $text;
       }
 
-      function itemLookup($asin, $settings = NULL ) {
+      function grab($data, $keys, $default) {
+          foreach ($keys as $location) {
+             $result = $data;
+             foreach ($location as $key) if (isset($result[$key])) {$result = $result[$key];} else {$result=NULL;break;}
+             if (isset($result)) return $result;
+          }
+          if ($keys = '') return $data; // If no keys then return the whole item
+          return $default;
+      }
+
+      function cached_query($request, $settings = NULL) {
          global $wpdb;
          $cache_table = $wpdb->prefix . $this->cache_table;
 
          if ($settings === NULL)
             $settings = $this->getSettings();
+
+         /* If not a request then must be a standard ASIN Lookup */
+         if (!is_array($request))
+            $asin = $request;
+
 if (TIMING) $time_start = microtime(true);
+
          $result = NULL;
          if ($settings['cache_enabled']) {
             // Check if asin is already in the cache
             $li = $this->get_local_info($settings);
             $cc = $li['cc'];
-            $sql = "SELECT xml FROM $cache_table WHERE asin LIKE '$asin' AND cc LIKE '$cc' AND  updated >= DATE_SUB(NOW(),INTERVAL " . $settings['cache_age']. " HOUR)";
-            $result = $wpdb->get_row($sql, ARRAY_A);
-            if ($result !== NULL) {
-               $items = unserialize($result['xml']);
-               $items[0]['cached'] = 1;
+            if (!is_array($request)) {
+               $sql = "SELECT xml FROM $cache_table WHERE asin LIKE '$asin' AND cc LIKE '$cc' AND  updated >= DATE_SUB(NOW(),INTERVAL " . $settings['cache_age']. " HOUR)";
+               $result = $wpdb->get_row($sql, ARRAY_A);
+               if ($result !== NULL) {
+                  $data[0] = unserialize($result['xml']);
+                  $data[0]['cached'] = 1;
+               }
             }
          }
+//echo "<PRE>"; print_r($data); echo "</PRE>";
+
 if (TIMING) {$time_taken = microtime(true)-$time_start;echo "<!--Cache Lookup: $time_taken -->";}
 
          if ($result === NULL) {
 
 if (TIMING) $time_start = microtime(true);
             // Create query to retrieve the an item
-            $request = array('Operation'     => 'ItemLookup',
-                             'ResponseGroup' => 'Offers,ItemAttributes,Small,EditorialReview,Images,SalesRank',
-                             'ItemId'        => $asin, 
-                             'IdType'        => 'ASIN');
-
+            if (!is_array($request)) {
+               $request = array();
+               $request['Operation']     = 'ItemLookup';
+               $request['ItemId']        = $asin;
+               $request['IdType']        = 'ASIN';
+               $request['ResponseGroup'] = $this->get_response_groups();
+            } else { 
+               $request['ResponseGroup'] = $this->get_response_groups();
+            }
             $pxml = $this->doQuery($request, $settings);
 if (TIMING) {$time_taken = microtime(true)-$time_start;echo "<!--AWS Lookup: $time_taken -->";}
 
             if (($pxml === False) || !isset($pxml['Items']['Item'])) {
                // Failed to return any results
-               $items = array(array('ASIN' => $asin, 'found' => 0, 'error' => (isset($pxml['Error']['Message'])? $pxml['Error']['Message'] : 'No Items Found') ));
-               return $items;
+               $data = array(array('ASIN' => $asin, 'found' => 0, 'error' => (isset($pxml['Error']['Message'])? $pxml['Error']['Message'] : 'No Items Found') ));
+               return $data;
             } else {
                if (array_key_exists('ASIN', $pxml['Items']['Item'])) {
                   // Returned a single result (not in an array)
 if (TIMING) $time_start = microtime(true);
-                  $items =array($pxml['Items']['Item']);
 
-                  if ($settings['cache_enabled']) {
-                     $sql = "DELETE FROM $cache_table WHERE asin LIKE '$asin' AND cc LIKE '$cc'";
-                     $wpdb->query($sql);
-                     $data = array( 'asin' => $asin, 'cc' => $cc, 'xml' => serialize($items), updated => current_time('mysql'));
-                     $wpdb->insert($cache_table, $data);
-if (TIMING) {$time_taken = microtime(true)-$time_start;echo "<!--Cache Save: $time_taken -->";}
-                  }
+                  $items = array($pxml['Items']['Item']);
                } else {
                   // Returned several results
                   $items =$pxml['Items']['Item'];
+
                }
+
+               $keywords = $this->get_keywords();
+
+               /* Extract useful information from the xml */
+               $data= array();
+               for ($index=0; $index < count($items); $index++ ) {
+                  $result = $items[$index];
+
+                  foreach ($keywords as $keyword => $key_info) {
+                     if (isset($key_info['Live'])) {
+                        $key_data = $this->grab($result, $key_info['Position'], $key_info['Default']);
+                        if (isset($key_info['Filter'])) $key_data = apply_filters($key_info['Filter'], $key_data, $settings);
+                        $data[$index][$keyword] = $key_data;
+                     }
+                  }
+                  $data[$index]['asins']  = 0;
+                  $data[$index]['artist'] = $this->remove_parents($data[$index]['artist']);
+                  $data[$index]['type']   = 'Amazon';
+                  $data[$index]['found']  = 1;
+
+                  /* Save each item to the cache if it is enabled */
+                  if ($settings['cache_enabled']) {
+                     $sql = "DELETE FROM $cache_table WHERE asin LIKE '". $data[$index]['asin'] ."' AND cc LIKE '$cc'";
+                     $wpdb->query($sql);
+                     $sql_data = array( 'asin' => $data[$index]['asin'], 'cc' => $cc, 'xml' => serialize($data[$index]), updated => current_time('mysql'));
+                     $wpdb->insert($cache_table, $sql_data);
+if (TIMING) {$time_taken = microtime(true)-$time_start;echo "<!--Cache Save: $time_taken -->";}
+                  }
+               }
+
             }
          }
-
-         for ($index=0; $index < count($items); $index++ ) {
-            $items[$index]['found'] = 1;
-         }
-         return $items;
-
+         return $data;
       }
 
       function doQuery($request, $Settings = NULL)
@@ -1224,33 +1306,45 @@ if (TIMING) {$time_taken = microtime(true)-$time_start;echo "<!--Cache Save: $ti
             $term ='';
             $countries = $this->get_country_data();
             foreach ($countries as $country => $country_data) {
-               if (isset($asin[$country])) {
-                  $term .= $sep. $country .' : \'A-'. $asin[$country].'\'';
-               } else if ($settings['search_link']) {
+               if ($type == 'search' ) {
                   $term .= $sep. $country .' : \'S-'. $search .'\'';
                } else {
-                  $term .= $sep. $country .' : \'A-'. $asin[$settings['home_cc']].'\'';
+                  if ($type == 'review') {
+                     $type = 'R-';
+                  } else if ($type == 'product') {
+                     $type = 'A-';
+                  }
+                  if (isset($asin[$country])) {
+                     $term .= $sep. $country .' : \''. $type. $asin[$country].'\'';
+                  } else if ($settings['search_link']) {
+                     $term .= $sep. $country .' : \'S-'. $search .'\'';
+                  } else {
+                     $term .= $sep. $country .' : \''. $type. $asin[$settings['home_cc']].'\'';
+                  }
                }
                $sep = ',';
             }
          }
          $term .= '}';
 
-         if ($type == 'review') {
-            $type = 'R-';
-         } else if ($type == 'product') {
-            $type = 'A-';
-         }
-
-         if (isset($asin[$local_info['cc']])) {
-
-            // User Specified ASIN always use
-            $url_term = $type . $asin[$local_info['cc']];
-
-         } else if ($settings['search_link']) {
+         if ($type == 'search' ) {
             $url_term = 'S-'. ($search);
          } else {
-            $url_term = $type . $asin[$settings['home_cc']];
+            if ($type == 'review') {
+               $type = 'R-';
+            } else if ($type == 'product') {
+               $type = 'A-';
+            }
+            if (isset($asin[$local_info['cc']])) {
+
+               // User Specified ASIN always use
+               $url_term = $type . $asin[$local_info['cc']];
+
+            } else if ($settings['search_link'] && ($type == 'A-')) {
+               $url_term = 'S-'. ($search);
+            } else {
+               $url_term = $type . $asin[$settings['home_cc']];
+            }
          }
 
          /*
@@ -1293,23 +1387,31 @@ if (TIMING) {$time_taken = microtime(true)-$time_start;echo "<!--Cache Save: $ti
          if (isset($Settings['template_content'])) {
             $details = array();
             unset($Settings['asin']);
+            
             if ($Settings['template_type'] == 'Multi') {
+               /* Multi-product template collapse array back to a list, respecting country specific selection */
                $sep = ''; $list='';
                foreach ($asins as $i => $asin) {
+                  /* TODO: Check this! */
                   $list .= $sep .(is_array($asin) ? (isset($asin[$local_info['cc']]) ? $asin[$local_info['cc']] : $asin[$Settings['default_cc']]) : $asin);
                   $sep=',';
                }
-               $details[] = array_merge( array('asins' => $list),  $Settings);
+               $details[0] = $Settings;
+               $details[0]['asins'] = $list;
             } elseif ($Settings['template_type'] == 'No ASIN') {
-               $details[] = array_merge(array('found' => 1),  $Settings);
-            } elseif (!isset($asins[0])) {
-               $details[] = array_merge($Settings, array( 'asin' => $asins, 'live' => 1));
+               /* No asin provided so don't try and parse it */
+               $details[0] = $Settings;
+               $details[0]['found'] = 1;
             } else {
-               foreach ($asins as $asin) {
+               /* Usual case where user provides asin=X or asin=X,Y,Z */
+               for ($index=0; $index < count($asins); $index++ ) {
                   if (count($asins) > 1) {
-                     $details[] = array_merge($Settings, array( 'asin' => $asin, 'live' => 1));
+                     $details[$index] = $Settings;
+                     $details[$index]['asin'] = $asins[$index];
+                     $details[$index]['live'] = 1;
                   } else {
-                     $details[] = array_merge($Settings, array( 'asin' => $asin));
+                     $details[$index] = $Settings;
+                     $details[$index]['asin'] = $asins[$index];
                   }
                }
             }
@@ -1395,12 +1497,6 @@ function amazon_scripts()
   $this->generate_multi_script();
 }
 
-function amazon_make_links($args)
-{
-  global $awlfw;
-  $awlfw->parseArgs($args);       // Get the default settings
-  return $awlfw->make_links($awlfw->Settings['asin'], $awlfw->Settings['text'], $awlfw->Settings);        // Return html
-}
 
 function amazon_query($request)
 {
@@ -1409,10 +1505,29 @@ function amazon_query($request)
 
 }
 
+function amazon_shortcode($args)
+{
+   global $awlfw;
+   $awlfw->parseArgs($args);       // Get the default settings
+   $awlfw->Settings['in_post'] = False;
+   if (isset($awlfw->Settings['cat']))
+      return $awlfw->showRecommendations($awlfw->Settings['cat'], $awlfw->Settings['last']);
+   else
+      return $awlfw->make_links($awlfw->Settings['asin'], $awlfw->Settings['text'], $awlfw->Settings);
+}
+
 function amazon_recommends($categories='1', $last='30')
 {
   global $awlfw;
   return $awlfw->showRecommendations ($categories, $last);
+}
+
+function amazon_make_links($args)
+{
+   global $awlfw;
+   $awlfw->parseArgs($args);       // Get the default settings
+   $awlfw->Settings['in_post'] = False;
+   return $awlfw->make_links($awlfw->Settings['asin'], $awlfw->Settings['text'], $awlfw->Settings);        // Return html
 }
 
 ?>

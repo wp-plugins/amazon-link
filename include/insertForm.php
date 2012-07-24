@@ -15,8 +15,8 @@
                   '<div style="clear:both" id="amazon-link-result-list"></div>';
 
    $item_details = '';
-   foreach ($this->search->keywords as $keyword => $details) {
-      if (isset($details['live'])) {
+   foreach ($this->get_keywords() as $keyword => $details) {
+      if (isset($details['Live'])) {
          if ($item_details == '') {
             $item_details = $keyword. ': \'%' . $keyword . '%S#\'';
          } else {
@@ -66,7 +66,7 @@
          'template' => array( 'Id' => 'AmazonLinkOpt', 'Name' => __('Template', 'amazon-link'), 'Hint' => __('Choose which template is used to display the item.', 'amazon-link'), 'Default' => ' ', 'Type' => 'selection'),
          'chan' => array( 'Id' => 'AmazonLinkOpt', 'Name' => __('Channel', 'amazon-link'), 'Hint' => __('Choose which set of Amazon Tracking IDs to use.', 'amazon-link'), 'Default' => ' ', 'Type' => 'selection'));
 
-   if ( $this->valid_keys())
+   if ( $Settings['aws_valid'])
    {
       $optionList = array_merge($optionList,array(
          'subhd2' => array ( 'Type' => 'title', 'Value' => __('Search Amazon for Products', 'amazon-link'), 'Title_Class' => 'sub-head'),
@@ -106,8 +106,8 @@
       $optionList['template']['Options'][$templateName]['Name'] = $Details['Name']. '  -  ' . $Details['Description'];
  
       $template_data = array();
-      foreach ($this->search->keywords as $keyword => $details) {
-         if ((isset($details['live']) || isset($details['user'])) && preg_match('/%'.$keyword.'%/i', $Details['Content']))
+      foreach ($this->get_keywords() as $keyword => $details) {
+         if ((isset($details['Live']) || isset($details['User'])) && preg_match('/%'.$keyword.'%/i', $Details['Content']))
             $template_data[] = $keyword;
       }
       $optionList['T_' . $templateName] = array( 'Id' => 'AmazonLinkTemplates', 'Type' => 'hidden', 'Value' => implode(',',$template_data));
@@ -121,10 +121,10 @@
 
    $live_data = array();
    $user_data = array();
-   foreach ($this->search->keywords as $keyword => $details) {
-      if (isset($details['live']))
+   foreach ($this->get_keywords() as $keyword => $details) {
+      if (isset($details['Live']))
          $live_data[] = $keyword;
-       if (isset($details['user']))
+       if (isset($details['User']))
          $user_data[] = $keyword;
    }
    $optionList['template_live_keywords'] = array( 'Id' => 'AmazonLinkTemplates', 'Type' => 'hidden', 'Value' => implode(',',$live_data ));
