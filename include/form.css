@@ -71,6 +71,14 @@
     background:#fffbe4;
 }
 
+
+#amazon-link-error {
+ font-size: 1em;
+ border: 1px solid;
+ padding: 2px;
+ background:#fffbe4;
+}
+
 .amazon-link-info-heading {
  padding: 2px;
  margin-top: 2px;

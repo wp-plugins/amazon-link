@@ -117,6 +117,8 @@ wpAmazonLinkSearcher.prototype = {
          {
             jQuery('#amazon-link-result-list').append(response['items'][index]['template']);
          }
+     //    jQuery('#amazon-link-error').show();
+     //    jQuery('#amazon-link-error').text((response['message']));
       }
    }
 }

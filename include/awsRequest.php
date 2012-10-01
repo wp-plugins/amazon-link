@@ -103,10 +103,10 @@ if (!function_exists('unserialize_xml')) {
     // create request
     $request = "http://".$host.$uri."?".$canonicalized_query."&Signature=".$signature;
     
-//   echo "<!-- REQ: "; print_r($request); echo "-->";
+ //  echo "<!-- REQ: "; print_r($request); echo "-->";
     // do request
     $result = wp_remote_request( $request ); 
-//     echo "<!--RESP:"; print_r($result); echo "-->";
+//   echo "<!--RESP:"; print_r($result); echo "-->";
 
     if ($result instanceof WP_Error )
     {

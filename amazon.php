@@ -107,6 +107,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
       var $templatesName = 'AmazonLinkTemplates';
       var $channels_name = 'AmazonLinkChannels';
       var $settings_slug = 'amazon-link-options';
+      var $extras_slug   = 'amazon-link-extras';
 
       var $plugin_home   = 'http://www.houseindorset.co.uk/plugins/amazon-link/';
 
@@ -184,9 +185,6 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          wp_register_script('amazon-link-admin-script', $admin_script, false, $this->plugin_version);
 
          add_action('wp_enqueue_scripts', array($this, 'amazon_styles'));             // Add base stylesheet
-
-         add_filter('amazon_link_editorial', array($this, 'editorial_filter'), 5, 2);
-
       }
 
       // If in admin section then register options page and required styles & metaboxes
@@ -197,6 +195,12 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          add_action('load-'.$this->opts_page, array(&$this, 'load_options_page'));
          add_action( "admin_print_styles-" . $this->opts_page, array($this,'amazon_admin_styles') );
          add_action( "admin_print_scripts-" . $this->opts_page, array($this,'amazon_admin_scripts') );
+
+         // Add plugin extras page, with load hook to bring in meta boxes and scripts and styles
+         $this->extras_page = add_plugins_page( __('Manage Amazon Link Extras', 'amazon-link'), __('Amazon Link Extras', 'amazon-link'), 'activate_plugins', $this->extras_slug, array($this, 'show_extras_page'));
+         add_action('load-'.$this->extras_page, array(&$this, 'load_extras_page'));
+         add_action( "admin_print_styles-" . $this->extras_page, array($this,'amazon_admin_styles') );
+         add_action( "admin_print_scripts-" . $this->extras_page, array($this,'amazon_admin_scripts') );
 
          // Add support for Post edit metabox, this requires our styles and post edit AJAX scripts.
          $post_types = get_post_types();
@@ -266,6 +270,45 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
                                    '<p><a target="_blank" href="'. $this->plugin_home . '">' . __('Plugin Home Page','amazon-link') . '</a></p>' .
                                    '<p><a target="_blank" href="'. $this->plugin_home . 'faq/">' . __('Plugin FAQ','amazon-link') . '</a></p>' .
                                    '<p><a target="_blank" href="'. $this->plugin_home . 'faq/#channels">' . __('Channels Help','amazon-link') . '</a></p>' .
+                                   '<p><a target="_blank" href="'. $this->plugin_home . 'faq/#templates">' . __('Template Help','amazon-link') . '</a></p>');
+      }
+
+
+      // Hooks required to bring up extras page with meta boxes:
+      function load_extras_page() {
+
+         $screen = get_current_screen();
+
+         add_filter('screen_layout_columns', array(&$this, 'adminColumns'), 10, 2);
+
+         wp_enqueue_script('common');
+         wp_enqueue_script('wp-lists');
+         wp_enqueue_script('postbox');
+
+         add_meta_box( 'alExtras', __( 'Extras', 'amazon-link' ), array (&$this, 'show_extras' ), $this->extras_page, 'normal', 'core' );
+
+         if ( $screen->id != $this->extras_page)
+            return;
+
+         // Add Contextual Help
+
+         $screen->add_help_tab( array( 'id'      => 'amazon-extras-tab',
+                                       'title'   => __('Extras', 'amazon-link'),
+                                       'content' => '<p>' . __('Use this page to manage plugins that add extra functionality to the main Amazon Link plugin. These plugins are either user provided or have been requested by users of the Amazon Link plugin, however although useful they may come with some performance or database impact. As such they are not built into the Amazon Link plugin by default.','amazon-link') . '</p>' .
+                                                    '<p>' . __('The plugins use the filters built into the main Amazon Link plugin to modify its behavior (see the next help section), any changes made on this page will cause the Amazon Link Cache to be emptied.','amazon-link') . '</p>' .
+                                                    '<p>' . __('It is recommended that if you wish to modify the behaviour of Amazon Link plugin then create your own plugins (using the provided ones as a template), these will survive any upgrades to the main plugin.','amazon-link') . '</p>')
+                              );
+         $screen->add_help_tab( array( 'id'      => 'amazon-filters-tab',
+                                       'title'   => __('Filters', 'amazon-link'),
+                                       'content' => '<p>' . __('The plugin exposes three filters that can be accessed via the standard WordPress Filter API:','amazon-link') . 
+                                                    '<ul><li>amazon_link_keywords</li><li>amazon_link_default_templates</li><li>amazon_link_option_list</li></p>' .
+                                                    '<p>' . __('It is also possible to add your own filters to process individual data items returned via Amazon by adding a \'Filter\' item using the \'amazon_link_keywords\' filter. See the \'Editorial Content\' plugin for an example of how to do this.','amazon-link') . '</p>' .
+                                                    '<p>' . __('','amazon-link') . '</p>')
+                              );
+         $screen->set_help_sidebar('<p><b>'. __('For more information:', 'amazon-link'). '</b></p>' .
+                                   '<p><a target="_blank" href="'. $this->plugin_home . '">' . __('Plugin Home Page','amazon-link') . '</a></p>' .
+                                   '<p><a target="_blank" href="'. $this->plugin_home . 'faq/">' . __('Plugin FAQ','amazon-link') . '</a></p>' .
+                                   '<p><a target="_blank" href="'. $this->plugin_home . 'technical/#filters">' . __('Filters Help','amazon-link') . '</a></p>' .
                                    '<p><a target="_blank" href="'. $this->plugin_home . 'faq/#templates">' . __('Template Help','amazon-link') . '</a></p>');
       }
 
@@ -400,8 +443,6 @@ function al_gen_multi (id, term, def, chan) {
                                       'Position' => array(array('SalesRank'))),
              'rating'       => array( 'Description' => __('Numeric User Rating - (No longer Available)', 'amazon-link'), 'Live' => '1', 'Default' => '-',
                                       'Position' => array(array('CustomerReviews','AverageRating'))),
-             'editorial'    => array( 'Description' => __('Editorial Reviews (non-copyrighted only)', 'amazon-link'), 'Group' => 'EditorialReview', 'Filter' => 'amazon_link_editorial', 'Default' => '-', 'Live' => '1',
-                                      'Position' => array(array('EditorialReviews','EditorialReview'))),
              'price'        => array( 'Description' => __('Price of Item', 'amazon-link'), 'Live' => '1', 'Group' => 'Offers', 'Default' => '-',
                                       'Position' => array(array('Offers','Offer','OfferListing','Price','FormattedPrice'),
                                                           array('OfferSummary','LowestNewPrice','FormattedPrice'),
@@ -470,15 +511,16 @@ function al_gen_multi (id, term, def, chan) {
          if (!isset($this->default_templates)) {
             // Default templates
             include('include/defaultTemplates.php');
+            $this->default_templates= apply_filters('amazon_link_default_templates', $this->default_templates);
          }
          return $this->default_templates;
       }
 
       function get_option_list() {
      
-         if (!isset($this->optionList)) {
+         if (!isset($this->option_list)) {
 
-            $this->optionList = array(
+            $this->option_list = array(
 
             /* Hidden Options - not saved in Settings */
 
@@ -526,22 +568,25 @@ function al_gen_multi (id, term, def, chan) {
                                                      __('Disable Cache', 'amazon-link' ) => array( 'Hint' => __('Remove the Amazon Link cache database table.', 'amazon-link'),'Class' => 'button-secondary', 'Action' => 'AmazonLinkAction'),
                                                      __('Flush Cache', 'amazon-link' ) => array( 'Hint' => __('Delete all data in the Amazon Link cache.', 'amazon-link'),'Class' => 'button-secondary', 'Action' => 'AmazonLinkAction'),
                                                                         )),
-            'hd3e' => array ( 'Type' => 'end'),
-            'button' => array( 'Type' => 'buttons', 'Buttons' => array( __('Update Options', 'amazon-link' ) => array( 'Class' => 'button-primary', 'Action' => 'AmazonLinkAction'))));
+            'hd3e' => array ( 'Type' => 'end')
+            );
+            $this->option_list = apply_filters('amazon_link_option_list', $this->option_list);
+
+            $this->option_list['button'] = array( 'Type' => 'buttons', 'Buttons' => array( __('Update Options', 'amazon-link' ) => array( 'Class' => 'button-primary', 'Action' => 'AmazonLinkAction')));
 
             $country_data = $this->get_country_data();
             // Populate Country related options
             foreach ($country_data as $cc => $data) {
-               $this->optionList['default_cc']['Options'][$cc]['Name'] = $data['name'];
+               $this->option_list['default_cc']['Options'][$cc]['Name'] = $data['name'];
             }
 
             // Populate the hidden Template Keywords
             foreach ($this->get_keywords() as $keyword => $details) {
-               if (!isset($this->optionList[$keyword]))
-                  $this->optionList[$keyword] = array( 'Type' => 'hidden' );
+               if (!isset($this->option_list[$keyword]))
+                  $this->option_list[$keyword] = array( 'Type' => 'hidden' );
             }
          }
-         return $this->optionList;
+         return $this->option_list;
       }
 
       function get_user_option_list() {
@@ -573,12 +618,12 @@ function al_gen_multi (id, term, def, chan) {
       }
 
       function saveOptions($Opts) {
-         $optionList = $this->get_option_list();
+         $option_list = $this->get_option_list();
          if (!is_array($Opts)) {
             return;
          }
          // Ensure hidden items are not stored in the database
-         foreach ( $optionList as $optName => $optDetails ) {
+         foreach ( $option_list as $optName => $optDetails ) {
             if ($optDetails['Type'] == 'hidden') unset($Opts[$optName]);
          }
          update_option($this->optionName, $Opts);
@@ -656,17 +701,20 @@ function al_gen_multi (id, term, def, chan) {
        */
       function parseArgs($arguments) {
 
-         $optionList = $this->get_option_list();
+         $option_list = $this->get_option_list();
 
          $args = array();
-         parse_str(html_entity_decode($arguments), $args);
+         // Convert html encoded string back into raw characters (else parse_str does not see the '&'s).
+         $arg_str = html_entity_decode($arguments, ENT_QUOTES, 'UTF-8'); // ensure '&#8217; => '’' characters are decoded
+
+         parse_str($arg_str, $args);
 
          $Opts = $this->getOptions();
          unset($this->Settings);
          /*
           * Check for each setting, local overides saved option, otherwise fallback to default.
           */
-         foreach ($optionList as $key => $details) {
+         foreach ($option_list as $key => $details) {
             if (isset($args[$key])) {
                if (is_array($args[$key])) {
                   $this->Settings[$key] = array_map("trim", $args[$key]);
@@ -712,8 +760,8 @@ function al_gen_multi (id, term, def, chan) {
          if (!isset($this->Settings)) {
             $this->Settings = $this->getOptions();
          }
-         $optionList = $this->get_option_list();
-         foreach ($optionList as $key => $details) {
+         $option_list = $this->get_option_list();
+         foreach ($option_list as $key => $details) {
             if ((!isset($this->Settings[$key]) || ($this->Settings[$key] == '')) && isset($details['OverrideBlank'])) {
                $this->Settings[$key] = $details['OverrideBlank'];      // Use default
             }
@@ -1039,11 +1087,57 @@ function al_gen_multi (id, term, def, chan) {
 <?php
       }
 
+
+
+      // Top level function to display extras
+      function show_extras_page() {
+         global $screen_layout_columns;
+?>
+<div class="wrap">
+		<?php screen_icon('options-general'); ?>
+		<h2><?php echo __('Amazon Link Extras', 'amazon-link') ?></h2>
+                <p>
+On this page you can manage user provided or requested extra functionality for the Amazon Link plugin. 
+These items are not part of the main Amazon Link plugin as they provide features that not every user wants and may have a negative impact on your site (e.g. reduced performance, extra database usage, etc.).
+</p>
+	<div id="poststuff" class="metabox-holder">
+		<?php do_meta_boxes($this->extras_page, 'normal',0); ?>
+   </div>
+			<div id="poststuff" class="metabox-holder<?php echo 2 == $screen_layout_columns ? ' has-right-sidebar' : ''; ?>">
+				<div id="post-body" class="has-sidebar" >
+					<div id="post-body-content" class="has-sidebar-content">
+						<?php do_meta_boxes($this->extras_page, 'advanced',0); ?>
+					</div>
+				</div>
+				<div id="side-info-column" class="inner-sidebar">
+					<?php do_meta_boxes($this->extras_page, 'side',0); ?>
+				</div>
+				<br class="clear"/>
+			</div>	
+		</div>
+	<script type="text/javascript">
+		//<![CDATA[
+		jQuery(document).ready( function($) {
+			// close postboxes that should be closed
+			$('.if-js-closed').removeClass('if-js-closed').addClass('closed');
+			// postboxes setup
+			postboxes.add_postbox_toggles('<?php echo $this->extras_page; ?>');
+		});
+		//]]>
+	</script>
+<?php
+      }
+
 /*****************************************************************************************/
 
       // Main Options Page
       function show_options() {
          include('include/showOptions.php');
+      }
+
+      // Extras Management Page
+      function show_extras() {
+         include('include/showExtras.php');
       }
 
       // User Options Page Hooks
@@ -1100,31 +1194,6 @@ function al_gen_multi (id, term, def, chan) {
       function aws_signed_request($region, $params, $public_key, $private_key)
       {
          return include('include/awsRequest.php');
-      }
-
-      function editorial_filter($editorial, $settings) {
-
-         if (is_array($editorial)) {
-            return $this->merge_items($editorial, array('Source' => array('Pre' => '<div class="al_editorial_source">', 
-                                                                          'Post' => '</div>'), 
-                                                        'Content' => array('Pre' => '<div class="al_editorial_content">', 
-                                                                           'Post' =>'</div>')));
-         } else {
-            return $editorial;
-         }
-      }
-
-      function merge_items($Items, $Elements) {
-         if (!isset($Items[0])) {
-            $Items = array('0' => $Items);
-         }
-         $result = '';
-         foreach ($Items as $Item) {
-            foreach($Elements as $Element => $Info) {
-               $result .= isset ($Item[$Element]) ? $Info['Pre'] . $Item[$Element] . $Info['Post'] : '';
-            }
-         }
-         return $result;
       }
 
       function remove_parents ($array) {
@@ -1227,7 +1296,10 @@ if (TIMING) {$time_taken = microtime(true)-$time_start;echo "<!--AWS Lookup: $ti
 
             if (($pxml === False) || !isset($pxml['Items']['Item'])) {
                // Failed to return any results
-               $data = array(array('ASIN' => $asin, 'found' => 0, 'error' => (isset($pxml['Error']['Message'])? $pxml['Error']['Message'] : 'No Items Found') ));
+               $data = array(array('ASIN' => $asin, 'found' => 0 ));
+               $data['Error'] = (isset($pxml['Error']['Message'])? $pxml['Error']['Message'] : 
+                                 (isset($pxml['Items']['Request']['Errors']['Error']['Message']) ? 
+                                         $pxml['Items']['Request']['Errors']['Error']['Message'] : 'No Items Found'));
                return $data;
             } else {
                if (array_key_exists('ASIN', $pxml['Items']['Item'])) {
@@ -1397,7 +1469,7 @@ if (TIMING) {$time_taken = microtime(true)-$time_start;echo "<!--Cache Save: $ti
                   $sep=',';
                }
                $details[0] = $Settings;
-               $details[0]['asins'] = $list;
+               $details[0]['asins'][$local_info['cc']] = $list;
             } elseif ($Settings['template_type'] == 'No ASIN') {
                /* No asin provided so don't try and parse it */
                $details[0] = $Settings;
@@ -1415,7 +1487,6 @@ if (TIMING) {$time_taken = microtime(true)-$time_start;echo "<!--Cache Save: $ti
                   }
                }
             }
-
             if (!empty($details))
             {
                foreach ($details as $item) {
@@ -1466,7 +1537,7 @@ if (TIMING) {$time_taken = microtime(true)-$time_start;echo "<!--Cache Save: $ti
             if (isset($thumb))
                $object = '<img class="'. $Settings['image_class'] .'" src="'. $thumb . '" alt="'. $link_text .'">';
 
-            $output .= $this->make_link(array($Settings['default_cc'] =>$asin), $object, $Settings, $local_info);
+            $output .= $this->make_link($asin, $object, $Settings, $local_info);
 
          }
          return $output;

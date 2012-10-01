@@ -101,8 +101,9 @@ if (!class_exists('AmazonLinkSearch')) {
             $Items = $this->do_search($Opts);
          }
 
+         $results['message'] = 'No Error ';
          $results['success'] = 0;
-         if (isset($Items['error'])) {
+         if (isset($Items['Error'])) {
             $results['message'] = 'Error: ' . $Items['Error'];
          } else if (is_array($Items) && (count($Items) >0)) {
             foreach($Items as $item) {
@@ -227,10 +228,14 @@ if (!class_exists('AmazonLinkSearch')) {
                            'Manufacturer' => array('Appliances', 'Automotive', 'Electronics', 'Garden', 'HealthPersonalCare', 'Hobbies', 'Home', 'HomeGarden', 'HomeImprovement', 'Industrial', 'Kitchen',  'OutdoorLiving', 'Photo', 'Software', 'SoftwareVideoGames'),
                            'Composer' => array('Classical'));
 
-         $Keywords = array('Blended', 'All', 'MusicTracks', 'Outlet');
-         $Sort = array('salesrank' => array('Books', 'Classical', 'DVD', 'Electronics', 'HealthPersonalCare', 'HomeGarden', 'HomeImprovement', 'Kitchen', 'MarketPlace', 'Music', 'OutdoorLiving', 'PCHardware', 'Software', 'SoftwareVideoGames', 'Toys', 'VHS', 'Video', 'VideoGames'),
-                       'relevancerank' => array('Apparel', 'Automotive', 'Baby', 'Beauty', 'Grocery', 'Jewelry', 'KindleStore', 'MP3Downloads', 'MusicalInstruments', 'OfficeProducts', 'Shoes', 'Watches'),
-                       'xsrelevancerank' => array('Shoes'));
+         $Keywords = array('Blended', 'All', 'DigitalMusic', 'MusicTracks', 'Outlet');
+
+         $Sort['uk'] = array('salesrank'       => array('Books', 'Classical', 'DVD', 'Electronics', 'HealthPersonalCare', 'HomeGarden', 'HomeImprovement', 'Kitchen', 'MarketPlace', 'Music', 'OutdoorLiving', 'PCHardware', 'Software', 'SoftwareVideoGames', 'Toys', 'VHS', 'Video', 'VideoGames'),
+                             'relevancerank'   => array('Apparel', 'Automotive', 'Baby', 'Beauty', 'Grocery', 'Jewelry', 'KindleStore', 'MP3Downloads', 'MusicalInstruments', 'OfficeProducts', 'Shoes', 'Watches'),
+                             'xsrelevancerank' => array('Shoes'));
+         $Sort['us'] = array('salesrank'       => array('Books', 'Classical', 'DVD', 'Electronics', 'HealthPersonalCare', 'HomeGarden', 'HomeImprovement', 'Kitchen', 'MarketPlace', 'Music', 'OutdoorLiving', 'PCHardware', 'Software', 'SoftwareVideoGames', 'Toys', 'VHS', 'Video', 'VideoGames'),
+                             'relevancerank'   => array('Apparel', 'Automotive', 'Baby', 'Beauty', 'Grocery', 'Jewelry', 'KindleStore', 'MP3Downloads', 'MusicalInstruments', 'OfficeProducts', 'Shoes', 'Watches'),
+                             'xsrelevancerank' => array('Shoes'));
 
          // Create query to retrieve the first 10 matching items
          $request = array('Operation' => 'ItemSearch',
@@ -238,7 +243,7 @@ if (!class_exists('AmazonLinkSearch')) {
                           'SearchIndex'=>$Opts['s_index'],
                           'ItemPage'=>$Opts['s_page']);
 
-         foreach ($Sort as $Term => $Indices) {
+         foreach ($Sort['uk'] as $Term => $Indices) {
             if (in_array($Opts['s_index'], $Indices)) {
                $request['Sort'] = $Term;
                continue;
@@ -395,7 +400,11 @@ if (!class_exists('AmazonLinkSearch')) {
 
                if (!isset($this->$data[$country][$keyword])) {
                   $local_info = $this->alink->get_local_info($local_settings);
-                  $asin = (isset($data[$country]['asin']) ? $data[$country]['asin'] : $data[$default_country]['asin']);
+                  if (!isset($data[$country]['asin'])) {
+                     $data[$country]['asin'] = $data[$default_country]['asin'];
+                  }
+                  $asin = $data[$country]['asin'];
+                  
                   if ($key_data['link']) {
                      $this->get_links($asins, $local_settings, $local_info, $data);
                   }

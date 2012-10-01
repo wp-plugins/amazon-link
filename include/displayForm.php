@@ -269,6 +269,7 @@ if (!class_exists('AmazonWishlist_Options')) {
       <?php if (isset($optDetails['Icon'])) screen_icon($optDetails['Icon']); ?>
       <?php echo $Title ?>
      <?php if (isset($optDetails['Description'])) echo '<div class="al_description">'.$optDetails['Description'].'</div>'; ?>
+      <?php if (isset($optDetails['Buttons'])) $this->displayButtons($optDetails['Buttons']); ?>
     </div>
 <?php
                } else if ($optDetails['Type'] == 'subhead') {
@@ -289,6 +290,7 @@ if (!class_exists('AmazonWishlist_Options')) {
       <?php if (isset($optDetails['Icon'])) screen_icon($optDetails['Icon']); ?>
       <?php echo $Title ?>
      <?php if (isset($optDetails['Description'])) echo '<div class="al_description">'.$optDetails['Description'].'</div>'; ?>
+      <?php if (isset($optDetails['Buttons'])) $this->displayButtons($optDetails['Buttons']); ?>
     </div>
 <?php
                } else if ($optDetails['Type'] == 'section') {
@@ -303,6 +305,7 @@ if (!class_exists('AmazonWishlist_Options')) {
 ?>
     <div class="al_section">
      <div class="<?php echo $optDetails['Section_Class']; ?>"><?php echo $Title ?></div>
+      <?php if (isset($optDetails['Buttons'])) $this->displayButtons($optDetails['Buttons']); ?>
       <div <?php echo $class ?>>
 <?php
                } else if ($optDetails['Type'] == 'end') {
