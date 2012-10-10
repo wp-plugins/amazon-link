@@ -32,6 +32,7 @@
          // Get the Cart Similarities for the items found
          $counter=1;
          $unique_asins = array();
+
          foreach ($this->tags as $asins)
          {
              $asin = isset($asins[$local_info['cc']]) ? $asins[$local_info['cc']] : (isset($asins[$Settings['default_cc']]) ? $asins[$Settings['default_cc']] : '');
@@ -49,7 +50,7 @@
          {
             $Items=$pxml['Cart']['SimilarProducts']['SimilarProduct'];
          } else {
-            $output .= '<p>'.__('Amazon query failed to return any results - Have you configured the AWS settings?', 'amazon-link').'</p>';
+            $output .= '<!--' . __('Amazon query failed to return any results - Have you configured the AWS settings?', 'amazon-link').'-->';
             $output .= '<!-- '. print_r($request, true) . '-->';
             $Items=array();
          }
@@ -80,8 +81,9 @@
          $Settings['live'] = 1;
          if (!isset($Settings['template'])) $Settings['template'] = $Settings['wishlist_template'];
          $output .= $this->make_links($ASINs, $Settings['text'], $Settings);
-         $output .= "</div>";
+
       }
+      $output .= "</div>";
 
    } else {
       $output .= "<!--". sprintf(__('No [amazon] tags found in the last %1$s posts in categories %2$s', 'amazon-link'), $last, $categories). "--!>";

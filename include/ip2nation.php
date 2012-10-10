@@ -36,12 +36,8 @@ if (!class_exists('AmazonWishlist_ip2nation')) {
             $ip2nationdb_ts = False;
          }
 
-         if( !class_exists( 'WP_Http' ) ) 
-            include_once( ABSPATH . WPINC. '/class-http.php' );
-
-         $request = new WP_Http;
-         $result = $request->head( $this->remote_file, array('timeout' => 5));
-         if ($result instanceof WP_Error )
+         $result = wp_remote_head($this->remote_file, array('timeout' => 5));
+         if (is_wp_error($result))
          {
             $ip2nationfile_ts = False;
          } else {
@@ -81,19 +77,14 @@ if (!class_exists('AmazonWishlist_ip2nation')) {
       function install () {
          global $wpdb;
 
-          // Download zip file...
-         if( !class_exists( 'WP_Http' ) ) 
-            include_once( ABSPATH . WPINC. '/class-http.php' );
-
-          $request = new WP_Http;
-          $result = $request->request( $this->remote_file );
-          if ($result instanceof WP_Error )
+         $result = wp_remote_get($this->remote_file);
+         if (is_wp_error($result))
              return __('ip2nation install: Failed to Download remote database file.','amazon-link');
 
           // Save file to temp directory
           $zip_content = $result['body'];
           $zip_size = file_put_contents ($this->temp_zip_file, $zip_content);
-          if (!$zip_size)
+          if ($zip_size === False)
              return sprintf(__('ip2nation install: Failed to open temporary  file (%s).','amazon-link'), $this->temp_zip_file) ;
 
           // Unzip the file
@@ -113,23 +104,26 @@ if (!class_exists('AmazonWishlist_ip2nation')) {
 
           // Install the database
           $index = 0;
+          $queries =0;
           $end = strpos($sql, ';', $index)+1;
           $query = substr ($sql, $index, ($end-$index));
           while ($query !== FALSE) {
              if ($wpdb->query($query) === FALSE)
                 return sprintf(__('ip2nation install: Database downloaded and unzipped but failed to install [%s]','amazon-link'), $wpdb->last_error);
              $index=$end;
+             $queries++;
              $end = strpos($sql, ';', $index)+1;
              $query = substr ($sql, $index, ($end-$index));
           }
-          return sprintf(__('ip2nation install: Database downloaded and installed successfully. %s queries executed.','amazon-link'), $index);
+          zip_close($zfh);
+          return sprintf(__('ip2nation install: Database downloaded and installed successfully. %s queries executed.','amazon-link'), $queries);
       }
 
 /*****************************************************************************************/
 
       function get_cc ($ip = FALSE) {
          global $wpdb, $_SERVER;
-         
+
          if ($ip === FALSE)
             $ip = $_SERVER['REMOTE_ADDR'];
 

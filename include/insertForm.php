@@ -107,7 +107,7 @@
  
       $template_data = array();
       foreach ($this->get_keywords() as $keyword => $details) {
-         if ((isset($details['Live']) || isset($details['User'])) && preg_match('/%'.$keyword.'%/i', $Details['Content']))
+         if ((isset($details['Live']) || isset($details['User'])) && (stripos($Details['Content'], '%'.$keyword.'%')!==FALSE))
             $template_data[] = $keyword;
       }
       $optionList['T_' . $templateName] = array( 'Id' => 'AmazonLinkTemplates', 'Type' => 'hidden', 'Value' => implode(',',$template_data));

@@ -3,7 +3,7 @@ Contributors: paulstuttard
 Donate link: http://www.houseindorset.co.uk/plugins
 Tags: Amazon, links, wishlist, recommend, shortcode, ip2nation, localise, images, media library, affiliate, product, template
 Requires at least: 3.1
-Tested up to: 3.4
+Tested up to: 3.4.2
 Stable tag: 3.0.2
 
 
@@ -36,6 +36,7 @@ All product links will contain the Amazon affiliate ID of the site author and wi
 * Affiliate Tracking IDs for User or by user specified ['Channels'](./faq#channels).
 * Flexible [template facility](./faq#templates) to enable the author to quickly create complex content quickly and consistently
 * Includes [built in templates](./faq#defaults) for the major Amazon widgets (Carousel, My Favourites, etc.).
+* Facility to extend and modify the functionality of the plugin using WordPress [filters](./technical#filters)
 
 
 = Quick Start =
@@ -53,17 +54,15 @@ To generate a list of products relevant to the content of your site use the 'cat
 
 This is created by either putting the line `amazon_recommends(<Category>,<Number of Posts>)` in your template. Or putting the line `[amazon cat=<Category>&last=<Number of Posts>]` within a post or page. Where 'Category' is a list of category ids to search within (e.g. as expected by the 'cat' argument of [query_posts](http://codex.wordpress.org/Template_Tags/query_posts#Parameters) function. The 'last' parameter is the number of posts to search through.
 
-= Latest Version - 3.0.2 =
+= Latest Version - 3.0.3 =
 
 
 
-* New Feature - Add basic contextual help to the plugin Settings page.
-* New Feature - Validate AWS keys when entered on the Setting page.
-* New Feature - Add support for 'Link to Reviews' rather than the product in templates
-* New Feature - Add 'rel="nofollow"' to all links.
-* Bug Fix - Check for Creation Date when checking the ip2nation database, thanks to Ken Paulson for spotting
-* Bug Fix - Position of 'multinational popup' made more consistent
-
+* New Feature - Amazon Link Helper Box added to all custom Post types
+* New Feature - Add 'Extra' plugin manager to allow installation of user provided features, e.g. The addition of an '%Editorial%' keyword to display Amazon 'Editorial Review' content
+* New Feature - Add ability to change the ASINs used to generate the template previews
+* New Feature - Add 'List Price' and 'Offer Price' Keywords
+* Bug Fix - correct multi-ASIN argument handling
 
 
 == Installation ==
@@ -93,7 +92,17 @@ This is created by either putting the line `amazon_recommends(<Category>,<Number
 
 == Changelog ==
 
-= 3.0.2 =
+= 3.0.3 =
+
+
+
+* New Feature - Amazon Link Helper Box added to all custom Post types
+* New Feature - Add 'Extra' plugin manager to allow installation of user provided features, e.g. The addition of an '%Editorial%' keyword to display Amazon 'Editorial Review' content
+* New Feature - Add ability to change the ASINs used to generate the template previews
+* Bug Fix - correct multi-ASIN argument handling
+
+
+= 3.0.2 =
 
 
 
@@ -483,26 +492,26 @@ If the file is corrupted or maliciously changed then this operation could comple
 = Can you provide a few examples of the shortcodes? =
 
 
-`[amazon asin=B001L4GBXY&text=Guns n' Roses CD]`
+`[amazon asin=0893817449&text=Henri Cartier-Bresson]`
 Will produce a text link to an Amazon Product page:
 
 
-`[amazon asin=B001L4GBXY&title=Guns n' Roses CD&template=Thumbnail&live=1]`
+`[amazon asin=0893817449&title=Masters of Photography&template=Thumbnail&live=1]`
 Will produce a thumbnail image link to an Amazon Product page.
 
 
-`[amazon asin=B001L4GBXY,B003VLDV24&template=Iframe Image]`
+`[amazon asin=0893817449,0500410607&template=Iframe Image]`
 Will produce 2 classic Amazon product links to the specified products.
 
-`[amazon asin=B001L4GBXY,B001L2EZNY,B001LR3576,B001KSJNWC,B001LWZCKY,B001GTPI7O,B001GTAGS0&template=Carousel]`
+`[amazon asin=0893817449,0500410607,050054199X,0500286426,0893818755,050054333X,0500543178,0945506562&template=Carousel]`
 Will produce a single Amazon Carousel widget containing all the specified products.
 
 
-`[amazon asin=B001L4GBXY,B001L2EZNY&template=Wishlist&live=1]`
+`[amazon asin=B0893817449,0500410607&template=Wishlist&live=1]`
 Will produce a list of the 2 products using data from the reader's local Amazon site.
 
 
-`[amazon asin=1841498955&template=Wishlist Post&product=Book&title=Surface Detail (Culture 9)&artist=Iain M. Banks&thumb=http://ecx.images-amazon.com/images/I/41n7sphvJpL._SL160_.jpg&image=http://ecx.images-amazon.com/images/I/41n7sphvJpL.jpg&price=£5.30]`
+`[amazon asin=1841498955&template=Wishlist Post&product=Book&title=Surface Detail (Culture)&artist=Iain M. Banks&thumb=http://ecx.images-amazon.com/images/I/41n7sphvJpL._SL160_.jpg&image=http://ecx.images-amazon.com/images/I/41n7sphvJpL.jpg&price=£5.30]`
 Will produce a link using a custom template filled in with the data included in the shortcode.
 
 
@@ -598,6 +607,10 @@ If you are having problems with the plugin and need to contact me, it may be hel
 
 It is not recommended that this option is enabled for any length of time as it will show your AWS access keys in the page html source.
 
+= Template ASINs =
+
+This setting only affects the Template Previews in the Template Manager section of the Amazon Link Settings page. Change this list of ASINs to change which ASIN(s) are used to generate the Template Previews.
+
 = Associate IDs & Channels =
 
 The author must enter their Amazon Associate IDs for any countries they have an ID for in this section. This will ensure their Associate account is credited with any sales made through the links.
@@ -615,7 +628,7 @@ The text used to generate the amazon link, Enter any plain string e.g. 'text=My 
 The css class used when displaying the image in the post.
 = asin =
 
-The unique Amazon product ID or IDs, of the form '1405235675,1234567890'. Enter as 'asin=1405235675,1234567890'.
+The unique Amazon product ID or IDs, of the form '1405235675,1234567890'. Enter as 'asin=1405235675,1234567890'. It is also possible to specify different ASINs per local using the form 'asin=1405235675,1234567890&asin=1840347839,0123456789'.
 = chan =
 
 It is possible to manually select which set of tracking IDs the link uses by specifying the 'chan=channel_id' option. This will override the user specific affiliate ids.
@@ -650,7 +663,9 @@ Overides the 'AWS Public Key' setting.
 Overides the 'AWS Private Key' setting.
 == Technical ==
 
-The plugin relies upon the php script aws_signed_request kindly crafted by [Ulrich Mierendorff](http://mierendo.com/software/aws_signed_query/).
+== AWS Requests ==
+
+The plugin relies upon the php script aws_signed_request kindly crafted by [Ulrich Mierendorff](http://mierendo.com/software/aws_signed_query/).
 
 The plugin has two utility classes that might be of use to other plugin designers. The first is one for generating the options page (as well as the 'Add Amazon Link' meta box). The second is an AJAX facility for performing Amazon product searches and returning an array of product details, including a facility to fill in a HTML template with various attributes of the product using the patterns %TITLE%, %PRICE%, %AUTHOR%, etc. See the plugin source files for more details on how to utilise them.
 
@@ -660,6 +675,181 @@ The plugin has two utility classes that might be of use to other plugin designer
 The plugin comes with translation support but as yet no translations are included, please refer to the WordPress Codex for more information about activating the translation.
 If you want to help to translate the plugin to your language, please have a look at the i18n/amazon-link.pot file which contains all definitions and may be used to create a language specific .po file, if you do then
 contact me and I will add it to the plugin ready for the next update.
+
+== Filters ==
+
+
+The plugin exposes three filters that can be accessed via the standard WordPress [Filter](http://codex.wordpress.org/Plugin_API#Filters) API:
+
+
+* amazon_link_keywords
+* amazon_link_opts_list
+* amazon_link_default_templates
+
+
+
+**amazon_link_keywords**
+
+This filter allows developers the ability to change the template keywords used by the plugin, it passes an array with a entry for each keyword. This allows developers to add new keywords, change existing ones or remove unwanted keywords.
+
+Each keyword has the following elements:
+
+*keyword*
+This is the index in the keywords array and is used to identify the keyword and is what is searched for in the template. Must be lower case.
+
+*Description*
+This is the textual description that is displayed in the Template Help section.
+
+*User*
+This indicates that this is a text field that the user can populate.
+
+*Live*
+This is set if the keyword is retrieved from the Amazon Web Service API.
+
+The following elements are only required for 'Live' items.
+
+*Position*
+This is an array of arrays (in order of preference) determining how to traverse the AWS Item to get the the AWS information.
+
+*Group*
+This is a comma separated list of the AWS Response Group(s) needed to return this item's details in the AWS data.
+
+*Default*
+This is the default value if no data is returned from the AWS query.
+
+*Filter*
+This is any filter that should be applied to the returned AWS data before storing in the cache and being used in the template. See the 'amazon_link_editorial' example below.
+
+Example:
+
+
+function my_keywords_filter($keywords) {
+ $keywords = array('Description' => 'Item's Author, Artist or Creator',
+                             'live' => '1', 
+                             'Group' => 'Small', 
+                             'Default' => '-',
+                             'Position' => array( array('ItemAttributes','Artist'),
+                                                  array('ItemAttributes','Author'),
+                                                  array('ItemAttributes','Director'),
+                                                  array('ItemAttributes','Creator'),
+                                                  array('ItemAttributes','Brand')))
+ return $keywords;
+}
+add_filter('amazon_link_keywords', 'my_keywords_filter', 1);
+            
+
+If you add any filters of your own you must flush the Plugin's Product Cache to remove stale data.
+
+**amazon_link_option_list**
+
+This filter allows developers the ability to change the options used by the plugin, it passes an array with a entry for each option. This allows developers to add new options (or even change existing ones or remove unwanted options - not recommended!).
+
+Each option has the following elements:
+
+*Name*
+Name of the Option.
+*Description*
+Short Description of the option.
+*Hint*
+Hint that is shown if the user hovers the mouse over this option (e.g. on a selection option).
+*Default*
+The default value this option has if it is not set.
+*Type*
+What type of option is this. Can be one of:
+
+
+* text
+* checkbox
+* selection
+* hidden
+* title
+* textbox
+* radio
+
+*Class*
+Class of the option as displayed on the options page.
+*Options*
+An array of options for the 'selection' and 'radio' type of option.
+*Length*
+Length of the 'text' option type.
+*Rows*
+Number of rows in the 'textbox' option type.
+*Read_Only*
+Set to 1 if this option can not be modified by the user.
+
+**amazon_link_default_templates**
+
+If you have built up a library of templates you can use this filter to add those templates to the defaults the Amazon Link plugin provides. If you do a new install or have multiple sites it provides a way to keep the same templates on all sites.
+
+The filter is passed the default templates array in the form:
+
+
+   'image' =>     array ( 'Name' => 'Image', 
+                          'Description' => 'Localised Image Link', 
+                          'Content' => $image_template, 
+                          'Type' => 'Product',
+                          'Version' => '2', 
+                          'Notice' => 'Add impression tracking', 
+                          'Preview_Off' => 0 ),
+   'mp3 clips' => array ( 'Name' => 'MP3 Clips', 
+                          'Description' => 'Amazon MP3 Clips Widget (limited locales)',
+                          'Content' => $mp3_clips_template, 
+                          'Version' => '1', 
+                          'Notice' => '', 
+                          'Type' => 'Multi', 
+                          'Preview_Off' => 0 )
+
+
+Use the filter to change the defaults or add your own default templates. Each template has the following elements:
+
+*Name*
+The name of the template usually matches the template ID used in the index.
+*Description*
+A short description of the template.
+*Content*
+The actual template content it is recommend that it is run through the 'htmlspecialchars' function to ensure any odd characters are escaped properly.
+*Version*
+The current version of this template, should be a number, e.g. '2.1'.
+*Notice*
+An upgrade notice, what has changed since the last version.
+*Type*
+The type of the template usually 'Product', can be:
+
+
+* Product
+* No ASIN
+* Multi
+
+
+*Preview_Off*
+If this template should not be previewed on the Options page, e.g. it is javascript.
+
+**amazon_link_editorial**
+
+This is an example filter that is installed when the 'amzon-link-extra-editorial' plugin is installed and provides an example of how to process the data returned from Amazon.
+
+This filter passes the editorial content as returned by the Amazon Web Services API, currently this is in the form of an array either of the form:
+
+Multiple Editorial Content:
+` => 'Source 1',  => 'Content 1'`
+
+or
+
+One Editorial Content:
+` => 'Source 1',  => 'Content 1'`
+
+The Amazon Link Plugin has a filter of priority 5, adding your own filter of higher priority will override the default plugin action.
+
+e.g. Adding something like:
+
+
+add_filter('amazon_link_editorial', 'my_editorial_filter', 1, 2);
+
+function my_editorial_filter($editorial, $settings) {
+   $editorial = do_stuff($editorial);
+   return $editorial;
+}
+
 
 == Disclosure ==
 
@@ -678,7 +868,11 @@ Features I will be adding to the plugin in the future:
 
 == Upgrade Notice ==
 
-= 3.0.2 =
+= 3.0.3 =
+
+Upgrade to fix some bugs, improve error reporting and have access to hooks to modify the plugin behaviour.
+
+= 3.0.2 =
 
 Upgrade to fix a few bugs in the last release, and add support for AWS ID validation and Contextual help.
 

@@ -4,7 +4,7 @@
 Plugin Name: Amazon Link
 Plugin URI: http://www.houseindorset.co.uk/plugins/amazon-link
 Description: Insert a link to Amazon using the passed ASIN number, with the required affiliate info.
-Version: 3.0.2
+Version: 3.0.3
 Text Domain: amazon-link
 Author: Paul Stuttard
 Author URI: http://www.houseindorset.co.uk
@@ -101,7 +101,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
       var $TagTail       = ']';
       var $cache_table   = 'amazon_link_cache';
       var $option_version= 6;
-      var $plugin_version= '3.0.2';
+      var $plugin_version= '3.0.3';
       var $optionName    = 'AmazonLinkOptions';
       var $user_options  = 'amazonlinkoptions';
       var $templatesName = 'AmazonLinkTemplates';
@@ -130,12 +130,15 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          $this->ip2n = new AmazonWishlist_ip2nation;
          $this->search = new AmazonLinkSearch;
 
-         register_activation_hook(__FILE__, array($this, 'activate'));               // To perform options upgrade
+         // Frontend & Backend Related
+         register_activation_hook(__FILE__, array($this, 'activate'));               // To perform options installation
          add_action('init', array($this, 'init'));                                   // Load i18n and initialise translatable vars
-         add_filter('plugin_row_meta', array($this, 'registerPluginLinks'),10,2);    // Add extra links to plugins page
          add_filter('the_content', array($this, 'content_filter'),15);               // Process the content
-         add_action('admin_menu', array($this, 'admin_menu'));                       // Add options page and page/post edit hooks
          add_filter('widget_text', array($this, 'widget_filter'), 16 );              // Filter widget text (after the content?)
+
+         // Backend only 
+         add_filter('plugin_row_meta', array($this, 'registerPluginLinks'),10,2);    // Add extra links to plugins page
+         add_action('admin_menu', array($this, 'admin_menu'));                       // Add options page and page/post edit hooks
          add_action('show_user_profile', array($this, 'show_user_options') );        // Display User Options
          add_action('edit_user_profile', array($this, 'show_user_options') );        // Display User Options
          add_action('personal_options_update', array($this, 'update_user_options')); // Update User Options
@@ -185,6 +188,8 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          wp_register_script('amazon-link-admin-script', $admin_script, false, $this->plugin_version);
 
          add_action('wp_enqueue_scripts', array($this, 'amazon_styles'));             // Add base stylesheet
+
+         do_action('amazon_link_init', $this->getOptions());
       }
 
       // If in admin section then register options page and required styles & metaboxes
@@ -295,15 +300,16 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          $screen->add_help_tab( array( 'id'      => 'amazon-extras-tab',
                                        'title'   => __('Extras', 'amazon-link'),
                                        'content' => '<p>' . __('Use this page to manage plugins that add extra functionality to the main Amazon Link plugin. These plugins are either user provided or have been requested by users of the Amazon Link plugin, however although useful they may come with some performance or database impact. As such they are not built into the Amazon Link plugin by default.','amazon-link') . '</p>' .
-                                                    '<p>' . __('The plugins use the filters built into the main Amazon Link plugin to modify its behavior (see the next help section), any changes made on this page will cause the Amazon Link Cache to be emptied.','amazon-link') . '</p>' .
+                                                    '<p>' . __('The plugins use the filters and action hooks built into the main Amazon Link plugin to modify its behavior (see the next help section), any changes made on this page will cause the Amazon Link Cache to be emptied.','amazon-link') . '</p>' .
                                                     '<p>' . __('It is recommended that if you wish to modify the behaviour of Amazon Link plugin then create your own plugins (using the provided ones as a template), these will survive any upgrades to the main plugin.','amazon-link') . '</p>')
                               );
          $screen->add_help_tab( array( 'id'      => 'amazon-filters-tab',
                                        'title'   => __('Filters', 'amazon-link'),
                                        'content' => '<p>' . __('The plugin exposes three filters that can be accessed via the standard WordPress Filter API:','amazon-link') . 
-                                                    '<ul><li>amazon_link_keywords</li><li>amazon_link_default_templates</li><li>amazon_link_option_list</li></p>' .
+                                                    '<ul><li>amazon_link_keywords($keywords)</li><li>amazon_link_default_templates($templates)</li><li>amazon_link_option_list($options_list)</li></p>' .
                                                     '<p>' . __('It is also possible to add your own filters to process individual data items returned via Amazon by adding a \'Filter\' item using the \'amazon_link_keywords\' filter. See the \'Editorial Content\' plugin for an example of how to do this.','amazon-link') . '</p>' .
-                                                    '<p>' . __('','amazon-link') . '</p>')
+                                                    '<p>' . __('The plugin exposes one action hook that can be used via the standard WordPress Action API:','amazon-link') . '</p>'.
+                                                    '<ul><li>amazon_link_init($settings)</li></p>')
                               );
          $screen->set_help_sidebar('<p><b>'. __('For more information:', 'amazon-link'). '</b></p>' .
                                    '<p><a target="_blank" href="'. $this->plugin_home . '">' . __('Plugin Home Page','amazon-link') . '</a></p>' .
@@ -409,9 +415,9 @@ function al_gen_multi (id, term, def, chan) {
 
          if (!isset($this->keywords)) {
             $this->keywords = array(
-             'link_open'    => array( 'Description' => __('Create an Amazon link to a product with user defined content, of the form %LINK_OPEN%My Content%LINK_CLOSE%', 'amazon-link'), 'link' => '1'),
-             'rlink_open'   => array( 'Description' => __('Create an Amazon link to product reviews with user defined content, of the form %RLINK_OPEN%My Content%LINK_CLOSE%', 'amazon-link'), 'link' => '1'),
-             'slink_open'   => array( 'Description' => __('Create an Amazon link to a search page with user defined content, of the form %SLINK_OPEN%My Content%LINK_CLOSE%', 'amazon-link'), 'link' => '1'),
+             'link_open'    => array( 'Description' => __('Create an Amazon link to a product with user defined content, of the form %LINK_OPEN%My Content%LINK_CLOSE%', 'amazon-link'), 'Link' => '1'),
+             'rlink_open'   => array( 'Description' => __('Create an Amazon link to product reviews with user defined content, of the form %RLINK_OPEN%My Content%LINK_CLOSE%', 'amazon-link'), 'Link' => '1'),
+             'slink_open'   => array( 'Description' => __('Create an Amazon link to a search page with user defined content, of the form %SLINK_OPEN%My Content%LINK_CLOSE%', 'amazon-link'), 'Link' => '1'),
              'link_close'   => array( 'Description' => __('Must follow a LINK_OPEN (translates to "</a>").', 'amazon-link')),
 
              'asin'         => array( 'Description' => __('Item\'s unique ASIN', 'amazon-link'), 'Live' => '1', 'Group' => 'ItemAttributes', 'Default' => '0',
@@ -443,7 +449,13 @@ function al_gen_multi (id, term, def, chan) {
                                       'Position' => array(array('SalesRank'))),
              'rating'       => array( 'Description' => __('Numeric User Rating - (No longer Available)', 'amazon-link'), 'Live' => '1', 'Default' => '-',
                                       'Position' => array(array('CustomerReviews','AverageRating'))),
-             'price'        => array( 'Description' => __('Price of Item', 'amazon-link'), 'Live' => '1', 'Group' => 'Offers', 'Default' => '-',
+             'offer_price'  => array( 'Description' => __('Best Offer Price of Item', 'amazon-link'), 'Live' => '1', 'Group' => 'Offers', 'Default' => '-',
+                                      'Position' => array(array('Offers','Offer','OfferListing','Price','FormattedPrice'),
+                                                          array('OfferSummary','LowestNewPrice','FormattedPrice'),
+                                                          array('OfferSummary','LowestUsedPrice','FormattedPrice'))),
+             'list_price'   => array( 'Description' => __('List Price of Item', 'amazon-link'), 'Live' => '1', 'Group' => 'Offers', 'Default' => '-',
+                                      'Position' => array(array('ItemAttributes','ListPrice','FormattedPrice'))),
+             'price'        => array( 'Description' => __('Price of Item (Combination of Offer then List Price)', 'amazon-link'), 'Live' => '1', 'Group' => 'Offers', 'Default' => '-',
                                       'Position' => array(array('Offers','Offer','OfferListing','Price','FormattedPrice'),
                                                           array('OfferSummary','LowestNewPrice','FormattedPrice'),
                                                           array('OfferSummary','LowestUsedPrice','FormattedPrice'),
@@ -558,7 +570,8 @@ function al_gen_multi (id, term, def, chan) {
             'pub_key' => array( 'Name' => __('AWS Public Key', 'amazon-link'), 'Description' => __('Access Key ID provided by your AWS Account, found under Security Credentials/Access Keys of your AWS account', 'amazon-link'), 'Default' => '', 'Type' => 'text', 'Size' => '40', 'Class' => 'alternate' ),
             'priv_key' => array( 'Name' => __('AWS Private key', 'amazon-link'), 'Description' => __('Secret Access Key ID provided by your AWS Account.', 'amazon-link'), 'Default' => '', 'Type' => 'text', 'Size' => '40', 'Class' => '' ),
             'aws_valid' => array ( 'Type' => 'checkbox', 'Read_Only' => 1, 'Name' => 'AWS Keys Validated', 'Default' => '0', 'Class' => 'al_border'),
-            'template_asins' => array( 'Name' => __('Template ASINs', 'amazon-link'), 'Description' => __('ASIN values to use when previewing the templates in the templates manager.', 'amazon-link'), 'Default' => 'B000056VJ7,B0000025UW,B001LR3576,B001KSJNWC,B001LWZCKY,B001GTPI7O,B001GTAGS0', 'Type' => 'text', 'Size' => '40', 'Class' => 'al_border' ),            'debug' => array( 'Name' => __('Debug Output', 'amazon-link'), 'Description' => __('Adds hidden debug output to the page source to aid debugging. <b>Do not enable on live sites</b>.', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox', 'Size' => '40', 'Class' => 'al_border' ),
+            'template_asins' => array( 'Name' => __('Template ASINs', 'amazon-link'), 'Description' => __('ASIN values to use when previewing the templates in the templates manager.', 'amazon-link'), 'Default' => '0893817449,0500410607,050054199X,0500286426,0893818755,050054333X,0500543178,0945506562', 'Type' => 'text', 'Size' => '40', 'Class' => 'al_border' ),
+            'debug' => array( 'Name' => __('Debug Output', 'amazon-link'), 'Description' => __('Adds hidden debug output to the page source to aid debugging. <b>Do not enable on live sites</b>.', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox', 'Size' => '40', 'Class' => 'al_border' ),
             'hd2e' => array ( 'Type' => 'end'),
 
             'hd3s' => array ( 'Type' => 'section', 'Value' => __('Amazon Data Cache','amazon-link'), 'Section_Class' => 'al_subhead1'),
@@ -570,9 +583,6 @@ function al_gen_multi (id, term, def, chan) {
                                                                         )),
             'hd3e' => array ( 'Type' => 'end')
             );
-            $this->option_list = apply_filters('amazon_link_option_list', $this->option_list);
-
-            $this->option_list['button'] = array( 'Type' => 'buttons', 'Buttons' => array( __('Update Options', 'amazon-link' ) => array( 'Class' => 'button-primary', 'Action' => 'AmazonLinkAction')));
 
             $country_data = $this->get_country_data();
             // Populate Country related options
@@ -585,6 +595,10 @@ function al_gen_multi (id, term, def, chan) {
                if (!isset($this->option_list[$keyword]))
                   $this->option_list[$keyword] = array( 'Type' => 'hidden' );
             }
+            $this->option_list = apply_filters('amazon_link_option_list', $this->option_list);
+
+            $this->option_list['button'] = array( 'Type' => 'buttons', 'Buttons' => array( __('Update Options', 'amazon-link' ) => array( 'Class' => 'button-primary', 'Action' => 'AmazonLinkAction')));
+
          }
          return $this->option_list;
       }
@@ -1363,13 +1377,15 @@ if (TIMING) {$time_taken = microtime(true)-$time_start;echo "<!--Cache Save: $ti
          return $this->aws_signed_request($tld, $request, $Settings['pub_key'], $Settings['priv_key']);
       }
 
-      function make_link($asin, $object, $settings = NULL, $local_info = NULL, $search = '', $type = 'product')
+      function make_link($asin, $object, $settings = NULL, $local_info = NULL, $search = NULL, $type = 'product')
       {
          if ($settings === NULL)
             $settings = $this->getSettings();
 
          if ($local_info === NULL)
             $local_info = $this->get_local_info($settings);
+         if ($search === NULL)
+            $search = array('','');
 
          if (!isset($settings['home_cc'])) $settings['home_cc'] = $settings['default_cc'];
          if ($settings['multi_cc']) {
@@ -1379,7 +1395,7 @@ if (TIMING) {$time_taken = microtime(true)-$time_start;echo "<!--Cache Save: $ti
             $countries = $this->get_country_data();
             foreach ($countries as $country => $country_data) {
                if ($type == 'search' ) {
-                  $term .= $sep. $country .' : \'S-'. $search .'\'';
+                  $term .= $sep. $country .' : \'S-'. ($search[1]) .'\'';
                } else {
                   if ($type == 'review') {
                      $type = 'R-';
@@ -1389,7 +1405,7 @@ if (TIMING) {$time_taken = microtime(true)-$time_start;echo "<!--Cache Save: $ti
                   if (isset($asin[$country])) {
                      $term .= $sep. $country .' : \''. $type. $asin[$country].'\'';
                   } else if ($settings['search_link']) {
-                     $term .= $sep. $country .' : \'S-'. $search .'\'';
+                     $term .= $sep. $country .' : \'S-'. ($search[1]) .'\'';
                   } else {
                      $term .= $sep. $country .' : \''. $type. $asin[$settings['home_cc']].'\'';
                   }
@@ -1400,7 +1416,7 @@ if (TIMING) {$time_taken = microtime(true)-$time_start;echo "<!--Cache Save: $ti
          $term .= '}';
 
          if ($type == 'search' ) {
-            $url_term = 'S-'. ($search);
+            $url_term = 'S-'. $search[0];
          } else {
             if ($type == 'review') {
                $type = 'R-';
@@ -1413,7 +1429,8 @@ if (TIMING) {$time_taken = microtime(true)-$time_start;echo "<!--Cache Save: $ti
                $url_term = $type . $asin[$local_info['cc']];
 
             } else if ($settings['search_link'] && ($type == 'A-')) {
-               $url_term = 'S-'. ($search);
+
+               $url_term = 'S-'.$search[0];
             } else {
                $url_term = $type . $asin[$settings['home_cc']];
             }
@@ -1426,7 +1443,7 @@ if (TIMING) {$time_taken = microtime(true)-$time_start;echo "<!--Cache Save: $ti
          $URL    = $this->getURL($url_term, $local_info['tld'], $local_info['tag']);
 
          if ($settings['multi_cc']) {
-           $this->create_popup();
+            $this->create_popup();
             $text ='<a rel="nofollow" '. $TARGET .' onMouseOut="al_link_out()" href="' . $URL .'" onMouseOver="al_gen_multi('. $this->multi_id . ', ' . $term. ', \''. $local_info['cc']. '\', \''. $local_info['channel'] .'\');">';
             $text .= $object. '</a>';
             $this->multi_id++;
@@ -1537,7 +1554,15 @@ if (TIMING) {$time_taken = microtime(true)-$time_start;echo "<!--Cache Save: $ti
             if (isset($thumb))
                $object = '<img class="'. $Settings['image_class'] .'" src="'. $thumb . '" alt="'. $link_text .'">';
 
-            $output .= $this->make_link($asin, $object, $Settings, $local_info);
+
+            if ($Settings['search_link']) {
+               $Settings['template_content'] = $Settings['search_text'];
+               $search = $this->search->parse_template($Settings);
+               $search = array( '0' => $search, '1' => urlencode($search));
+            } else {
+               $search = NULL;
+            }
+            $output .= $this->make_link($asin, $object, $Settings, $local_info, $search);
 
          }
          return $output;

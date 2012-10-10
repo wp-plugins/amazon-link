@@ -2,8 +2,8 @@
 
 /*
 Plugin Name: Amazon Link Extra - Editorial Content
-Plugin URI: http://www.houseindorset.co.uk/
-Description: Update the Amazon Link plugin to return 'Editorial Content' (this can be a lot of data and may have a performance impact on your site)
+Plugin URI: http://www.houseindorset.co.uk/plugins/amazon-link/
+Description: Update the Amazon Link plugin to return 'Editorial Content' (this can be a lot of data and may have a performance impact on your site). 
 Version: 1.0
 Author: Paul Stuttard
 Author URI: http://www.houseindorset.co.uk

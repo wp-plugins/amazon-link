@@ -63,29 +63,20 @@
       } else {
          $error = __('Plugin ' . $avail_plugins[$plugin_ID]['Name']. ' - failed to Install', 'amazon-link');
       }
+   } 
 
    // **********************************************************
    // Activate the selected plugin
-
-   } 
    
    if ( $action == __('Activate','amazon-link')) {
       $result = activate_plugins($plugin_ID);
       if (!is_wp_error($result)) {
-         $update = __('Plugin ' . $installed_plugins[$plugin_ID]['Name']. ' - has been Activated', 'amazon-link');
+         if ($update !== False) {
+            $update .= __(' and Activated', 'amazon-link');
+         } else {
+            $update = __('Plugin ' . $installed_plugins[$plugin_ID]['Name']. ' - has been Activated', 'amazon-link');
+         }
          $installed_plugins[$plugin_ID]['Activated'] = True;
-      } else {
-         $error = $result->get_error_message();
-      }
-
-   // **********************************************************
-   // Deactivate the selected plugin
-
-   } else if ( $action == __('Deactivate', 'amazon-link')) {
-      $result = deactivate_plugins($plugin_ID);
-      if (!is_wp_error($result)) {
-         $update = __('Plugin ' . $installed_plugins[$plugin_ID]['Name']. ' - has been Deactivated', 'amazon-link');
-         $installed_plugins[$plugin_ID]['Activated'] = False;
       } else {
          $error = $result->get_error_message();
       }
@@ -96,12 +87,32 @@
    } else if ( $action == __('Uninstall', 'amazon-link')) {
       $result = delete_plugins((array)$plugin_ID);
       if (!is_wp_error($result)) {
-         $update = __('Plugin ' . $installed_plugins[$plugin_ID]['Name']. ' - has been Deleted', 'amazon-link');
+         $update = __('Plugin ' . $installed_plugins[$plugin_ID]['Name']. ' - has been Uninstalled', 'amazon-link');
          unset($installed_plugins[$plugin_ID]);
+         $action = __('Deactivate','amazon-link');
+      } else {
+         $error = $result->get_error_message();
+      }
+   } 
+
+   // **********************************************************
+   // Deactivate the selected plugin
+
+   if ( $action == __('Deactivate', 'amazon-link')) {
+      $result = deactivate_plugins($plugin_ID);
+      if (!is_wp_error($result)) {
+         if ($update !== False) {
+            $update .= __(' and Deactivated', 'amazon-link');
+         } else {
+            $update = __('Plugin ' . $installed_plugins[$plugin_ID]['Name']. ' - has been Deactivated', 'amazon-link');
+         }
+         $installed_plugins[$plugin_ID]['Activated'] = False;
       } else {
          $error = $result->get_error_message();
       }
    }
+
+   // **********************************************************
 
 /*****************************************************************************************/
 
@@ -176,7 +187,9 @@
          } else {
             $plugin_opts['title']['Buttons'][__('Activate', 'amazon-link')] = array( 'Action' => 'ALExtrasAction', 'Hint' => __( 'Activate this plugin', 'amazon-link'), 'Class' => 'button-secondary');
          }
+         if ($available) {
             $plugin_opts['title']['Buttons'][__('Uninstall', 'amazon-link')] = array( 'Action' => 'ALExtrasAction', 'Hint' => __( 'Uninstall this plugin - delete the plugin file', 'amazon-link'), 'Class' => 'button-secondary');
+         }
       }
 
 

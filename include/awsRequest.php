@@ -13,7 +13,7 @@ if (!function_exists('unserialize_xml')) {
     */
    {
        // Get input, loading an xml string with simplexml if its the top level of recursion
-       $data = ((!$recurse) && is_string($input))? simplexml_load_string($input): $input;
+       $data = ((!$recurse) && is_string($input))? simplexml_load_string($input, 'SimpleXMLElement', LIBXML_NOWARNING | LIBXML_NOERROR): $input;
        // Convert SimpleXMLElements to array
        if ($data instanceof SimpleXMLElement) $data = (array) $data;
        // Recurse into arrays

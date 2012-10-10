@@ -268,23 +268,34 @@ if (!class_exists('AmazonLinkSearch')) {
          return $items;
       }
 
+/*      function find_keywords($content) {
+         $keywords=array();
+         foreach ($this->keywords as $keyword => $key_data) {
+            if (stripos($content, '%'.$keyword.'%') !== FALSE) {
+               $keywords[$keyword] = $key_data;
+            }
+         }
+         return $keywords;
+      }
       function preg_replacement_quote($str) {
          return preg_replace('/(\$|\\\\)(?=\d)/', '\\\\\1', $str);
-      }
+      }*/
 
       function get_links ($asin, $settings, $local_info, &$data) {
 
          if (!isset($data['search_text_s'])) {
             $data['search_text_s'] = $settings['search_text'];
             foreach ($this->alink->get_keywords() as $keyword => $key_data) {
-               $data['search_text_s'] = preg_replace('/%(' . $keyword . ')%/i' , '%$1%S#', $data['search_text_s']);
+               $data['search_text_s'] = str_ireplace( '%' . $keyword . '%', '%' . $keyword . '%S#', $data['search_text_s']);
+
             }
          }
-         $search = $data['search_text_s'];
+         $search_s = $data['search_text_s'];
+         $search = $settings['search_text'];
 
-         if (!isset($data[$local_info['cc']]['link_open'])) $data[$local_info['cc']]['link_open'] = substr($this->alink->make_link($asin,'',$settings, $local_info, $search),0,-4);
-         if (!isset($data[$local_info['cc']]['rlink_open'])) $data[$local_info['cc']]['rlink_open'] = substr($this->alink->make_link($asin,'',$settings, $local_info, $search, 'review'),0,-4);
-         if (!isset($data[$local_info['cc']]['slink_open'])) $data[$local_info['cc']]['slink_open'] = substr($this->alink->make_link($asin,'',$settings, $local_info, $search, 'search'),0,-4);
+         if (!isset($data[$local_info['cc']]['link_open'])) $data[$local_info['cc']]['link_open'] = substr($this->alink->make_link($asin,'',$settings, $local_info, array($search, $search_s)),0,-4);
+         if (!isset($data[$local_info['cc']]['rlink_open'])) $data[$local_info['cc']]['rlink_open'] = substr($this->alink->make_link($asin,'',$settings, $local_info, array($search, $search_s), 'review'),0,-4);
+         if (!isset($data[$local_info['cc']]['slink_open'])) $data[$local_info['cc']]['slink_open'] = substr($this->alink->make_link($asin,'',$settings, $local_info, array($search, $search_s), 'search'),0,-4);
          if (!isset($data[$local_info['cc']]['link_close'])) $data[$local_info['cc']]['link_close'] = '</a>';
 
       }
@@ -318,15 +329,7 @@ if (!class_exists('AmazonLinkSearch')) {
          }
       }
 
-/*      function find_keywords($content) {
-         $keywords=array();
-         foreach ($this->keywords as $keyword => $key_data) {
-            if (stripos($content, '%'.$keyword.'%') !== FALSE) {
-               $keywords[$keyword] = $key_data;
-            }
-         }
-         return $keywords;
-      }*/
+
 
       function parse_template ($item) {
          $countries       = array_keys($this->alink->get_country_data());
@@ -347,6 +350,7 @@ if (!class_exists('AmazonLinkSearch')) {
          } else {
             $this->remap_data($item, array($local_country), $data);
          }
+
          $input = htmlspecialchars_decode (stripslashes($item['template_content']));
 
          $local_settings = $item;
@@ -405,7 +409,7 @@ if (!class_exists('AmazonLinkSearch')) {
                   }
                   $asin = $data[$country]['asin'];
                   
-                  if ($key_data['link']) {
+                  if ($key_data['Link']) {
                      $this->get_links($asins, $local_settings, $local_info, $data);
                   }
                   if ($key_data['Image']) {
@@ -440,12 +444,16 @@ if (!class_exists('AmazonLinkSearch')) {
                }
                $phrase = $data[$country][$keyword];
 
-               if ($item['multi_cc'] && $key_data['link']) unset ($data[$country][$keyword]); // Only use links once
+               if ($item['multi_cc'] && $key_data['Link']) unset ($data[$country][$keyword]); // Only use links once
                /*
-                * We url_encode the "'","\r" and "\n" so the javascript parses correctly.
-                * We encode the "&" so the parse_args & html_entity_decode do not see it as a field seperator.
+                * We urlencode the "'","\r" and "\n" so the javascript parses correctly.
+                * We encode the "&" so the parse_args & html_entity_decode do not see it as a field separator.
+                * urlencode works for 'multisite' javascript
+                * ''' & '\n' also causes problems for insertForm results form javascript
                 */
-               if ($escaped) $phrase = addslashes(htmlspecialchars(preg_replace(array( '/&/', "/'/",'/\r/', '/\n/'), array('%26', '&#39;','%0D','%0A'), $phrase))); //urlencode
+               if ($escaped) $phrase = addslashes(htmlspecialchars (str_ireplace(array( '&', "'", "\r", "\n"), array('%26', '&#39;','%0D','%0A'), $phrase),ENT_COMPAT | ENT_HTML401,'UTF-8')); //urlencode
+//               if ($escaped) $phrase = addslashes(htmlspecialchars (preg_replace(array( '!&!', "!'!", '!\r!', '!\n!'), array('%26', '&#39;','%0D','%0A'), $phrase),ENT_COMPAT | ENT_HTML401,'UTF-8')); //urlencode
+
                $output .= substr($input, $index, ($key_start-$index)) . $phrase;
                $index  = $key_end;
             }
