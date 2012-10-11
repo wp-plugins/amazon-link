@@ -4,7 +4,7 @@
 Plugin Name: Amazon Link
 Plugin URI: http://www.houseindorset.co.uk/plugins/amazon-link
 Description: Insert a link to Amazon using the passed ASIN number, with the required affiliate info.
-Version: 3.0.3
+Version: 3.0.4
 Text Domain: amazon-link
 Author: Paul Stuttard
 Author URI: http://www.houseindorset.co.uk
@@ -101,7 +101,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
       var $TagTail       = ']';
       var $cache_table   = 'amazon_link_cache';
       var $option_version= 6;
-      var $plugin_version= '3.0.3';
+      var $plugin_version= '3.0.4';
       var $optionName    = 'AmazonLinkOptions';
       var $user_options  = 'amazonlinkoptions';
       var $templatesName = 'AmazonLinkTemplates';
@@ -271,6 +271,10 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
                                        'title'   => __('Default Templates', 'amazon-link'),
                                        'content'=> '<p>' . __('This section lists all the default templates included with the plugin, use it to re-install or your update your active templates.','amazon-link') . '</p>')
                               );
+
+         //$tabs = include( 'help/settings.php');
+         //foreach ($tabs as $tab) $screen->add_help_tab( $tab );
+
          $screen->set_help_sidebar('<p><b>'. __('For more information:', 'amazon-link'). '</b></p>' .
                                    '<p><a target="_blank" href="'. $this->plugin_home . '">' . __('Plugin Home Page','amazon-link') . '</a></p>' .
                                    '<p><a target="_blank" href="'. $this->plugin_home . 'faq/">' . __('Plugin FAQ','amazon-link') . '</a></p>' .
@@ -311,6 +315,10 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
                                                     '<p>' . __('The plugin exposes one action hook that can be used via the standard WordPress Action API:','amazon-link') . '</p>'.
                                                     '<ul><li>amazon_link_init($settings)</li></p>')
                               );
+
+         //$tabs = include( 'help/extras.php');
+         //foreach ($tabs as $tab) $screen->add_help_tab( $tab );
+
          $screen->set_help_sidebar('<p><b>'. __('For more information:', 'amazon-link'). '</b></p>' .
                                    '<p><a target="_blank" href="'. $this->plugin_home . '">' . __('Plugin Home Page','amazon-link') . '</a></p>' .
                                    '<p><a target="_blank" href="'. $this->plugin_home . 'faq/">' . __('Plugin FAQ','amazon-link') . '</a></p>' .

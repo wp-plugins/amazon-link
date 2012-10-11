@@ -4,7 +4,7 @@ Donate link: http://www.houseindorset.co.uk/plugins
 Tags: Amazon, links, wishlist, recommend, shortcode, ip2nation, localise, images, media library, affiliate, product, template
 Requires at least: 3.1
 Tested up to: 3.4.2
-Stable tag: 3.0.3
+Stable tag: 3.0.4
 
 
 Provides a facility to insert Amazon product links directly into your site's Pages, Posts and Widgets and Templates.
@@ -54,7 +54,7 @@ To generate a list of products relevant to the content of your site use the 'cat
 
 This is created by either putting the line `amazon_recommends(<Category>,<Number of Posts>)` in your template. Or putting the line `[amazon cat=<Category>&last=<Number of Posts>]` within a post or page. Where 'Category' is a list of category ids to search within (e.g. as expected by the 'cat' argument of [query_posts](http://codex.wordpress.org/Template_Tags/query_posts#Parameters) function. The 'last' parameter is the number of posts to search through.
 
-= Latest Version - 3.0.3 =
+= Latest Version - 3.0.4 =
 
 
 
@@ -63,6 +63,7 @@ This is created by either putting the line `amazon_recommends(<Category>,<Number
 * New Feature - Add ability to change the ASINs used to generate the template previews
 * New Feature - Add 'List Price' and 'Offer Price' Keywords
 * Bug Fix - correct multi-ASIN argument handling
+* Bug Fix - fix typo in UpgradeSettings.php
 
 
 == Installation ==

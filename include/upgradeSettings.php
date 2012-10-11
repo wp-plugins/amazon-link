@@ -98,8 +98,8 @@ if ($Opts['version'] == 4) {
 if ($Opts['version'] == 5) {
 
    if ($Opts['cache_enabled']) {
-      cache_remove();
-      cache_install();
+      $this->cache_remove();
+      $this->cache_install();
    }
    $result = $this->validate_keys($Opts);
    $Opts['aws_valid'] = $result['Valid'];
