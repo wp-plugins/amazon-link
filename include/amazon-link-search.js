@@ -87,7 +87,7 @@ wpAmazonLinkSearcher.prototype = {
    },
 
    searchAmazon : function(event) {
-        var collection = jQuery(event).find("[id^=amazon-link-search]");
+        var collection = jQuery(event).find("[id^=amazon-link-search],input[name=asin]");
         var $ths = this;
 	if( !this['sendingAmazonRequest'] ) {
            this['sendingAmazonRequest'] = true;
@@ -106,9 +106,10 @@ wpAmazonLinkSearcher.prototype = {
    showResults : function (response, status){
       wpAmazonLinkSearch['sendingAmazonRequest'] = false;
       jQuery('#amazon-link-status').addClass('ajax-feedback');
-      if( response["success"] == false ) {
+      if( response["success"] == 0 ) {
          jQuery('#amazon-link-results').hide();
          jQuery('#amazon-link-error').show();
+         jQuery('#amazon-link-error').text((response['message']));
       } else {
          jQuery('#amazon-link-error').hide();
          jQuery('#amazon-link-results').show();
@@ -116,6 +117,8 @@ wpAmazonLinkSearcher.prototype = {
          {
             jQuery('#amazon-link-result-list').append(response['items'][index]['template']);
          }
+     //    jQuery('#amazon-link-error').show();
+     //    jQuery('#amazon-link-error').text((response['message']));
       }
    }
 }

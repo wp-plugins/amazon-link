@@ -82,6 +82,15 @@ margin: 1px;
  padding: none;
 }
 
+.al_editorial_source {
+ margin-top: 1em;
+ font-size: 120%;
+}
+
+.al_editorial_content {
+ margin-top: 1em;
+}
+
 .amazon_price {
  color:red;
 }
