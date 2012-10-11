@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  \n"
 "Report-Msgid-Bugs-To: http://wordpress.org/tag/amazon-link\n"
-"POT-Creation-Date: 2012-10-10 08:03:25+00:00\n"
+"POT-Creation-Date: 2012-10-11 09:16:06+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -1142,7 +1142,7 @@ msgstr ""
 msgid "channel"
 msgstr ""
 
-#: include/ip2nation.php:118
+#: include/ip2nation.php:119
 msgid "ip2nation install: Database downloaded and installed successfully. %s queries executed."
 msgstr ""
 
