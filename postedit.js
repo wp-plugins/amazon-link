@@ -15,7 +15,7 @@ wpAmazonLinkAdmin.prototype = {
     list_options      : {},
 
     toggleAdvanced : function(event) {
-        var collection = jQuery(event).find("input[name='multi_cc'], input[name='localise'], input[name='live'], input[name='remote_images']");
+        var collection = jQuery(event).find("input[name='multi_cc'], input[name='localise'], input[name='live'], input[name='search_link']");
         var defaults   = jQuery(event).find("input[name='defaults']:checked").length;
         if (defaults) {
            jQuery(collection).parent().parent().hide();
@@ -49,6 +49,7 @@ wpAmazonLinkAdmin.prototype = {
            options['multi_cc'] = d_options['multi_cc'];
            options['localise'] = d_options['localise'];
            options['live'] = d_options['live'];
+           options['search_link'] = d_options['search_link'];
         }
 
         /* If 'wishlist' is set then include wishlist specific options */
@@ -78,6 +79,7 @@ wpAmazonLinkAdmin.prototype = {
            delete options['multi_cc'];
            delete options['localise'];
            delete options['live'];
+           delete options['search_link'];
         }
 
         /* Delete temporary options only used by the java exchange */
@@ -91,7 +93,7 @@ wpAmazonLinkAdmin.prototype = {
         var sep = '';
         jQuery.each(options, function(name, value){
             if (value != ' ') {
-                attrs += sep + name + '=' + value;
+                attrs += sep + name + '='+value;
                 sep = '&';
             }
         });
