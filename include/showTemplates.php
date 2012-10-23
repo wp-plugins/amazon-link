@@ -10,8 +10,6 @@
 
    $templateOpts = array( 
          'nonce'       => array ( 'Type' => 'nonce', 'Name' => 'update-AmazonLink-templates' ),
-         'nonce1'       => array ( 'Type' => 'nonce', 'Action' => 'closedpostboxes', 'Name' => 'closedpostboxesnonce', 'Referer' => false),
-         'nonce2'       => array ( 'Type' => 'nonce', 'Action' => 'meta-box-order', 'Name' => 'meta-box-order-nonce', 'Referer' => false),
 
          'ID'          => array ( 'Default' => '', 'Type' => 'hidden'),
          'title'       => array ( 'Type' => 'section', 'Value' => '', 'Class' => 'hidden', 'Section_Class' => 'al_subhead'),
@@ -27,6 +25,13 @@
                                                    __('Delete', 'amazon-link') => array( 'Action' => 'ALTemplateAction', 'Hint' => __( 'Delete this template', 'amazon-link'), 'Class' => 'button-secondary') )),
          'preview'     => array ( 'Type' => 'title', 'Value' => '', 'Title_Class' => ''),
          'end'         => array ( 'Type' => 'end')
+         );
+
+   $global_opts = array( 
+         'nonce'       => array ( 'Type' => 'nonce', 'Name' => 'update-AmazonLink-templates' ),
+         'Buttons1'    => array ( 'Type' => 'buttons', 'Buttons' => 
+                                           array ( __('Export', 'amazon-link') => array( 'Action' => 'ALTemplateAction', 'Hint' => __( 'Export Templates to a Amazon Link Extra Plugin', 'amazon-link'), 'Class' => 'button-secondary'),
+                                                   __('New', 'amazon-link') => array( 'Action' => 'ALTemplateAction', 'Hint' => __( 'Create a New blank template', 'amazon-link'), 'Class' => 'button-secondary') )),
          );
 
 /*****************************************************************************************/
@@ -100,6 +105,10 @@
       $Templates[$templateID] = $default_templates[$templateID];
       $NotifyUpdate = True;
       $UpdateMessage = sprintf (__('Template "%s" overwritten with default version.','amazon-link'), $templateID);
+   } else if (($Action == __('Export', 'amazon-link') )) {
+      $result= $this->export_templates($this->extras_dir . 'amazon-link-exported-templates.php');
+      $NotifyUpdate = True;
+      $UpdateMessage = $result['Message'];
    }
 
 /*****************************************************************************************/
@@ -138,6 +147,7 @@
 
    // **********************************************************
    // Now display the options editing screen
+
    unset($templateOpts['Template']);
    foreach ($Templates as $templateID => $templateDetails) {
       $templateOpts['ID']['Default'] = $templateID;
@@ -179,9 +189,9 @@
       }
 
       $this->form->displayForm($templateOpts, $Templates[$templateID]);
-      unset($templateOpts['nonce1']);
-      unset($templateOpts['nonce2']);
    }
+
+   $this->form->displayForm($global_opts, array());
 
 
 ?>

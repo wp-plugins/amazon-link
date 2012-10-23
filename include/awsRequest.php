@@ -108,6 +108,7 @@ if (!function_exists('unserialize_xml')) {
     $result = wp_remote_request( $request ); 
 //   echo "<!--RESP:"; print_r($result); echo "-->";
 
+
     if ($result instanceof WP_Error )
     {
         return False;
@@ -123,6 +124,7 @@ if (!function_exists('unserialize_xml')) {
         }
         else
         {
+ //  echo "<PRE>RESP:"; print_r($pxml); echo "</PRE>";
             return $pxml;
         }
     }

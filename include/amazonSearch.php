@@ -423,6 +423,7 @@ if (!class_exists('AmazonLinkSearch')) {
                            $local_settings['default_cc'] = $item['default_cc'];
                            $local_settings['localise']   = 0;
                            $item_data = array_shift($this->alink->cached_query($asin, $local_settings));
+echo "<PRE>DATA: "; print_r($item_data); echo "</pRE>";
                         }
                         if ($item['debug'] && isset($item_data['error'])) {
                            echo "<!-- amazon-link ERROR: "; print_r($item_data); echo "-->";
@@ -447,9 +448,10 @@ if (!class_exists('AmazonLinkSearch')) {
                if ($item['multi_cc'] && $key_data['Link']) unset ($data[$country][$keyword]); // Only use links once
                /*
                 * We urlencode the "'","\r" and "\n" so the javascript parses correctly.
-                * We encode the "&" so the parse_args & html_entity_decode do not see it as a field separator.
+                * We encode the "&" so the parse_args & html_entity_decode do not see it as a field separator. (data inserted into shortcode from helper)
                 * urlencode works for 'multisite' javascript
                 * ''' & '\n' also causes problems for insertForm results form javascript
+                * Don't do full urlencode as it makes the shortcode data unreadable in the post
                 */
                if ($escaped) $phrase = addslashes(htmlspecialchars (str_ireplace(array( '&', "'", "\r", "\n"), array('%26', '&#39;','%0D','%0A'), $phrase),ENT_COMPAT | ENT_HTML401,'UTF-8')); //urlencode
 //               if ($escaped) $phrase = addslashes(htmlspecialchars (preg_replace(array( '!&!', "!'!", '!\r!', '!\n!'), array('%26', '&#39;','%0D','%0A'), $phrase),ENT_COMPAT | ENT_HTML401,'UTF-8')); //urlencode

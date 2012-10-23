@@ -32,8 +32,10 @@ if (!class_exists('AmazonWishlist_ip2nation')) {
          if ($db_info != NULL) {
             $ip2nationdb_ts = ($db_info->Update_time != NULL) ? strtotime($db_info->Update_time) : strtotime($db_info->Create_time);
             $ip2nationdb_time = date('D, d M Y H:i:s', $ip2nationdb_ts);
+            $uninstall = True;
          } else {
             $ip2nationdb_ts = False;
+            $uninstall = False;
          }
 
          $result = wp_remote_head($this->remote_file, array('timeout' => 5));
@@ -67,7 +69,7 @@ if (!class_exists('AmazonWishlist_ip2nation')) {
             }
          }
 
-         return array( 'Install' => $install, 'Message' => $message);
+         return array( 'Uninstall' => $uninstall, 'Install' => $install, 'Message' => $message);
       }
 
 /*****************************************************************************************/
@@ -117,6 +119,17 @@ if (!class_exists('AmazonWishlist_ip2nation')) {
           }
           zip_close($zfh);
           return sprintf(__('ip2nation install: Database downloaded and installed successfully. %s queries executed.','amazon-link'), $queries);
+      }
+/*****************************************************************************************/
+
+      function uninstall () {
+         global $wpdb;
+         $query = 'DROP TABLE ip2nation,ip2nationCountries;';
+         if ($wpdb->query($query) === FALSE) {
+            return sprintf(__('ip2nation uninstall: Database failed to uninstall [%s]','amazon-link'), $wpdb->last_error);
+         } else {
+            return sprintf(__('ip2nation uninstall: Databases successfully uninstalled.','amazon-link'));
+         }
       }
 
 /*****************************************************************************************/

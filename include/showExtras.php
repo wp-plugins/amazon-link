@@ -14,14 +14,12 @@
    // Get List of Files
    // Get Plugin Details for Each File
    $avail_plugins = array();
-   $extras_dir = WP_PLUGIN_DIR . '/'. $this->plugin_dir.'/extras/';
-   $files = glob($extras_dir .'*');
+   $files = glob($this->extras_dir .'*');
 
    foreach ((array)$files as $file) {
       $plugin = basename($file);
       $avail_plugins[$plugin] = get_plugin_data($file);
    }
-
 
    // Create Array of Installed amazon-link-extra Plugins from 'plugin' directory
    // 
@@ -55,7 +53,7 @@
    // Install the plugin into the WordPress plugin directory
 
    if(  ($action == __('Install', 'amazon-link') ) || ( $Action == __('Upgrade','amazon-link'))) {
-      $result = copy ($extras_dir . $plugin_ID, WP_PLUGIN_DIR .'/'. $plugin_ID);
+      $result = copy ($this->extras_dir . $plugin_ID, WP_PLUGIN_DIR .'/'. $plugin_ID);
       if ($result) {
          $update = __('Plugin ' . $avail_plugins[$plugin_ID]['Name']. ' - has been Installed', 'amazon-link');
          $installed_plugins[$plugin_ID] = $avail_plugins[$plugin_ID];

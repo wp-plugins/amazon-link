@@ -34,6 +34,9 @@
       }
       $this->saveOptions($Opts);
       $update = __('Options saved.', 'amazon-link' );
+
+/*****************************************************************************************/
+
     } else if ( $Action == __('Install Database','amazon-link')) {
 
       // User requested installation of the ip2nation database
@@ -41,6 +44,16 @@
 
 <div class="updated">
  <p><strong><?php echo $this->ip2n->install(); ?></strong></p>
+</div>
+
+<?php
+    } else if ( $Action == __('Remove Database','amazon-link')) {
+
+      // User requested Uninstallation of the ip2nation database
+?>
+
+<div class="updated">
+ <p><strong><?php echo $this->ip2n->uninstall(); ?></strong></p>
 </div>
 
 <?php
@@ -126,15 +139,15 @@
 
    $ip2n_status = $this->ip2n->status();
   
+
+   $optionList['ip2n_message']['Value'] = $ip2n_status['Message'];
    if ($ip2n_status['Install'] == True) {
-      $optionList['ip2n_message']['Type'] = 'buttons';
-      $optionList['ip2n_message']['Description'] = $ip2n_status['Message'];
       $optionList['ip2n_message']['Buttons'][__('Install Database','amazon-link')] = 
-                    array('Class' => 'button-secondary', 'Action' => 'AmazonLinkAction');
-   } else {
-      $optionList['ip2n_message']['Type'] = 'title';
-      $optionList['ip2n_message']['Value'] = $ip2n_status['Message'];
-      $optionList['ip2n_message']['Title_Class'] = 'sub-head';
+                    array('Class' => 'button-secondary', 'Action' => 'AmazonLinkAction', 'Hint' => __( 'Install/Update the ip2nation database', 'amazon-link'));
+   }
+   if ($ip2n_status['Uninstall'] == True) {
+      $optionList['ip2n_message']['Buttons'][__('Remove Database','amazon-link')] = 
+                    array('Class' => 'button-secondary', 'Hint' => __( 'Remove the ip2nation database', 'amazon-link'), 'Action' => 'AmazonLinkAction');
    }
 
 /*****************************************************************************************/

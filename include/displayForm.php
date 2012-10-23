@@ -97,11 +97,12 @@ if (!class_exists('AmazonWishlist_Options')) {
          foreach ($optDetails['Options'] as $Value => $Details) {
             if (is_array($Details)) {
                $Name = $Details['Name'];
+               $hint = isset($Details['Hint']) ? ' title = "'.$Details['Hint'].'"' : '';
             } else {
-               $Name = $Details;
-               $Value= $Details;
+               $Name  = $Details;
+               $Value = $Details;
             }
-            echo "<option value='$Value' ". selected( $Opts[$optName], $Value, False). " >" . $Name . "</option>";
+            echo "<option value='$Value' $hint ". selected( $Opts[$optName], $Value, False). " >" . $Name . "</option>";
          }
         ?>
       </select>
@@ -268,7 +269,7 @@ if (!class_exists('AmazonWishlist_Options')) {
     <div <?php echo $class ?>>
       <?php if (isset($optDetails['Icon'])) screen_icon($optDetails['Icon']); ?>
       <?php echo $Title ?>
-     <?php if (isset($optDetails['Description'])) echo '<div class="al_description">'.$optDetails['Description'].'</div>'; ?>
+      <?php if (isset($optDetails['Description'])) echo '<div class="al_description">'.$optDetails['Description'].'</div>'; ?>
       <?php if (isset($optDetails['Buttons'])) $this->displayButtons($optDetails['Buttons']); ?>
     </div>
 <?php
@@ -289,7 +290,7 @@ if (!class_exists('AmazonWishlist_Options')) {
     <div <?php echo $class ?>>
       <?php if (isset($optDetails['Icon'])) screen_icon($optDetails['Icon']); ?>
       <?php echo $Title ?>
-     <?php if (isset($optDetails['Description'])) echo '<div class="al_description">'.$optDetails['Description'].'</div>'; ?>
+      <?php if (isset($optDetails['Description'])) echo '<div class="al_description">'.$optDetails['Description'].'</div>'; ?>
       <?php if (isset($optDetails['Buttons'])) $this->displayButtons($optDetails['Buttons']); ?>
     </div>
 <?php
@@ -299,14 +300,22 @@ if (!class_exists('AmazonWishlist_Options')) {
                   // Insert a Section
                   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-                  $Title = '<h4 '.$id.'>'. $optDetails['Value'] . '</h4>';
+                  if (isset($optDetails['Title_Class'])) {
+                     $Title = '<div '.$id.' class="' . $optDetails['Title_Class'] . '">'. $icon. $optDetails['Value'] . '</div>';
+                  } else {
+                     $Title = '<h4 '.$id.'>'. $icon. $optDetails['Value'] . '</h4>';
+                  }
                   $class  = isset($optDetails['Class']) ? 'class="'.$optDetails['Class'].' al_options"' : 'class="al_options"';
 
 ?>
     <div class="al_section">
-     <div class="<?php echo $optDetails['Section_Class']; ?>"><?php echo $Title ?></div>
-      <?php if (isset($optDetails['Buttons'])) $this->displayButtons($optDetails['Buttons']); ?>
-      <div <?php echo $class ?>>
+     <div class="<?php echo $optDetails['Section_Class']; ?>">
+      <?php echo $Title;
+            if (isset($optDetails['Description'])) echo '<div class="al_description">'.$optDetails['Description'].'</div>';
+            if (isset($optDetails['Buttons'])) $this->displayButtons($optDetails['Buttons']);
+      ?>
+     </div>
+     <div <?php echo $class ?>>
 <?php
                } else if ($optDetails['Type'] == 'end') {
 

@@ -3,7 +3,7 @@
 /*
 Plugin Name: Amazon Link
 Plugin URI: http://www.houseindorset.co.uk/plugins/amazon-link
-Description: Insert a link to Amazon using the passed ASIN number, with the required affiliate info.
+Description: A plugin that provides a facility to insert Amazon product links directly into your site's Pages, Posts, Widgets and Templates.
 Version: 3.0.4
 Text Domain: amazon-link
 Author: Paul Stuttard
@@ -62,19 +62,19 @@ To serve a page containing amazon links the plugin performs the following:
       * (if live) perform itemLookup
     * parse results:
       * Get local Info:
-        * get channel
-        * get country [ip2n lookup >cached]
-        * get country data
-        * return country specific data
+       &nbsp;* get channel
+  &nbsp;     * get country [ip2n lookup >cached]
+       &nbsp;* get country data
+       &nbsp;* return country specific data
       * For each ASIN:
         * Check for local images
         * Make links * 5:
-          * get URL (get local info)
-          * get local info
+         &nbsp;* get URL (get local info)
+         &nbsp;* get local info
         * Fill in template
 
 * If 'multinational' link found when doing the above then:
-  * Return all channels and user channels(>cached), create the javascript for the multinational popup.
+&nbsp; * Return all channels and user channels(>cached), create the javascript for the multinational popup.
 
 *******************************************************************************************************/
 
@@ -97,8 +97,8 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
       /// Settings:
 /*****************************************************************************************/
       // String to insert into Posts to indicate where to insert the amazon items
-      var $TagHead       = '[amazon';
-      var $TagTail       = ']';
+      var $TagHead       = '\[amazon';
+      var $TagTail       = '\]';
       var $cache_table   = 'amazon_link_cache';
       var $option_version= 6;
       var $plugin_version= '3.0.4';
@@ -106,9 +106,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
       var $user_options  = 'amazonlinkoptions';
       var $templatesName = 'AmazonLinkTemplates';
       var $channels_name = 'AmazonLinkChannels';
-      var $settings_slug = 'amazon-link-options';
-      var $extras_slug   = 'amazon-link-extras';
-
+      var $menu_slug     = 'amazon-link-settings';
       var $plugin_home   = 'http://www.houseindorset.co.uk/plugins/amazon-link/';
 
       var $multi_id      = 0;
@@ -124,25 +122,24 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
 
       function __construct() {
          $this->URLRoot = plugins_url("", __FILE__);
+         $this->icon = plugins_url('images/amazon-icon.png', __FILE__);
+         $this->filename  = __FILE__;
          $this->base_name  = plugin_basename( __FILE__ );
          $this->plugin_dir = dirname( $this->base_name );
+         $this->extras_dir = WP_PLUGIN_DIR . '/'. $this->plugin_dir. '/extras/';
          $this->form = new AmazonWishlist_Options;
          $this->ip2n = new AmazonWishlist_ip2nation;
          $this->search = new AmazonLinkSearch;
 
          // Frontend & Backend Related
-         register_activation_hook(__FILE__, array($this, 'activate'));               // To perform options installation
+         register_activation_hook(__FILE__, array($this, 'install'));                // To perform options installation
+         register_uninstall_hook(__FILE__, array($this, 'uninstall'));               // To perform options removal
          add_action('init', array($this, 'init'));                                   // Load i18n and initialise translatable vars
          add_filter('the_content', array($this, 'content_filter'),15);               // Process the content
          add_filter('widget_text', array($this, 'widget_filter'), 16 );              // Filter widget text (after the content?)
 
          // Backend only 
-         add_filter('plugin_row_meta', array($this, 'registerPluginLinks'),10,2);    // Add extra links to plugins page
          add_action('admin_menu', array($this, 'admin_menu'));                       // Add options page and page/post edit hooks
-         add_action('show_user_profile', array($this, 'show_user_options') );        // Display User Options
-         add_action('edit_user_profile', array($this, 'show_user_options') );        // Display User Options
-         add_action('personal_options_update', array($this, 'update_user_options')); // Update User Options
-         add_action('edit_user_profile_update', array($this, 'update_user_options'));// Update User Options
       }
 
 /*****************************************************************************************/
@@ -150,12 +147,19 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
       // Functions for the above hooks
  
       // On activation of plugin - used to create default settings
-      function activate() {
-
-         $Opts = $this->getOptions();
-         $this->saveOptions($Opts);
+      function install() {
+         $opts = $this->getOptions();
+         $this->saveOptions($opts);
       }
 
+      function uninstall() {
+         $opts = $this->getOptions();
+         if ($opts['full_uninstall']) {
+            $this->cache_remove();
+            $this->ip2nation->uninstall();
+            $this->delete_options();
+         }
+      }
       function upgrade_settings($Opts) {
          include('include/upgradeSettings.php');
       }
@@ -182,155 +186,115 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
             $stylesheet = plugins_url("Amazon.css", __FILE__);
          }
 
-         wp_register_style('amazon-link-style', $stylesheet, false, $this->plugin_version);
+         wp_register_style ('amazon-link-style', $stylesheet, false, $this->plugin_version);
          wp_register_script('amazon-link-script', $script, false, $this->plugin_version);
          wp_register_script('amazon-link-edit-script', $edit_script, array('jquery', 'amazon-link-search'), $this->plugin_version);
          wp_register_script('amazon-link-admin-script', $admin_script, false, $this->plugin_version);
 
          add_action('wp_enqueue_scripts', array($this, 'amazon_styles'));             // Add base stylesheet
 
-         do_action('amazon_link_init', $this->getOptions());
+         add_filter('amazon_link_url', array($this, 'get_url'), 20, 6);
+
+         // Call any user hooks - passing the current plugin Settings
+         do_action('amazon_link_init', $this->getOptions(), $this);
       }
 
       // If in admin section then register options page and required styles & metaboxes
       function admin_menu() {
 
-         // Add plugin options page, with load hook to bring in meta boxes and scripts and styles
-         $this->opts_page = add_options_page( __('Manage Amazon Link Options', 'amazon-link'), __('Amazon Link', 'amazon-link'), 'manage_options', $this->settings_slug, array($this, 'show_options_page'));
-         add_action('load-'.$this->opts_page, array(&$this, 'load_options_page'));
-         add_action( "admin_print_styles-" . $this->opts_page, array($this,'amazon_admin_styles') );
-         add_action( "admin_print_scripts-" . $this->opts_page, array($this,'amazon_admin_scripts') );
+         $submenus = $this->get_menus();
 
-         // Add plugin extras page, with load hook to bring in meta boxes and scripts and styles
-         $this->extras_page = add_plugins_page( __('Manage Amazon Link Extras', 'amazon-link'), __('Amazon Link Extras', 'amazon-link'), 'activate_plugins', $this->extras_slug, array($this, 'show_extras_page'));
-         add_action('load-'.$this->extras_page, array(&$this, 'load_extras_page'));
-         add_action( "admin_print_styles-" . $this->extras_page, array($this,'amazon_admin_styles') );
-         add_action( "admin_print_scripts-" . $this->extras_page, array($this,'amazon_admin_scripts') );
+         // Add plugin options page, with load hook to bring in meta boxes and scripts and styles
+         $this->menu = add_menu_page(__('Amazon Link Options', 'amazon-link'), __('Amazon Link', 'amazon-link'), 'manage_options',  $this->menu_slug, NULL, $this->icon, 81.375);
+ 
+         foreach ($submenus as $slug => $menu) {
+            $ID= add_submenu_page($this->menu_slug, $menu['Title'], $menu['Label'], $menu['Capability'],  $slug, array($this, 'show_settings_page'));
+            $this->pages[$ID] = $menu;
+            add_action('load-'.$ID, array(&$this, 'load_settings_page'));
+            add_action( 'admin_print_styles-' . $ID, array($this,'amazon_admin_styles') );
+            add_action( 'admin_print_scripts-' . $ID, array($this,'amazon_admin_scripts') );
+         }
 
          // Add support for Post edit metabox, this requires our styles and post edit AJAX scripts.
          $post_types = get_post_types();
          foreach ( $post_types as $post_type ) {
             add_meta_box('amazonLinkID', 'Add Amazon Link', array($this,'insertForm'), $post_type, 'normal');
          }
+         add_action( 'admin_head-post', array(&$this, 'load_edit_page'));
 
          add_action( "admin_print_scripts-post.php", array($this,'edit_scripts') );
          add_action( "admin_print_scripts-post-new.php", array($this,'edit_scripts') );
          add_action( "admin_print_styles-post-new.php", array($this,'amazon_admin_styles') );
          add_action( "admin_print_styles-post.php", array($this,'amazon_admin_styles') );
+
+         add_filter('plugin_row_meta', array($this, 'register_plugin_links'),10,2);  // Add extra links to plugins page
+         add_action('show_user_profile', array($this, 'show_user_options') );        // Display User Options
+         add_action('edit_user_profile', array($this, 'show_user_options') );        // Display User Options
+         add_action('personal_options_update', array($this, 'update_user_options')); // Update User Options
+         add_action('edit_user_profile_update', array($this, 'update_user_options'));// Update User Options
+
       }
 
-      function admin_help($contextual_help, $page, $screen) {
-         if ($page== $this->opts_page ) {
-            $contextual_help = __('Use this page to set up the global settings, provide Affiliate tags for each country locale, configure your AWS keys and select and edit any Templates you might require.','amazon-link');
-         }
-         return $contextual_help;
-      }
-
-      // Hooks required to bring up options page with meta boxes:
-      function load_options_page() {
+      function load_edit_page() {
 
          $screen = get_current_screen();
-
-         add_filter('screen_layout_columns', array(&$this, 'adminColumns'), 10, 2);
-
-         wp_enqueue_script('common');
-         wp_enqueue_script('wp-lists');
-         wp_enqueue_script('postbox');
-
-         add_meta_box( 'alOptions', __( 'Options', 'amazon-link' ), array (&$this, 'show_options' ), $this->opts_page, 'normal', 'core' );
-         add_meta_box( 'alChannels', __( 'Amazon Tracking ID Channels', 'amazon-link' ), array (&$this, 'show_channels' ), $this->opts_page, 'normal', 'core' );
-         add_meta_box( 'alInfo', __( 'About', 'amazon-link' ), array (&$this, 'show_info' ), $this->opts_page, 'side', 'core' );
-         add_meta_box( 'alTemplateHelp', __( 'Template Help', 'amazon-link' ), array (&$this, 'displayTemplateHelp' ), $this->opts_page, 'side', 'low' );
-         add_meta_box( 'alTemplates', __( 'Templates', 'amazon-link' ), array (&$this, 'show_templates' ), $this->opts_page, 'advanced', 'core' );
-         add_meta_box( 'alManageTemplates', __( 'Default Templates', 'amazon-link' ), array (&$this, 'show_default_templates' ), $this->opts_page, 'advanced', 'low' );
-
-         if ( $screen->id != $this->opts_page)
-            return;
-
-         // Add Contextual Help
-
+echo "<PRE>"; print_r($screen); echo "</PRE>";
          $screen->add_help_tab( array( 'id'      => 'amazon-options-tab',
                                        'title'   => __('Options', 'amazon-link'),
                                        'content' => '<p>' . __('Use this section to set up the global <b>Display Options</b> that change how links are displayed and their behaviour, to enable advance options like \'<code>live data</code>\', the Product search tool or \'<code>Wishlist</code>\' facility you must also configure your AWS keys in the <b>Amazon Associate Information</b> sub section.','amazon-link') . '</p>' .
                                                     '<p>' . __('Within this section you can also set up the Amazon Product Data Cache, select Enable to install the cache, Disable to remove it, and Flush to empty any cached data.','amazon-link') . '</p>' .
                                                     '<p>' . __('The status of the ip2nation database is displayed at the bottom of this section, with options to Install the database if it is not already installed or a new version is available on the ip2nation website.','amazon-link') . '</p>')
-                              );
-         $screen->add_help_tab( array( 'id'      => 'amazon-channels-tab',
-                                       'title'   => __('Channels', 'amazon-link'),
-                                       'content' => '<p>' . __('Use this section to set up the global default <b>Amazon Affiliate Tags</b>, as well as create named Channels that can be used on the Amazon Affiliate Site to track the performance of different sections of your site. </p><p> You can also set Affiliate tags in the WordPress User\'s Profile page, these will automatically be used on any post authored by that user','amazon-link') . '</p>')
-                              );
-         $screen->add_help_tab( array( 'id'      => 'amazon-templates-tab',
-                                       'title'   => __('Templates', 'amazon-link'),
-                                       'content' => '<p>' . __('Use this section to edit, create and delete Templates used to create the Amazon Links on your site, the content is standard HTML with special <code>%</code> delimited keywords that are replaced by appropriate product information, see the \'Template Help\' section for a list of all valid keywords.','amazon-link') . '</p>')
-                              );
-         $screen->add_help_tab( array( 'id'      => 'amazon-templates-help-tab',
-                                       'title'   => __('Templates Keywords', 'amazon-link'),
-                                       'callback'=> array($this, 'displayTemplateHelp'))
-                              );
-         $screen->add_help_tab( array( 'id'      => 'amazon-templates-default-tab',
-                                       'title'   => __('Default Templates', 'amazon-link'),
-                                       'content'=> '<p>' . __('This section lists all the default templates included with the plugin, use it to re-install or your update your active templates.','amazon-link') . '</p>')
-                              );
+                               );
 
-         //$tabs = include( 'help/settings.php');
-         //foreach ($tabs as $tab) $screen->add_help_tab( $tab );
-
-         $screen->set_help_sidebar('<p><b>'. __('For more information:', 'amazon-link'). '</b></p>' .
-                                   '<p><a target="_blank" href="'. $this->plugin_home . '">' . __('Plugin Home Page','amazon-link') . '</a></p>' .
-                                   '<p><a target="_blank" href="'. $this->plugin_home . 'faq/">' . __('Plugin FAQ','amazon-link') . '</a></p>' .
-                                   '<p><a target="_blank" href="'. $this->plugin_home . 'faq/#channels">' . __('Channels Help','amazon-link') . '</a></p>' .
-                                   '<p><a target="_blank" href="'. $this->plugin_home . 'faq/#templates">' . __('Template Help','amazon-link') . '</a></p>');
       }
 
-
-      // Hooks required to bring up extras page with meta boxes:
-      function load_extras_page() {
+      // Hooks required to bring up options page with meta boxes:
+      function load_settings_page() {
 
          $screen = get_current_screen();
 
-         add_filter('screen_layout_columns', array(&$this, 'adminColumns'), 10, 2);
+         if (!isset($this->pages[$screen->id])) return;
+
+         $page = $this->pages[$screen->id];
+         $slug = $page['Slug'];
+
+         add_filter('screen_layout_columns', array(&$this, 'admin_columns'), 10, 2);
 
          wp_enqueue_script('common');
          wp_enqueue_script('wp-lists');
          wp_enqueue_script('postbox');
 
-         add_meta_box( 'alExtras', __( 'Extras', 'amazon-link' ), array (&$this, 'show_extras' ), $this->extras_page, 'normal', 'core' );
+         if ($slug == 'amazon-link-settings') {
+            add_meta_box( 'alOptions', __( 'Options', 'amazon-link' ), array (&$this, 'show_options' ), $this->opts_page, 'normal', 'core' );
+         } else if ($slug == 'amazon-link-channels') {
+            add_meta_box( 'alChannels', __( 'Amazon Tracking ID Channels', 'amazon-link' ), array (&$this, 'show_channels' ), $this->opts_page, 'normal', 'core' );
+         } else if ($slug == 'amazon-link-templates') {
+            add_meta_box( 'alTemplateHelp', __( 'Template Help', 'amazon-link' ), array (&$this, 'displayTemplateHelp' ), $this->opts_page, 'side', 'low' );
+            add_meta_box( 'alTemplates', __( 'Templates', 'amazon-link' ), array (&$this, 'show_templates' ), $this->opts_page, 'normal', 'core' );
+            add_meta_box( 'alManageTemplates', __( 'Default Templates', 'amazon-link' ), array (&$this, 'show_default_templates' ), $this->opts_page, 'normal', 'low' );
+         } else if ($slug == 'amazon-link-extras') {
+            add_meta_box( 'alExtras', __( 'Extras', 'amazon-link' ), array (&$this, 'show_extras' ), $this->extras_page, 'normal', 'core' );
+         }
 
-         if ( $screen->id != $this->extras_page)
-            return;
+         add_meta_box( 'alInfo', __( 'About', 'amazon-link' ), array (&$this, 'show_info' ), $this->opts_page, 'side', 'core' );
 
          // Add Contextual Help
-
-         $screen->add_help_tab( array( 'id'      => 'amazon-extras-tab',
-                                       'title'   => __('Extras', 'amazon-link'),
-                                       'content' => '<p>' . __('Use this page to manage plugins that add extra functionality to the main Amazon Link plugin. These plugins are either user provided or have been requested by users of the Amazon Link plugin, however although useful they may come with some performance or database impact. As such they are not built into the Amazon Link plugin by default.','amazon-link') . '</p>' .
-                                                    '<p>' . __('The plugins use the filters and action hooks built into the main Amazon Link plugin to modify its behavior (see the next help section), any changes made on this page will cause the Amazon Link Cache to be emptied.','amazon-link') . '</p>' .
-                                                    '<p>' . __('It is recommended that if you wish to modify the behaviour of Amazon Link plugin then create your own plugins (using the provided ones as a template), these will survive any upgrades to the main plugin.','amazon-link') . '</p>')
-                              );
-         $screen->add_help_tab( array( 'id'      => 'amazon-filters-tab',
-                                       'title'   => __('Filters', 'amazon-link'),
-                                       'content' => '<p>' . __('The plugin exposes three filters that can be accessed via the standard WordPress Filter API:','amazon-link') . 
-                                                    '<ul><li>amazon_link_keywords($keywords)</li><li>amazon_link_default_templates($templates)</li><li>amazon_link_option_list($options_list)</li></p>' .
-                                                    '<p>' . __('It is also possible to add your own filters to process individual data items returned via Amazon by adding a \'Filter\' item using the \'amazon_link_keywords\' filter. See the \'Editorial Content\' plugin for an example of how to do this.','amazon-link') . '</p>' .
-                                                    '<p>' . __('The plugin exposes one action hook that can be used via the standard WordPress Action API:','amazon-link') . '</p>'.
-                                                    '<ul><li>amazon_link_init($settings)</li></p>')
-                              );
-
-         //$tabs = include( 'help/extras.php');
-         //foreach ($tabs as $tab) $screen->add_help_tab( $tab );
+         $tabs = include( $page['Help']);
+         foreach ($tabs as $tab) $screen->add_help_tab( $tab );
 
          $screen->set_help_sidebar('<p><b>'. __('For more information:', 'amazon-link'). '</b></p>' .
                                    '<p><a target="_blank" href="'. $this->plugin_home . '">' . __('Plugin Home Page','amazon-link') . '</a></p>' .
                                    '<p><a target="_blank" href="'. $this->plugin_home . 'faq/">' . __('Plugin FAQ','amazon-link') . '</a></p>' .
-                                   '<p><a target="_blank" href="'. $this->plugin_home . 'technical/#filters">' . __('Filters Help','amazon-link') . '</a></p>' .
+                                   '<p><a target="_blank" title= "Guide on how to sign up for the various Amazon Programs" href="'. $this->plugin_home . 'getting-started">' . __('Getting Started','amazon-link') . '</a></p>' .
+                                   '<p><a target="_blank" href="'. $this->plugin_home . 'faq/#channels">' . __('Channels Help','amazon-link') . '</a></p>' .
                                    '<p><a target="_blank" href="'. $this->plugin_home . 'faq/#templates">' . __('Template Help','amazon-link') . '</a></p>');
       }
 
-      function adminColumns($columns, $screen) {
-         if ($screen == $this->opts_page) {
-	    $columns[$this->opts_page] = 2;
+      function admin_columns($columns, $id) {
+         if (isset($this->pages[$id])) {
+	    $columns[$id] = 2;
          }
-	return $columns;
+         return $columns;
       }
 
       function amazon_admin_styles() {
@@ -399,21 +363,15 @@ function al_gen_multi (id, term, def, chan) {
 
       }
 
-      function registerPluginLinks($links, $file) {
+      function register_plugin_links($links, $file) {
          if ($file == $this->base_name) {
-            $links[] = '<a href="options-general.php?page=' . $this->settings_slug .'">' . __('Settings','amazon-link') . '</a>';
+            foreach ($this->pages as $page => $data) {
+               $links[] = '<a href="admin.php?page=' . $data['Slug'].'">' . $data['Label'] . '</a>';
+            }
          }
          return $links;
       }
 
-
-      function create_popup (){
-         if (!$this->scripts_done) {
-             $this->scripts_done = True;
-             add_action('wp_print_footer_scripts', array($this, 'generate_multi_script'));
-             return;
-         }
-      }
 
 /*****************************************************************************************/
       /// Options & Templates Handling
@@ -551,7 +509,7 @@ function al_gen_multi (id, term, def, chan) {
             'chan' => array(  'Type' => 'hidden' ),
 
             /* Options that change how the items are displayed */
-            'hd1s' => array ( 'Type' => 'section', 'Value' => __('Display Options', 'amazon-link'), 'Section_Class' => 'al_subhead1'),
+            'hd1s' => array ( 'Type' => 'section', 'Value' => __('Display Options', 'amazon-link'), 'Title_Class' => 'al_section_head', 'Description' => __('Change the default appearance and behaviour of the Links.','amazon-link'), 'Section_Class' => 'al_subhead1'),
 
             'text' => array( 'Name' => __('Link Text', 'amazon-link'), 'Description' => __('Default text to display if none specified', 'amazon-link'), 'Default' => 'www.amazon.co.uk', 'Type' => 'text', 'Size' => '40', 'Class' => 'al_border' ),
             'image_class' => array ( 'Name' => __('Image Class', 'amazon-link'), 'Description' => __('Style Sheet Class of image thumbnails', 'amazon-link'), 'Default' => 'wishlist_image', 'Type' => 'text', 'Size' => '40', 'Class' => 'alternate al_border' ),
@@ -561,36 +519,47 @@ function al_gen_multi (id, term, def, chan) {
 
             /* Options that change the behaviour of the links */
 
-            'multi_cc' => array('Name' => __('Multinational Link', 'amazon-link'), 'Description' => __('Insert links to all other Amazon sites after primary link.', 'amazon-link'), 'Default' => '1', 'Type' => 'checkbox', 'Class' => 'alternate al_border'),
+            'new_window' => array('Name' => __('New Window Link', 'amazon-link'), 'Description' => __('When link is clicked on, open it in a new browser window', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox', 'Class' => 'alternate' ),
+
+            'hd1e' => array ( 'Type' => 'end'),
+
+             /* Options that control localisation */
+            'hd2s' => array ( 'Type' => 'section', 'Value' => __('Localisation Options', 'amazon-link'), 'Title_Class' => 'al_section_head', 'Description' => __('Control the localisation of data displayed and links created.','amazon-link'), 'Section_Class' => 'al_subhead1'),
+            'ip2n_message' => array( 'Type' => 'title', 'Title_Class' => 'al_para', 'Class' => 'al_pad al_border'),
+            'default_cc' => array( 'Name' => __('Default Country', 'amazon-link'), 'Hint' => __('The Amazon Affiliate Tags should be entered in the \'Channels\' section below', 'amazon-link'),'Description' => __('Which country\'s Amazon site to use by default', 'amazon-link'), 'Default' => 'uk', 'Type' => 'selection', 'Class' => 'al_border' ),
             'localise' => array('Name' => __('Localise Amazon Link', 'amazon-link'), 'Description' => __('Make the link point to the user\'s local Amazon website, (you must have ip2nation installed for this to work).', 'amazon-link'), 'Default' => '1', 'Type' => 'checkbox', 'Class' => 'al_border' ),
             'global_over' => array('Name' => __('Global Defaults', 'amazon-link'), 'Description' => __('Default values in the shortcode "title=xxxx" affect all locales, if not set only override the default locale.', 'amazon-link'), 'Default' => '1', 'Type' => 'checkbox', 'Class' => 'alternate al_border' ),
-            'search_link' => array('Name' => __('Create Search Links', 'amazon-link'), 'Description' => __('Generate links to search for the items by "Author Title" for non local links, rather than direct links to the product by ASIN.', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox', 'Class' => 'al_border' ),
+            'search_link' => array('Name' => __('Create Search Links', 'amazon-link'), 'Description' => __('Generate links to search for the items by "Artist Title" for non local links, rather than direct links to the product by ASIN.', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox', 'Class' => 'al_border' ),
             'search_text' => array( 'Name' => __('Default Search String', 'amazon-link'), 'Description' => __('Default items to search for with "Search Links", uses the same system as the Templates below.', 'amazon-link'), 'Default' => '%ARTIST% | %TITLE%', 'Type' => 'text', 'Size' => '40', 'Class' => 'alternate al_border' ),
-            'live' => array ( 'Name' => __('Live Data', 'amazon-link'), 'Description' => __('When creating Amazon links, use live data from the Amazon site, otherwise populate the shortcode with static information. <em>* <a href="#aws_notes" title="AWS Access keys required for full functionality">AWS</a> *</em>', 'amazon-link'), 'Default' => '1', 'Type' => 'checkbox', 'Class' => 'al_border' ),
-            'new_window' => array('Name' => __('New Window Link', 'amazon-link'), 'Description' => __('When link is clicked on, open it in a new browser window', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox', 'Class' => 'alternate' ),
-   
-            'hd1e' => array ( 'Type' => 'end'),
-   
+            'multi_cc' => array('Name' => __('Multinational Link', 'amazon-link'), 'Description' => __('Insert links to all other Amazon sites after primary link.', 'amazon-link'), 'Default' => '1', 'Type' => 'checkbox', 'Class' => 'alternate al_border'),
+
+            'hd2e' => array ( 'Type' => 'end'),
+
             /* Options related to the Amazon backend */
-            'hd2s' => array ( 'Type' => 'section', 'Value' => __('Amazon Associate Information','amazon-link'), 'Section_Class' => 'al_subhead1'),
-            'default_cc' => array( 'Name' => __('Default Country', 'amazon-link'), 'Hint' => __('The Amazon Affiliate Tags should be entered in the \'Channels\' section below', 'amazon-link'),'Description' => __('Which country\'s Amazon site to use by default', 'amazon-link'), 'Default' => 'uk', 'Type' => 'selection', 'Class' => 'al_border' ),
-            'aws_help' => array( 'Value' => __('AWS Access Keys', 'amazon-link'), 'Description' => __('The AWS Keys are required for some of the features of the plugin to work (The ones marked with AWS above), visit <a href="http://aws.amazon.com/">Amazon Web Services</a> to sign up to get your own keys.', 'amazon-link'), 'Title_Class' => 'al_subheading', 'Id' => 'aws_notes', 'Default' => '', 'Type' => 'title', 'Class' => 'alternate al_border' ),
+            'hd3s' => array ( 'Type' => 'section', 'Id' => 'aws_notes', 'Value' => __('Amazon Associate Information','amazon-link'), 'Title_Class' => 'al_section_head', 'Description' => __('The AWS Keys are required for some of the features of the plugin to work (The ones marked with AWS above), visit <a href="http://aws.amazon.com/">Amazon Web Services</a> to sign up to get your own keys.', 'amazon-link'), 'Section_Class' => 'al_subhead1'),
+
             'pub_key' => array( 'Name' => __('AWS Public Key', 'amazon-link'), 'Description' => __('Access Key ID provided by your AWS Account, found under Security Credentials/Access Keys of your AWS account', 'amazon-link'), 'Default' => '', 'Type' => 'text', 'Size' => '40', 'Class' => 'alternate' ),
             'priv_key' => array( 'Name' => __('AWS Private key', 'amazon-link'), 'Description' => __('Secret Access Key ID provided by your AWS Account.', 'amazon-link'), 'Default' => '', 'Type' => 'text', 'Size' => '40', 'Class' => '' ),
             'aws_valid' => array ( 'Type' => 'checkbox', 'Read_Only' => 1, 'Name' => 'AWS Keys Validated', 'Default' => '0', 'Class' => 'al_border'),
-            'template_asins' => array( 'Name' => __('Template ASINs', 'amazon-link'), 'Description' => __('ASIN values to use when previewing the templates in the templates manager.', 'amazon-link'), 'Default' => '0893817449,0500410607,050054199X,0500286426,0893818755,050054333X,0500543178,0945506562', 'Type' => 'text', 'Size' => '40', 'Class' => 'al_border' ),
-            'debug' => array( 'Name' => __('Debug Output', 'amazon-link'), 'Description' => __('Adds hidden debug output to the page source to aid debugging. <b>Do not enable on live sites</b>.', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox', 'Size' => '40', 'Class' => 'al_border' ),
-            'hd2e' => array ( 'Type' => 'end'),
+            'live' => array ( 'Name' => __('Live Data', 'amazon-link'), 'Description' => __('When creating Amazon links, use live data from the Amazon site, otherwise populate the shortcode with static information. <em>* <a href="#aws_notes" title="AWS Access keys required for full functionality">AWS</a> *</em>', 'amazon-link'), 'Default' => '1', 'Type' => 'checkbox', 'Class' => 'al_border' ),
 
-            'hd3s' => array ( 'Type' => 'section', 'Value' => __('Amazon Data Cache','amazon-link'), 'Section_Class' => 'al_subhead1'),
+            'hd3e' => array ( 'Type' => 'end'),
+
+            'hd4s' => array ( 'Type' => 'section', 'Value' => __('Amazon Data Cache','amazon-link'), 'Title_Class' => 'al_section_head', 'Description' => __('Improve page performance by caching Amazon product data.','amazon-link'), 'Section_Class' => 'al_subhead1'),
             'cache_age' => array ( 'Name' => __('Cache Data Age', 'amazon-link'), 'Description' => __('Max age in hours of the data held in the Amazon Link Cache', 'amazon-link'), 'Type' => 'text', 'Default' => '48', 'Class' => 'al_border'),
             'cache_enabled' => array ( 'Type' => 'backend', 'Default' => '0'),
             'cache_c' => array( 'Type' => 'buttons', 'Buttons' => array( __('Enable Cache', 'amazon-link' ) => array( 'Hint' => __('Install the sql database table to cache data retrieved from Amazon.', 'amazon-link'), 'Class' => 'button-secondary', 'Action' => 'AmazonLinkAction'),
                                                      __('Disable Cache', 'amazon-link' ) => array( 'Hint' => __('Remove the Amazon Link cache database table.', 'amazon-link'),'Class' => 'button-secondary', 'Action' => 'AmazonLinkAction'),
                                                      __('Flush Cache', 'amazon-link' ) => array( 'Hint' => __('Delete all data in the Amazon Link cache.', 'amazon-link'),'Class' => 'button-secondary', 'Action' => 'AmazonLinkAction'),
                                                                         )),
-            'hd3e' => array ( 'Type' => 'end')
-            );
+            'hd4e' => array ( 'Type' => 'end'),
+
+            'hd5s' => array ( 'Type' => 'section', 'Value' => __('Advanced Options','amazon-link'), 'Title_Class' => 'al_section_head', 'Description' => __('Further options for debugging and Amazon Extras.','amazon-link'), 'Section_Class' => 'al_subhead1'),
+            'template_asins' => array( 'Name' => __('Template ASINs', 'amazon-link'), 'Description' => __('ASIN values to use when previewing the templates in the templates manager.', 'amazon-link'), 'Default' => '0893817449,0500410607,050054199X,0500286426,0893818755,050054333X,0500543178,0945506562', 'Type' => 'text', 'Size' => '40', 'Class' => 'al_border' ),
+            'debug' => array( 'Name' => __('Debug Output', 'amazon-link'), 'Description' => __('Adds hidden debug output to the page source to aid debugging. <b>Do not enable on live sites</b>.', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox', 'Size' => '40', 'Class' => 'al_border' ),
+            'full_uninstall' => array( 'Name' => __('Purge on Uninstall', 'amazon-link'), 'Description' => __('On uninstalling the plugin remove all Settings, Templates, Associate Tracking IDs, Cache Data & ip2nation Data <b>Use when removing the plugin for good</b>.', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox', 'Size' => '40', 'Class' => 'al_border' ),
+            'hd5e' => array ( 'Type' => 'end')
+             );
 
             $country_data = $this->get_country_data();
             // Populate Country related options
@@ -627,6 +596,34 @@ function al_gen_multi (id, term, def, chan) {
          return $option_list;
       }
 
+      function get_menus() {
+         return array ( 'amazon-link-settings'   => array( 'Slug' => 'amazon-link-settings' , 
+                                                           'Help' => 'help/settings.php',
+                                                           'Description' => __('Use this page to update the main Amazon Link settings to control the basic behaviour of the plugin, the appearance of the links and control the additional features such as localisation and the data cache. Use the Contextual Help tab above for more information about the settings.','amazon-link'),
+                                                           'Title' => __('Amazon Link Settings', 'amazon-link'), 
+                                                           'Label' =>__('Settings', 'amazon-link'), 
+                                                           'Capability' => 'manage_options'),
+                        'amazon-link-channels'   => array( 'Slug' => 'amazon-link-channels', 
+                                                           'Help' => 'help/channels.php',
+                                                           'Description' => __('If you have joined the Amazon Affiliate Program then on this page you can enter your Amazon Associate Tracking Identities. If you have more than one Tracking ID on each locale then you can create extra Channels to manage them.','amazon-link'),
+                                                           'Title' => __('Manage Amazon Associate IDs', 'amazon-link'), 
+                                                           'Label' =>__('Associate IDs', 'amazon-link'), 
+                                                           'Capability' => 'manage_options'),
+                        'amazon-link-templates'  => array( 'Slug' => 'amazon-link-templates',
+                                                           'Help' => 'help/templates.php',
+                                                           'Description' => __('Use this page to manage your templates - pre-designed html and javascript code that can be used to quickly create consistant page content. Use the editor to modify existing templates, make copies, delete or add new ones of your own design.','amazon-link'),
+                                                           'Title' => __('Manage Amazon Link Templates', 'amazon-link'), 
+                                                           'Label' =>__('Templates', 'amazon-link'),
+                                                           'Capability' => 'manage_options'),
+                        'amazon-link-extras'     => array( 'Slug' => 'amazon-link-extras',
+                                                           'Help' => 'help/extras.php',
+                                                           'Icon' => 'plugins',
+                                                           'Description' => __('On this page you can manage user provided or requested extra functionality for the Amazon Link plugin. These items are not part of the main Amazon Link plugin as they provide features that not every user wants and may have a negative impact on your site (e.g. reduced performance, extra database usage, etc.).', 'amazon-link'),
+                                                           'Title' => __('Manage Amazon Link Extras', 'amazon-link'), 
+                                                           'Label' => __('Extras', 'amazon-link'), 
+                                                           'Capability' => 'activate_plugins'));
+      }
+
       function getOptions() {
          if (!isset($this->Opts)) {
             $this->Opts = get_option($this->optionName, array());
@@ -652,10 +649,11 @@ function al_gen_multi (id, term, def, chan) {
          $this->Opts = $Opts;
       }
 
-      function deleteOptions() {
+      function delete_options() {
          delete_option($this->optionName);
+         delete_option($this->channels_name);
+         delete_option($this->templatesName);
       }
-
 
       function getTemplates() {
          if (!isset($this->Templates)) {
@@ -671,6 +669,44 @@ function al_gen_multi (id, term, def, chan) {
          ksort($Templates);
          update_option($this->templatesName, $Templates);
          $this->Templates = $Templates;
+      }
+
+      function export_templates($filename) {
+         $templates = $this->getTemplates();
+         $slug = str_replace('-', '_', sanitize_title(get_bloginfo()));
+         $content = '<?php
+/*
+Plugin Name: Amazon Link Extra - Exported Templates
+Plugin URI: http://www.houseindorset.co.uk/plugins/amazon-link/
+Description: Templates Exported from Amazon Link on ' . date("F j, Y, g:i a") . '
+Version: 1.0
+Author: Amazon Link User
+Author URI: ' . get_site_url() .'
+*/
+
+function alx_'.$slug.'_default_templates ($templates) {
+';
+         foreach($templates as $id => $data) {
+            if (!isset($data['Version'])) $data['Version'] = 1;
+            if (!isset($data['Notice'])) $data['Notice'] = 'New Template';
+            unset($data['nonce'], $data['nonce1'], $data['nonce2']);
+            $content .= " \$templates['$id'] = \n  array(";
+            foreach ($data as $item => $details) {
+               if ($item == 'Content') {
+                  $content .= "   '$item' => htmlspecialchars (". var_export($details, true) . "),\n";
+               } else {
+                  $content .= "   '$item' => ". var_export($details, true) . ",\n";
+               }
+            }
+            $content .= "  );\n";
+         }
+         $content .= "  return \$templates;\n}\nadd_filter( 'amazon_link_default_templates', 'alx_${slug}_default_templates');\n?>";
+         $result = file_put_contents( $filename, $content);
+         if ($result === FALSE) {
+            return array ( 'Success' => 0, Message => "Export Failed could not write to: <em>$filename</em>" );
+         } else {
+            return array ( 'Success' => 1, Message => "Templates exported to file: <em>$filename</em>, <em>$result</em> bytes written." );
+         }
       }
 
       function get_channels($override = False, $user_channels = False) {
@@ -1074,79 +1110,50 @@ function al_gen_multi (id, term, def, chan) {
       /// Display Content, Widgets and Pages
 /*****************************************************************************************/
 
-      // Top level function to display options
-      function show_options_page() {
+      function show_settings_page() {
+
          global $screen_layout_columns;
+         $screen = get_current_screen();
+
+         if (!isset($this->pages[$screen->id])) return;
+
+         $page = $screen->id;
+         $data = $this->pages[$page];
+         $title = $data['Title'];
+         $description = $data['Description'];
+         $icon = isset($data['Icon']) ? $data['Icon'] : 'options-general';
+
+wp_nonce_field('closedpostboxes', 'closedpostboxesnonce', false );
+wp_nonce_field('meta-box-order', 'meta-box-order-nonce', false );
+
 ?>
 <div class="wrap">
-		<?php screen_icon('options-general'); ?>
-		<h2><?php echo __('Amazon Link Options', 'amazon-link') ?></h2>
-	<div id="poststuff" class="metabox-holder">
-		<?php do_meta_boxes($this->opts_page, 'normal',0); ?>
-   </div>
-			<div id="poststuff" class="metabox-holder<?php echo 2 == $screen_layout_columns ? ' has-right-sidebar' : ''; ?>">
-				<div id="post-body" class="has-sidebar" >
-					<div id="post-body-content" class="has-sidebar-content">
-						<?php do_meta_boxes($this->opts_page, 'advanced',0); ?>
-					</div>
-				</div>
-				<div id="side-info-column" class="inner-sidebar">
-					<?php do_meta_boxes($this->opts_page, 'side',0); ?>
-				</div>
-				<br class="clear"/>
-			</div>	
-		</div>
-	<script type="text/javascript">
-		//<![CDATA[
-		jQuery(document).ready( function($) {
-			// close postboxes that should be closed
-			$('.if-js-closed').removeClass('if-js-closed').addClass('closed');
-			// postboxes setup
-			postboxes.add_postbox_toggles('<?php echo $this->opts_page; ?>');
-		});
-		//]]>
-	</script>
-<?php
-      }
-
-
-
-      // Top level function to display extras
-      function show_extras_page() {
-         global $screen_layout_columns;
-?>
-<div class="wrap">
-		<?php screen_icon('options-general'); ?>
-		<h2><?php echo __('Amazon Link Extras', 'amazon-link') ?></h2>
-                <p>
-On this page you can manage user provided or requested extra functionality for the Amazon Link plugin. 
-These items are not part of the main Amazon Link plugin as they provide features that not every user wants and may have a negative impact on your site (e.g. reduced performance, extra database usage, etc.).
-</p>
-	<div id="poststuff" class="metabox-holder">
-		<?php do_meta_boxes($this->extras_page, 'normal',0); ?>
-   </div>
-			<div id="poststuff" class="metabox-holder<?php echo 2 == $screen_layout_columns ? ' has-right-sidebar' : ''; ?>">
-				<div id="post-body" class="has-sidebar" >
-					<div id="post-body-content" class="has-sidebar-content">
-						<?php do_meta_boxes($this->extras_page, 'advanced',0); ?>
-					</div>
-				</div>
-				<div id="side-info-column" class="inner-sidebar">
-					<?php do_meta_boxes($this->extras_page, 'side',0); ?>
-				</div>
-				<br class="clear"/>
-			</div>	
-		</div>
-	<script type="text/javascript">
-		//<![CDATA[
-		jQuery(document).ready( function($) {
-			// close postboxes that should be closed
-			$('.if-js-closed').removeClass('if-js-closed').addClass('closed');
-			// postboxes setup
-			postboxes.add_postbox_toggles('<?php echo $this->extras_page; ?>');
-		});
-		//]]>
-	</script>
+ <?php screen_icon($icon); ?>
+  <h2><?php echo $title ?></h2>
+   <p><?php echo $description ?></p>
+   <div id="poststuff" class="metabox-holder<?php echo 2 == $screen_layout_columns ? ' has-right-sidebar' : ''; ?>">
+    <div id="side-info-column" class="inner-sidebar">
+     <?php do_meta_boxes($page, 'side',0); ?>
+    </div>
+    <div id="post-body" class="has-sidebar" >
+     <div id="post-body-content" class="has-sidebar-content">
+      <?php do_meta_boxes($page, 'normal',0); ?>
+      <?php do_meta_boxes($page, 'advanced',0); ?>
+     </div>
+    </div>
+   <br class="clear"/>
+  </div>
+ </div>
+<script type="text/javascript">
+//<![CDATA[
+ jQuery(document).ready( function($) {
+  // close postboxes that should be closed
+  $('.if-js-closed').removeClass('if-js-closed').addClass('closed');
+  // postboxes setup
+  postboxes.add_postbox_toggles('<?php echo $page; ?>');
+ });
+//]]>
+</script>
 <?php
       }
 
@@ -1244,19 +1251,6 @@ These items are not part of the main Amazon Link plugin as they provide features
          $country_data = $this->get_country_data();
          $info         = array( 'flag' => $country_data[$top_cc]['flag'], 'cc' => $top_cc, 'rcm' => $country_data[$top_cc]['rcm'], 'mplace_id' => $country_data[$top_cc]['m_id'], 'mplace' => $country_data[$top_cc]['market'], 'tld' => $country_data[$top_cc]['tld'], 'tag' => $channel['tag_' . $top_cc], 'channel' => $channel['ID']);
          return $info;
-      }
-
-      function getURL($term, $tld, $tag) {
-         $type = substr($term,0,1);
-         $arg  = substr($term,2);
-         if ($type == 'A')
-            $text='http://www.amazon.' . $tld . '/gp/product/'. $arg. '?ie=UTF8&linkCode=as2&camp=1634&creative=6738&tag=' . $tag .'&creativeASIN='. $arg;
-         else if ($type == 'S') {
-            $text='http://www.amazon.' . $tld . '/mn/search/?_encoding=UTF8&linkCode=ur2&camp=1634&creative=19450&tag=' . $tag. '&field-keywords=' . $arg;
-         } else {
-            $text='http://www.amazon.' . $tld . '/review/'. $arg. '?_encoding=UTF8&linkCode=ur2&camp=1634&creative=19450&tag=' . $tag. '&field-keywords=' . $arg;
-         }
-         return $text;
       }
 
       function grab($data, $keys, $default) {
@@ -1385,7 +1379,7 @@ if (TIMING) {$time_taken = microtime(true)-$time_start;echo "<!--Cache Save: $ti
          return $this->aws_signed_request($tld, $request, $Settings['pub_key'], $Settings['priv_key']);
       }
 
-      function make_link($asin, $object, $settings = NULL, $local_info = NULL, $search = NULL, $type = 'product')
+      function make_link($asin, $object, $settings = NULL, $local_info = NULL, $search = NULL, $type = 'product', $close = True)
       {
          if ($settings === NULL)
             $settings = $this->getSettings();
@@ -1396,70 +1390,85 @@ if (TIMING) {$time_taken = microtime(true)-$time_start;echo "<!--Cache Save: $ti
             $search = array('','');
 
          if (!isset($settings['home_cc'])) $settings['home_cc'] = $settings['default_cc'];
-         if ($settings['multi_cc']) {
-            // Need to check all locales...
-            $sep = '{';
-            $term ='';
-            $countries = $this->get_country_data();
-            foreach ($countries as $country => $country_data) {
-               if ($type == 'search' ) {
-                  $term .= $sep. $country .' : \'S-'. ($search[1]) .'\'';
-               } else {
-                  if ($type == 'review') {
-                     $type = 'R-';
-                  } else if ($type == 'product') {
-                     $type = 'A-';
-                  }
-                  if (isset($asin[$country])) {
-                     $term .= $sep. $country .' : \''. $type. $asin[$country].'\'';
-                  } else if ($settings['search_link']) {
-                     $term .= $sep. $country .' : \'S-'. ($search[1]) .'\'';
-                  } else {
-                     $term .= $sep. $country .' : \''. $type. $asin[$settings['home_cc']].'\'';
-                  }
-               }
-               $sep = ',';
-            }
-         }
-         $term .= '}';
-
-         if ($type == 'search' ) {
-            $url_term = 'S-'. $search[0];
-         } else {
-            if ($type == 'review') {
-               $type = 'R-';
-            } else if ($type == 'product') {
-               $type = 'A-';
-            }
-            if (isset($asin[$local_info['cc']])) {
-
-               // User Specified ASIN always use
-               $url_term = $type . $asin[$local_info['cc']];
-
-            } else if ($settings['search_link'] && ($type == 'A-')) {
-
-               $url_term = 'S-'.$search[0];
-            } else {
-               $url_term = $type . $asin[$settings['home_cc']];
-            }
-         }
 
          /*
           * Generate a localised/multinational link, wrapped around '$object'
           */
          $TARGET = $settings['new_window'] ? 'target="_blank"' : '';
-         $URL    = $this->getURL($url_term, $local_info['tld'], $local_info['tag']);
-
+         $url = apply_filters('amazon_link_url', '', $type, $asin, $search[0], $local_info, $settings);
+         $text='<a rel="nofollow" '. $TARGET .' href="' . $url.'">' . $object . ($close ?'</a>' : '');
          if ($settings['multi_cc']) {
-            $this->create_popup();
-            $text ='<a rel="nofollow" '. $TARGET .' onMouseOut="al_link_out()" href="' . $URL .'" onMouseOver="al_gen_multi('. $this->multi_id . ', ' . $term. ', \''. $local_info['cc']. '\', \''. $local_info['channel'] .'\');">';
-            $text .= $object. '</a>';
-            $this->multi_id++;
-         } else {
-            $text='<a rel="nofollow" '. $TARGET .' href="' . $URL .'">' . $object . '</a>';
+            $multi_data = array('settings' => $settings, 'type' => $type, 'asin' => $asin, 'search' => $search[1], 'cc' => $local_info['cc'], 'channel' => $local_info['channel'] );
+            $text = $this->create_popup($multi_data, $text, $close);
          }
          return $text;
       }
+
+      function get_url($url, $type, $asin, $search, $local_info, $settings) {
+
+         // URL already created just drop out.
+         if ($url != '') return $url;
+
+         if (isset($asin[$local_info['cc']])) {
+
+            // User Specified ASIN always use
+            $asin = $asin[$local_info['cc']];
+         } else if ($settings['search_link'] && ($type == 'product')) {
+
+            $type = 'search';
+         } else {
+            $asin = $asin[$settings['home_cc']];
+         }
+
+         if ($type == 'product')
+            $text='http://www.amazon.' . $local_info['tld'] . '/gp/product/'. $asin. '?ie=UTF8&linkCode=as2&camp=1634&creative=6738&tag=' . $local_info['tag'] .'&creativeASIN='. $asin;
+         else if ($type == 'search') {
+            $text='http://www.amazon.' . $local_info['tld'] . '/mn/search/?_encoding=UTF8&linkCode=ur2&camp=1634&creative=19450&tag=' . $local_info['tag'] . '&field-keywords=' . $search;
+         } else {
+            $text='http://www.amazon.' . $local_info['tld'] . '/review/'. $asin. '?_encoding=UTF8&linkCode=ur2&camp=1634&creative=19450&tag=' . $local_info['tag'];
+         }
+         return $text;
+
+      }
+
+      function create_popup ($data, $text){
+         if (!$this->scripts_done) {
+             $this->scripts_done = True;
+             add_action('wp_print_footer_scripts', array($this, 'generate_multi_script'));
+         }
+
+         // Need to check all locales...
+         $sep = '{';
+         $term ='';
+         $countries = $this->get_country_data();
+         foreach ($countries as $country => $country_data) {
+            if ($data['type'] == 'search' ) {
+               $term .= $sep. $country .' : \'S-'. ($data['search']) .'\'';
+            } else {
+               if ($data['type'] == 'review') {
+                  $type = 'R-';
+               } else if ($data['type'] == 'product') {
+                  $type = 'A-';
+               }
+               if (isset($data['asin'][$country])) {
+                  $term .= $sep. $country .' : \''. $type. $data['asin'][$country].'\'';
+               } else if ($data['settings']['search_link']) {
+                  $term .= $sep. $country .' : \'S-'. ($data['search']) .'\'';
+               } else {
+                  $term .= $sep. $country .' : \''. $type. $data['asin'][$data['settings']['home_cc']].'\'';
+               }
+            }
+            $sep = ',';
+         }
+         $term .= '}';
+
+         $script = ' onMouseOut="al_link_out()" onMouseOver="al_gen_multi('. $this->multi_id . ', ' . $term. ', \''. $data['cc']. '\', \''. $data['channel'] .'\');" ';
+         $script = str_replace ('<a', '<a' . $script, $text);
+         $this->multi_id++;
+         return $script;
+      }
+
+
 
       function make_links($asins, $link_text, $Settings = NULL)
       {
@@ -1591,7 +1600,7 @@ function amazon_get_link($args)
    $awlfw->parseArgs($args);       // Get the default settings
    $li  = $awlfw->get_local_info();
    foreach ($awlfw->Settings['asin'] as $asin) {
-      return $awlfw->getURL('A:'.$asin, $li['tld'], $li['tag']);        // Return a URL
+      return $awlfw->get_url('product', $asin, '', $li, $awlfw->$Settings);    // Return a URL
    }
 }
 

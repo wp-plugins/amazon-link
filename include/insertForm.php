@@ -61,7 +61,7 @@
    $optionList = array(
          'subhd1' => array ( 'Type' => 'title', 'Value' => __('Enter the following settings for a simple Amazon Link', 'amazon-link'), 'Title_Class' => 'sub-head'),
          'asin' => array( 'Id' => 'AmazonLinkOpt', 'Name' => __('ASIN', 'amazon-link'), 'Default' => '', 'Type' => 'text', 'Hint' => __('Amazon product ASIN', 'amazon-link'), 'Size' => '30', 
-                           'Buttons' => array( __('Insert Link', 'amazon-link' ) => array( 'Type' => 'button', 'Class' => 'button-primary', 'Script' => 'return wpAmazonLinkAd.sendToEditor(this.form);'))),
+                           'Buttons' => array( __('Insert Link', 'amazon-link' ) => array( 'Type' => 'button', 'Hint' => __('Insert Amazon Link into Post using the ASIN(s) entered', 'amazon-link'), 'Class' => 'button-primary', 'Script' => 'return wpAmazonLinkAd.sendToEditor(this.form);'))),
          'text' => array( 'Id' => 'AmazonLinkOpt', 'Name' => __('Link Text', 'amazon-link'), 'Hint' => __('Amazon Link text', 'amazon-link'), 'Default' => 'Amazon', 'Type' => 'text', 'Size' => '40'),
          'template' => array( 'Id' => 'AmazonLinkOpt', 'Name' => __('Template', 'amazon-link'), 'Hint' => __('Choose which template is used to display the item.', 'amazon-link'), 'Default' => ' ', 'Type' => 'selection'),
          'chan' => array( 'Id' => 'AmazonLinkOpt', 'Name' => __('Channel', 'amazon-link'), 'Hint' => __('Choose which set of Amazon Tracking IDs to use.', 'amazon-link'), 'Default' => ' ', 'Type' => 'selection'));
@@ -77,10 +77,10 @@
          's_author' => array('Id' => 'amazon-link-search', 'Name' => __('Author', 'amazon-link'), 'Hint' => __('Author or Artist to search for', 'amazon-link'), 'Type' => 'text', 'Default' => ''),
          's_title' => array('Id' => 'amazon-link-search', 'Name' => __('Title', 'amazon-link'), 'Hint' => __('Items Title to search for', 'amazon-link'), 'Type' => 'text', 'Default' => ''),
          's_page' => array('Id' => 'amazon-link-search', 'Name' => __('Page', 'amazon-link'), 'Hint' => __('Page of Search Results', 'amazon-link'), 'Default' => '1', 'Type' => 'text',
-                         'Buttons' => array(__('-', 'amazon-link' ) => array( 'Type' => 'button', 'Id' => 'amazon-link-search', 'Class' => 'button-secondary', 'Script' => 'return wpAmazonLinkSearch.decPage(this.form);'),
-                                            __('+', 'amazon-link' ) => array( 'Type' => 'button', 'Id' => 'amazon-link-search', 'Class' => 'button-secondary', 'Script' => 'return wpAmazonLinkSearch.incPage(this.form);'),
-                                            __('Search', 'amazon-link' ) => array( 'Type' => 'button', 'Id' => 'amazon-link-search', 'Class' => 'button-secondary', 'Script' => 'return wpAmazonLinkSearch.searchAmazon(this.form);'),
-                                            __('x', 'amazon-link' ) => array( 'Type' => 'button', 'Id' => 'amazon-link-search', 'Class' => 'button-secondary', 'Script' => 'return wpAmazonLinkSearch.clearResults(this.form);') )),
+                         'Buttons' => array(__('-', 'amazon-link' ) => array( 'Type' => 'button', 'Hint' => __('Get the previous page of Results', 'amazon-link'), 'Id' => 'amazon-link-search', 'Class' => 'button-secondary', 'Script' => 'return wpAmazonLinkSearch.decPage(this.form);'),
+                                            __('+', 'amazon-link' ) => array( 'Type' => 'button', 'Hint' => __('Get the Next Page of Results', 'amazon-link'), 'Id' => 'amazon-link-search', 'Class' => 'button-secondary', 'Script' => 'return wpAmazonLinkSearch.incPage(this.form);'),
+                                            __('Search', 'amazon-link' ) => array( 'Type' => 'button', 'Id' => 'amazon-link-search', 'Hint' => __('Search Amazon', 'amazon-link'), 'Class' => 'button-secondary', 'Script' => 'return wpAmazonLinkSearch.searchAmazon(this.form);'),
+                                            __('x', 'amazon-link' ) => array( 'Type' => 'button', 'Id' => 'amazon-link-search', 'Hint' => __('Clear Search Results', 'amazon-link'), 'Class' => 'button-secondary', 'Script' => 'return wpAmazonLinkSearch.clearResults(this.form);') )),
          'results' => array ('Id' => 'amazon-link-results', 'Type' => 'title', 'Value' => $results_html, 'Title_Class' => 'hide-if-js'),
          'error' => array ('Id' => 'amazon-link-error', 'Type' => 'title', 'Value' => __('Error - No results returned from your query.', 'amazon-link'), 'Title_Class' => 'hide-if-js')));
    }
@@ -88,7 +88,7 @@
    $optionList = array_merge($optionList,array(
          'subhd3' => array ( 'Type' => 'title', 'Value' => __('Enter the following settings for an Amazon Wishlist', 'amazon-link'), 'Title_Class' => 'sub-head'),
          'cat' => array( 'Id' => 'AmazonListOpt', 'Name' => __('Post Category', 'amazon-link'), 'Hint' => __('List of Categories to search through for amazon links', 'amazon-link'), 'Type' => 'text', 'Size' => '40', 'Default' => 'local',
-                         'Buttons' => array( __('Insert Wishlist', 'amazon-link' ) => array( 'Type' => 'button', 'Class' => 'button-primary', 'Script' => 'return wpAmazonLinkAd.sendToEditor(this.form, {wishlist: \'1\'});'))),
+                         'Buttons' => array( __('Insert Wishlist', 'amazon-link' ) => array( 'Type' => 'button', 'Hint' => __('Insert Amazon Link Wishlist Item in your post.', 'amazon-link'),'Class' => 'button-primary', 'Script' => 'return wpAmazonLinkAd.sendToEditor(this.form, {wishlist: \'1\'});'))),
          'last' => array( 'Id' => 'AmazonListOpt', 'Name' => __('Number of Posts', 'amazon-link'), 'Hint' => __('Number of posts to search back through for amazon links', 'amazon-link'),  'Type' => 'text', 'Size' => '5'),
          'wishlist_type' => array ( 'Id' => 'AmazonListOpt', 'Name' => __('Wishlist Type', 'amazon-link'), 'Hint' => __('Default type of wishlist to display, \'Similar\' shows items similar to the ones found, \'Random\' shows a random selection of the ones found ', 'amazon-link'), 'Default' => 'Similar', 'Options' => array('Similar', 'Random', 'Multi'), 'Type' => 'selection'  ),
          'subhd4' => array ( 'Type' => 'title', 'Value' => __('Advanced settings', 'amazon-link'), 'Title_Class' => 'sub-head'),
@@ -104,6 +104,7 @@
    $Templates = $this->getTemplates();
    foreach ($Templates as $templateName => $Details) {
       $optionList['template']['Options'][$templateName]['Name'] = $Details['Name']. '  -  ' . $Details['Description'];
+      $optionList['template']['Options'][$templateName]['Hint'] = $Details['Description'];
  
       $template_data = array();
       foreach ($this->get_keywords() as $keyword => $details) {

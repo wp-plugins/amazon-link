@@ -68,5 +68,5 @@ function alx_spoof_locale ($settings) {
  * Install the Spoof Locale option and action
  */
 add_filter('amazon_link_option_list', 'alx_spoof_locale_options');
-add_action('amazon_link_init', 'alx_spoof_locale');
+add_action('amazon_link_init', 'alx_spoof_locale',10,1);
 ?>
