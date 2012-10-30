@@ -41,6 +41,7 @@ wpAmazonLinkAdmin.prototype = {
         var keywords = this['template_user_keywords'].concat(',',this['template_live_keywords']).split(',');
         var live_keywords = new String(this['template_live_keywords']);
         var template_keywords = new String(this['template_keywords']);
+        var template = new String(this['shortcode']);
 
         delete options['content'];
 
@@ -62,42 +63,50 @@ wpAmazonLinkAdmin.prototype = {
            options['live'] = 1;
         }
 
+        var shortcode_options = jQuery().extend({}, options);
         /* Only put keywords relevant to the selected template */
         for(var i = 0; i < keywords.length; i++) {
-           if ((keywords[i] != "asin") &&                             // Not 'asin' - this is always inserted
+           if ((keywords[i] != "asin") &&                             // If Not 'asin' - this is always inserted
                ((template_keywords.indexOf(keywords[i]) == -1) ||     // and Not in the current template
                 ((options['live'] == "1") &&                          // or user wants live data and this is a live keyword
                  (live_keywords.indexOf(keywords[i]) != -1)))) {
-              delete options[keywords[i]];
-           } else if (options[keywords[i]] == undefined) {
+              delete shortcode_options[keywords[i]];
+           } else if (shortcode_options[keywords[i]] == undefined) {
+              shortcode_options[keywords[i]] = '-';
               options[keywords[i]] = '-';
            }
         }
 
         /* If 'use defaults' is set then do not force these options */
         if (options['defaults'] == "1") {
-           delete options['multi_cc'];
-           delete options['localise'];
-           delete options['live'];
-           delete options['search_link'];
+           delete shortcode_options['multi_cc'];
+           delete shortcode_options['localise'];
+           delete shortcode_options['live'];
+           delete shortcode_options['search_link'];
         }
 
         /* Delete temporary options only used by the java exchange */
-        delete options['image_url'];
-        delete options['thumb_url'];
-        delete options['defaults'];
-        delete options['wishlist'];
+        delete shortcode_options['image_url'];
+        delete shortcode_options['thumb_url'];
+        delete shortcode_options['defaults'];
+        delete shortcode_options['wishlist'];
+        delete shortcode_options['shortcode_template'];
 
         /* Now generate the short code with what is left */
         var attrs = '';
         var sep = '';
-        jQuery.each(options, function(name, value){
+        jQuery.each(shortcode_options, function(name, value){
             if (value != ' ') {
                 attrs += sep + name + '='+value;
                 sep = '&';
             }
         });
-        return '[amazon ' + attrs + ']'
+        options['args'] = attrs;
+        keywords.push('args');
+        jQuery.each(keywords, function (id, keyword){
+           template = template.replace( new RegExp( '%'+keyword+'%','gi'), options[keyword]);
+        });
+        return template;
     },
 
     sendToEditor      : function(f, options) {
@@ -128,12 +137,13 @@ wpAmazonLinkAdmin.prototype = {
             }
         });
 
+        $this['shortcode']              = jQuery(f).find('#amazonLinkID input[name="shortcode_template"]').val();
         $this['template_user_keywords'] = jQuery(f).find('#amazonLinkID input[name="template_user_keywords"]').val();
         $this['template_live_keywords'] = jQuery(f).find('#amazonLinkID input[name="template_live_keywords"]').val();
         $this['template_keywords']      = jQuery(f).find('input[name="T_' + $this['options']['template'] + '"]').val();
 
         if (options != undefined) {
-           jQuery.extend($this['options'], options);
+           jQuery().extend($this['options'], options);
         }
         send_to_editor(this.generateShortCode());
         return false;

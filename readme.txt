@@ -2,7 +2,7 @@
 Contributors: paulstuttard
 Donate link: http://www.houseindorset.co.uk/plugins
 Tags: Amazon, links, wishlist, recommend, shortcode, ip2nation, localise, images, media library, affiliate, product, template
-Requires at least: 3.1
+Requires at least: 3.3
 Tested up to: 3.4.2
 Stable tag: 3.0.4
 License: GPLv2 or later
@@ -66,6 +66,15 @@ This is created by either putting the line `amazon_recommends(<Category>,<Number
 * New Feature - Add 'List Price' and 'Offer Price' Keywords
 * Bug Fix - correct multi-ASIN argument handling
 * Bug Fix - fix typo in UpgradeSettings.php
+
+
+= Development Version =
+
+
+
+* New Feature - Re-organise Settings pages and update Contextual Help
+* New Feature (BETA) - Add Redirect links an 'Extras' plugin to create links in the form `www.domain.com/al/0123456789` that auto redirect to the appropriate Amazon site.
+
 
 
 == Installation ==
@@ -757,13 +766,13 @@ Features I will be adding to the plugin in the future:
 
 
 * Allow the wishlist to search for legacy amazon links not just ones embedded in the shortcode.
-* Have static data for the templates, for users without AWS keys
-* Widgets not working on new install - Template ASINs has no default?
-* Create dedicated menu and sub menu structure - break out templates/options/diagnostics/extras submenus
-* Improve Contextual Help - Based on Real Page Material
+* Add a facility to convert shortcodes into static content wrapped in <--AMAZON LINK: --> tags to allow reversal.
+* Have static data for displaying the template previews, for users without AWS keys
+* Source Widgets not working on new install - Template ASINs has no default?
+* Add diagnostics submenu
 * 1 Column options screen not showing help or about
 * Kindle items not showing list price, add format?
-
+* Add redirection facility base on 'args' or 'reference' or 'ASIN'
 
 == Upgrade Notice ==
 

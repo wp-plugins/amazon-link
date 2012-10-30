@@ -97,8 +97,8 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
       /// Settings:
 /*****************************************************************************************/
       // String to insert into Posts to indicate where to insert the amazon items
-      var $TagHead       = '\[amazon';
-      var $TagTail       = '\]';
+      var $tag_head      = '<a class="amazon-link" args="';
+      var $tag_tail      = '</a>';
       var $cache_table   = 'amazon_link_cache';
       var $option_version= 6;
       var $plugin_version= '3.0.4';
@@ -130,6 +130,13 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          $this->form = new AmazonWishlist_Options;
          $this->ip2n = new AmazonWishlist_ip2nation;
          $this->search = new AmazonLinkSearch;
+
+         $this->regex = preg_quote($this->tag_head,'/');
+         // At least one space 
+         // 0 or more characters excluding '[' and ']' - not captured as \x
+         // Optionally followed by '[' alpha string ']' - not captured as \y
+         $this->regex .= '.*?'; //+((?:[^\[\]]*(?:\[[a-z]*\]){0,1})*)
+         $this->regex .= preg_quote($this->tag_tail,'/');
 
          // Frontend & Backend Related
          register_activation_hook(__FILE__, array($this, 'install'));                // To perform options installation
@@ -191,12 +198,14 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          wp_register_script('amazon-link-edit-script', $edit_script, array('jquery', 'amazon-link-search'), $this->plugin_version);
          wp_register_script('amazon-link-admin-script', $admin_script, false, $this->plugin_version);
 
-         add_action('wp_enqueue_scripts', array($this, 'amazon_styles'));             // Add base stylesheet
+         // Add base stylesheet
+         add_action('wp_enqueue_scripts', array($this, 'amazon_styles'));
 
+         // Add default url generator - low priority
          add_filter('amazon_link_url', array($this, 'get_url'), 20, 6);
 
-         // Call any user hooks - passing the current plugin Settings
-         do_action('amazon_link_init', $this->getOptions(), $this);
+         // Call any user hooks - passing the current plugin Settings and the Amazon Link Instance.
+         do_action('amazon_link_init', $this->getSettings(), $this);
       }
 
       // If in admin section then register options page and required styles & metaboxes
@@ -597,7 +606,7 @@ function al_gen_multi (id, term, def, chan) {
       }
 
       function get_menus() {
-         return array ( 'amazon-link-settings'   => array( 'Slug' => 'amazon-link-settings' , 
+         $menus = array('amazon-link-settings'   => array( 'Slug' => 'amazon-link-settings' , 
                                                            'Help' => 'help/settings.php',
                                                            'Description' => __('Use this page to update the main Amazon Link settings to control the basic behaviour of the plugin, the appearance of the links and control the additional features such as localisation and the data cache. Use the Contextual Help tab above for more information about the settings.','amazon-link'),
                                                            'Title' => __('Amazon Link Settings', 'amazon-link'), 
@@ -622,6 +631,7 @@ function al_gen_multi (id, term, def, chan) {
                                                            'Title' => __('Manage Amazon Link Extras', 'amazon-link'), 
                                                            'Label' => __('Extras', 'amazon-link'), 
                                                            'Capability' => 'activate_plugins'));
+         return apply_filters( 'amazon_link_admin_menus', $menus, $this);
       }
 
       function getOptions() {
@@ -769,28 +779,36 @@ function alx_'.$slug.'_default_templates ($templates) {
 
          $Opts = $this->getOptions();
          unset($this->Settings);
+
          /*
           * Check for each setting, local overides saved option, otherwise fallback to default.
+          * Items not in the options_list are discarded.
           */
          foreach ($option_list as $key => $details) {
+
+            /* If Local Settings is provided then use that */
             if (isset($args[$key])) {
                if (is_array($args[$key])) {
                   $this->Settings[$key] = array_map("trim", $args[$key]);
                } else {
-                  $this->Settings[$key] = trim(stripslashes($args[$key]),"\x22\x27");              // Local setting
+                  $this->Settings[$key] = trim(stripslashes($args[$key]),"\x22\x27");
                }
+
+            /* If No local setting but global setting is configured then use that. */
             } else if (isset($Opts[$key])) {
-               $this->Settings[$key] = $Opts[$key];   // Global setting
-               if (isset($details['OverrideBlank']) && ($Opts[$key] == '')) {
-                  $this->Settings[$key] = $details['OverrideBlank'];      // Use default if Global Setting is blank
-               }
+               $this->Settings[$key] = $Opts[$key];
+
+            /* Fall-back to the default if configured */
             } else if (isset ($details['Default'])) {
-               $this->Settings[$key] = $details['Default'];      // Use default
-            } else if (isset ($details['OverrideBlank'])) {
-               $this->Settings[$key] = $details['OverrideBlank'];      // Use default
+               $this->Settings[$key] = $details['Default'];
             }
+
          }
 
+         /*
+          * Convert the ASIN setting into a multinational array => array ( [cc1] => array (1, 2, 3), [cc2] => array (4, 5, ...), ...)
+          * Ensuring all cc arrays are the same length.
+          */
          if (!is_array($this->Settings['asin'])) {
             $this->Settings['asin'] = array( $this->Settings['default_cc'] => $this->Settings['asin']);
          }
@@ -820,8 +838,8 @@ function alx_'.$slug.'_default_templates ($templates) {
          }
          $option_list = $this->get_option_list();
          foreach ($option_list as $key => $details) {
-            if ((!isset($this->Settings[$key]) || ($this->Settings[$key] == '')) && isset($details['OverrideBlank'])) {
-               $this->Settings[$key] = $details['OverrideBlank'];      // Use default
+            if (!isset($this->Settings[$key]) && isset($details['Default'])) {
+               $this->Settings[$key] = $details['Default'];
             }
          }
 
@@ -919,7 +937,7 @@ function alx_'.$slug.'_default_templates ($templates) {
       }
 
 /*****************************************************************************************/
-      /// Affiliate Tracking ID Channels
+      /// Affiliate Tracking ID Channels 
 /*****************************************************************************************/
 
       /*
@@ -1056,54 +1074,63 @@ function alx_'.$slug.'_default_templates ($templates) {
       function content_filter($content, $doLinks=TRUE, $in_post=TRUE) {
 
          $new_content='';
+         $this->in_post = $in_post;
 
-         $reg_ex = '\[amazon +((?:[^\[\]]*(?:\[[a-z]*\]){0,1})*)\]';
-         $split_content = preg_split('/'.$reg_ex.'/', $content, NULL, PREG_SPLIT_DELIM_CAPTURE );
+         $regex = apply_filters('amazon_link_regex', '/\[amazon +'. '(?<args>(?:[^\[\]]*(?:\[[a-z]*\]){0,1})*)'. '\]/', $this);
 
          if ($doLinks) {
-            $index = 0;
-            while ($index <= count($split_content)) {
-
-               // Non-matching content - just add to output
-               if (isset($split_content[$index])) $new_content .= $split_content[$index];
-               $index++;
- 
-               $output='';
-               // Matching content - parse arguments
-               if (isset($split_content[$index])) {
-                  $this->parseArgs($split_content[$index]);
-                  if (isset($this->Settings['cat'])) {
-                     $this->Settings['in_post'] = $in_post;
-                     if ($this->Settings['debug']) {
-                        $output .= '<!-- Amazon Link: Version:' . $this->plugin_version . ' - Args: ' . $split_content[$index] . "\n";
-                        $output .= print_r($this->Settings, true) . ' -->';
-                     }
-                     $output .= $this->showRecommendations($this->Settings['cat'], $this->Settings['last']);
-                  } else {
-                     // Generate Amazon Link
-                     $this->tags = array_merge($this->Settings['asin'], $this->tags);
-                     $this->Settings['in_post'] = $in_post;
-                     if ($this->Settings['debug']) {
-                        $output .= '<!-- Amazon Link: Version:' . $this->plugin_version . ' - Args: ' . $split_content[$index] . "\n";
-                        $output .= print_r($this->Settings, true) . ' -->';
-                     }
-                     $output .= $this->make_links($this->Settings['asin'], $this->Settings['text']);
-                  }
-                  $new_content .= $output;
-               }
-               $index++;
-            }
+            $new_content = preg_replace_callback( $regex, array($this,'shortcode_expand'), $content);
          } else {
-
-            $index = 1;
-            while ($index <= count($split_content)) {
-               $this->parseArgs($split_content[$index]);
-               $this->tags = array_merge($this->Settings['asin'], $this->tags);
-               $index += 2;
-            }
+            $new_content = preg_replace_callback( $regex, array($this,'shortcode_extract_asins'), $content);
          }
-
          return $new_content;
+      }
+
+      function shortcode_expand ($split_content) {
+//echo "<PRE>"; print_r($split_content); echo "</pRE>";
+
+         $in_post = $this->in_post;
+
+         $output='';
+         $asin  = empty($split_content['asin']) ? '' : 'asin=' .$split_content['asin']. '&';
+         $text  = empty($split_content['text']) ? '' : 'text=' .$split_content['text']. '&';
+         $args  = $asin.$text.$split_content['args'];
+         $this->parseArgs($args);
+         if (isset($this->Settings['cat'])) {
+            $this->Settings['in_post'] = $in_post;
+            if ($this->Settings['debug']) {
+               $output .= '<!-- Amazon Link: Version:' . $this->plugin_version . ' - Args: ' . $args . "\n";
+               $output .= print_r($this->Settings, true) . ' -->';
+            }
+            $output .= $this->showRecommendations($this->Settings['cat'], $this->Settings['last']);
+         } else {
+            // Generate Amazon Link
+            $this->tags = array_merge($this->Settings['asin'], $this->tags);
+            $this->Settings['in_post'] = $in_post;
+            if ($this->Settings['debug']) {
+               $output .= '<!-- Amazon Link: Version:' . $this->plugin_version . ' - Args: ' . $args . "\n";
+               $output .= print_r($this->Settings, true) . ' -->';
+            }
+            $output .= $this->make_links($this->Settings['asin'], $this->Settings['text']);
+         }
+         return $output;
+      }
+
+      function shortcode_extract_asins ($split_content) {
+         $asin  = empty($split_content['asin']) ? '' : 'asin=' .$split_content['asin']. '&';
+         $title = empty($split_content['title']) ? '' : 'title=' .$split_content['title']. '&';
+         $args  = $asin.$title.$split_content['args'];
+         $this->parseArgs($args);
+         $this->tags = array_merge($this->Settings['asin'], $this->tags);
+         return $split_content[0];
+      }
+
+      function generate_shortcode ($opts) {
+         if (!is_array($opts)) $opts = $_POST;
+
+         $results = array('success' => True, 'shortcode' => '[amazon ]');
+         print json_encode($results);
+         exit();
       }
 
 /*****************************************************************************************/

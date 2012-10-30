@@ -130,6 +130,7 @@
    }
    $optionList['template_live_keywords'] = array( 'Id' => 'AmazonLinkTemplates', 'Type' => 'hidden', 'Value' => implode(',',$live_data ));
    $optionList['template_user_keywords'] = array( 'Id' => 'AmazonLinkTemplates', 'Type' => 'hidden', 'Value' => implode(',',$user_data ));
+   $optionList['shortcode_template'] = array( 'Id' => 'AmazonLinkOpt', 'Type' => 'hidden', 'Value' => htmlspecialchars (apply_filters( 'amazon_link_shortcode_template', '[amazon %ARGS%]', $this)));
 
 /*****************************************************************************************/
 
