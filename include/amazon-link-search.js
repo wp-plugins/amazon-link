@@ -15,8 +15,7 @@ wpAmazonLinkSearcher.prototype = {
     incPage : function(event) {
       var page = jQuery(event).find("#amazon-link-search[name='s_page']");
 	if( !this['sendingAmazonRequest'] ) {
-           jQuery(page).val(parseInt(jQuery(page).val())+1);
-          this.searchAmazon(event);
+          this.searchAmazon(event,parseInt(jQuery(page).val())+1);
         }
     },
 
@@ -24,9 +23,7 @@ wpAmazonLinkSearcher.prototype = {
 	if( !this['sendingAmazonRequest'] ) {
           var page = jQuery(event).find("#amazon-link-search[name='s_page']");
           var p = parseInt(jQuery(page).val())-1;
-          if (p == 0) p =1;
-          jQuery(page).val(p);
-          this.searchAmazon(event);
+          this.searchAmazon(event,p);
         }
     },
 
@@ -86,13 +83,21 @@ wpAmazonLinkSearcher.prototype = {
       }
    },
 
-   searchAmazon : function(event) {
+   searchAmazon : function(event, page) {
         var collection = jQuery(event).find("[id^=amazon-link-search],input[name=asin]");
         var $ths = this;
+        page = (page ? page : 1);
+        jQuery(event).find("#amazon-link-search[name='s_page']").val(page);
 	if( !this['sendingAmazonRequest'] ) {
            this['sendingAmazonRequest'] = true;
            collection.each(function () {
-              $ths['search_options'][this.name] = jQuery(this).val();
+              if (this.type == 'checkbox') {
+                 $ths['search_options'][this.name] = this.checked ? "1" : "0";
+              } else if (this.type == "select-one") {
+                 $ths['search_options'][this.name] = this[this.selectedIndex].value;
+              } else {
+                 $ths['search_options'][this.name] = this.value;
+              }
            });
            $ths['search_options']['action'] = 'amazon-link-search';
            jQuery('#amazon-link-result-list').empty();

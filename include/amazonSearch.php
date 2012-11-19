@@ -98,6 +98,7 @@ if (!class_exists('AmazonLinkSearch')) {
             $Items = $this->alink->cached_query($Opts['asin'], $Settings);
          } else {
             $Settings['found'] = 1;
+            if ($Settings['translate'] && !empty($Opts['s_title_trans'])) $Opts['s_title'] = $Opts['s_title_trans'];
             $Items = $this->do_search($Opts);
          }
 
@@ -329,8 +330,6 @@ if (!class_exists('AmazonLinkSearch')) {
          }
       }
 
-
-
       function parse_template ($item) {
          $countries       = array_keys($this->alink->get_country_data());
          $local_info      = $this->alink->get_local_info($item);
@@ -357,8 +356,10 @@ if (!class_exists('AmazonLinkSearch')) {
          foreach ($this->alink->get_keywords() as $keyword => $key_data) {
             $index=0;
             $output = '';
+            $used=0;
             while (($key_start = stripos($input, '%'.$keyword.'%' , $index)) !== FALSE) {
                $key_end = $key_start + 2 + strlen ($keyword);
+               $used=1;
 
                $country = $local_country;
                $localised = true;
@@ -423,7 +424,7 @@ if (!class_exists('AmazonLinkSearch')) {
                            $local_settings['default_cc'] = $item['default_cc'];
                            $local_settings['localise']   = 0;
                            $item_data = array_shift($this->alink->cached_query($asin, $local_settings));
-echo "<PRE>DATA: "; print_r($item_data); echo "</pRE>";
+//echo "<PRE>DATA: "; print_r($item_data); echo "</pRE>";
                         }
                         if ($item['debug'] && isset($item_data['error'])) {
                            echo "<!-- amazon-link ERROR: "; print_r($item_data); echo "-->";
@@ -454,10 +455,12 @@ echo "<PRE>DATA: "; print_r($item_data); echo "</pRE>";
                 * Don't do full urlencode as it makes the shortcode data unreadable in the post
                 */
                if ($escaped) $phrase = addslashes(htmlspecialchars (str_ireplace(array( '&', "'", "\r", "\n"), array('%26', '&#39;','%0D','%0A'), $phrase),ENT_COMPAT | ENT_HTML401,'UTF-8')); //urlencode
-//               if ($escaped) $phrase = addslashes(htmlspecialchars (preg_replace(array( '!&!', "!'!", '!\r!', '!\n!'), array('%26', '&#39;','%0D','%0A'), $phrase),ENT_COMPAT | ENT_HTML401,'UTF-8')); //urlencode
 
                $output .= substr($input, $index, ($key_start-$index)) . $phrase;
                $index  = $key_end;
+            }
+            if ($used && !empty($data[$default_country]['unused_args'])) {
+               $data[$default_country]['unused_args'] = preg_replace('!(&?)'.$keyword.'=[^&]*(\1?)&?!','\2', $data[$default_country]['unused_args']);
             }
             $input = $output . substr($input, $index);
          }

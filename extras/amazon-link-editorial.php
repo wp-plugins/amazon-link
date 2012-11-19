@@ -2,9 +2,9 @@
 
 /*
 Plugin Name: Amazon Link Extra - Editorial Content
-Plugin URI: http://www.houseindorset.co.uk/plugins/amazon-link/
-Description: This plugin updates the Amazon Link plugin to return 'Editorial Content' (this can be a lot of data and may have a performance impact on your site). 
-Version: 0.1
+Plugin URI: http://www.houseindorset.co.uk/
+Description: Update the Amazon Link plugin to return 'Editorial Content' (this can be a lot of data and may have a performance impact on your site)
+Version: 1.1
 Author: Paul Stuttard
 Author URI: http://www.houseindorset.co.uk
 */
@@ -51,7 +51,7 @@ function alx_merge_items($items, $elements, $preserve_duplicates = False) {
 /*
  * Filter to process the raw editorial content AWS data
  */
-function alx_process_editorial ($editorial, $settings) {
+function alx_process_editorial ($editorial, $keyword_info, $al) {
 
    /* Only process if it is an array, if it isn't then it probably has already been filtered. */
    if (is_array($editorial)) {
@@ -100,7 +100,7 @@ function alx_add_templates ($templates) {
 /*
  * Install the editorial content keyword, data filters and template
  */
-add_filter('amazon_link_editorial', 'alx_process_editorial', 1,2);
+add_filter('amazon_link_editorial', 'alx_process_editorial', 1,3);
 add_filter('amazon_link_keywords', 'alx_add_editorial');
 add_filter('amazon_link_default_templates', 'alx_add_templates');
 ?>

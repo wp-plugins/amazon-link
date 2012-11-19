@@ -52,7 +52,7 @@
    // **********************************************************
    // Install the plugin into the WordPress plugin directory
 
-   if(  ($action == __('Install', 'amazon-link') ) || ( $Action == __('Upgrade','amazon-link'))) {
+   if(  ($action == __('Install', 'amazon-link') ) || ( $action == __('Update','amazon-link'))) {
       $result = copy ($this->extras_dir . $plugin_ID, WP_PLUGIN_DIR .'/'. $plugin_ID);
       if ($result) {
          $update = __('Plugin ' . $avail_plugins[$plugin_ID]['Name']. ' - has been Installed', 'amazon-link');
@@ -132,9 +132,7 @@
 
 
    $plugin_opts = array( 
-         'nonce'       => array ( 'Type' => 'nonce', 'Name' => 'update-AmazonLink-extras' ),
-         'nonce1'       => array ( 'Type' => 'nonce', 'Action' => 'closedpostboxes', 'Name' => 'closedpostboxesnonce', 'Referer' => false),
-         'nonce2'       => array ( 'Type' => 'nonce', 'Action' => 'meta-box-order', 'Name' => 'meta-box-order-nonce', 'Referer' => false),
+         'nonce'       => array ( 'Type' => 'nonce', 'Value' => 'update-AmazonLink-extras' ),
 
          'ID'          => array ( 'Default' => '', 'Type' => 'hidden'),
          'title'       => array ( 'Type' => 'subhead', 'Value' => '', 'Class' => 'al_section', 'Title_Class' => 'al_subhead'),
@@ -192,8 +190,6 @@
 
 
       $this->form->displayForm($plugin_opts, array());
-      unset($plugin_opts['nonce1']);
-      unset($plugin_opts['nonce2']);
    }
 
 

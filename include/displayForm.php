@@ -73,6 +73,7 @@ if (!class_exists('AmazonWishlist_Options')) {
     <dt class="al_label"><label for="<?php echo $optName; ?>"><?php echo $optDetails['Name']; ?></label></dt>
     <dd class="al_opt_details">
       <input style="float:left" <?php echo $readonly . $id. ' '. $script ?> name="<?php echo $optName; ?>" title="<?php echo stripslashes($hint); ?>" type="checkbox" value="<?php echo ($Opts[$optName] >=1)+1 ?>" <?php checked($Opts[$optName] >= 1) ?>/>&nbsp;
+      <?php if (isset($optDetails['Input'])) $this->displayInput($optionList[$Details['Input']], $Details['Input'], $Opts); ?>
       <?php if (isset($optDetails['Buttons'])) displayButtons($optDetails['Buttons']); ?>
       <?php if (isset($optDetails['Description'])) echo '<div class="al_description">'.$optDetails['Description'].'</div>'; ?>
     </dd>
@@ -121,14 +122,15 @@ if (!class_exists('AmazonWishlist_Options')) {
                   $id = isset($optDetails['Id']) ? ' id="'.$optDetails['Id'].'" ' : '';
                   $class  = isset($optDetails['Class']) ? 'class="'.$optDetails['Class'].' al_opt_container"' : 'class="al_opt_container"';
                   $rows = isset($optDetails['Rows']) ? ' rows="'.$optDetails['Rows'].'" ' : '';
+                  $input_class  = 'class="'. (isset($optDetails['Input_Class']) ? $optDetails['Input_Class'].'" ' : 'al_fixed_width_wide" ');
                   $readonly = isset($optDetails['Read_Only']) ? 'readonly ' : '';
                   $readonly .= isset($optDetails['Disabled']) ? 'disabled ' : '';
 ?>
    <dl <?php echo $class ?>>
-    <dt class="al_label"><label for="<?php echo $optName; ?>"><?php echo $optName; ?></label></dt>
+    <dt class="al_label"><label for="<?php echo $optName; ?>"><?php echo $optDetails['Name']; ?></label></dt>
     <dd class="al_opt_details">
      <div class="al_input">
-      <textarea <?php echo $readonly . $id . $rows ?> style="width:400px;" name="<?php echo $optName; ?>" class='postform'><?php echo $Opts[$optName]; ?></textarea>
+      <textarea <?php echo $input_class . $readonly . $id . $rows ?> name="<?php echo $optName; ?>" class='postform'><?php echo $Opts[$optName]; ?></textarea>
      </div>
      <?php if (isset($optDetails['Buttons'])) $this->displayButtons($optDetails['Buttons']); ?>
      <?php if (isset($optDetails['Description'])) echo '<div class="al_description">'.$optDetails['Description'].'</div>'; ?>
@@ -208,6 +210,7 @@ if (!class_exists('AmazonWishlist_Options')) {
                   $hint = isset($optDetails['Hint']) ? $optDetails['Hint'] : '';
                   $id = isset($optDetails['Id']) ? 'id="'.$optDetails['Id'].'"' : '';
                   $class  = isset($optDetails['Class']) ? 'class="'.$optDetails['Class'].' al_opt_container"' : 'class="al_opt_container"';
+                  $input_class  = 'class="'. (isset($optDetails['Input_Class']) ? $optDetails['Input_Class'].'" ' : 'al_fixed_width" ');
                   $readonly = isset($optDetails['Read_Only']) ? 'readonly ' : '';
                   $readonly .= isset($optDetails['Disabled']) ? 'disabled ' : '';
                   if ($NoTable) {
@@ -216,8 +219,9 @@ if (!class_exists('AmazonWishlist_Options')) {
     <dt class="al_label"><span><label for="<?php  echo $optName; ?>"> <?php echo $optDetails['Name']; ?></label></span></dt>
     <dd class="al_opt_details">
      <div class="al_input">
-      <input style="width:200px" <?php echo $readonly . $id ?> name="<?php echo $optName; ?>" title="<?php echo stripslashes($hint); ?>" type="text" value="<?php echo $Opts[$optName]; ?>" size="<?php echo $size ?>" />
+      <input <?php echo $input_class . $readonly . $id ?> name="<?php echo $optName; ?>" title="<?php echo stripslashes($hint); ?>" type="text" value="<?php echo $Opts[$optName]; ?>" size="<?php echo $size ?>" />
      </div>
+     <?php if (isset($optDetails['Options'])) $this->displayForm($optDetails['Options'], $Opts, False, True, False); ?>
      <?php if (isset($optDetails['Buttons'])) $this->displayButtons($optDetails['Buttons']); ?>
      <?php if (isset($optDetails['Description'])) echo '<div class="al_description">'.$optDetails['Description'].'</div>'; ?>
     </dd>
@@ -242,9 +246,9 @@ if (!class_exists('AmazonWishlist_Options')) {
 
                   if (isset($optDetails['Action'])) {
                      $action = $optDetails['Action'];
-                     $name = $optDetails['Name'];
+                     $name = $optDetails['Value'];
                   }  else {
-                     $action = $optDetails['Name'];
+                     $action = $optDetails['Value'];
                      $name = '_wpnonce';
                   }
                   $referer = isset($optDetails['Referer']) ? $optDetails['Referer'] : true;
@@ -362,10 +366,16 @@ if (!class_exists('AmazonWishlist_Options')) {
 
       function displayInput ($optDetails, $optName, $Opts) {
          $size = isset($optDetails['Size']) ? $optDetails['Size'] : '20';
+         $hint = isset($optDetails['Hint']) ? $optDetails['Hint'] : '';
+         $id = isset($optDetails['Id']) ? 'id="'.$optDetails['Id'].'"' : '';
+         $class  = isset($optDetails['Class']) ? 'class="'.$optDetails['Class'].' al_opt_container"' : 'class="al_opt_container"';
+         $readonly = isset($optDetails['Read_Only']) ? 'readonly ' : '';
+         $readonly .= isset($optDetails['Disabled']) ? 'disabled ' : '';
 ?>
-     <input name="<?php echo $optName; ?>" type="text" value="<?php echo $Opts[$optName]; ?>" size="<?php echo $size ?>" />
+     <input style="width:200px" <?php echo $readonly . $id ?> name="<?php echo $optName; ?>" title="<?php echo stripslashes($hint); ?>" type="text" value="<?php echo $Opts[$optName]; ?>" size="<?php echo $size ?>" />
+
      <?php if (isset($optDetails['Buttons'])) $this->displayButtons($optDetails['Buttons']); ?>
-     <?php echo $optDetails['Description']; ?>
+     <?php if (isset($optDetails['Description'])) echo '<div class="al_description">'.$optDetails['Description'].'</div>'; ?>
 <?php
       }
 

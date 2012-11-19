@@ -9,6 +9,7 @@
 /*****************************************************************************************/
 
    $Settings = $this->getOptions();
+   if (isset($args['Options'])) $Settings = array_merge($Settings, $args['Options']);
 
    $results_html = __('Results: ', 'amazon-link'). 
                   '<img style="float:right" alt="" title="" id="amazon-link-status" class="ajax-feedback " src="images/wpspin_light.gif" />'.
@@ -29,7 +30,8 @@
    $search_indexes = $aws_api_info['SearchIndexByLocale'][$Settings['default_cc']];
 
    /* This is the template used for generating each line of the search results */
-   $results_template = htmlspecialchars ('
+   
+   $results_template = isset($args['results_template']) ? $args['results_template'] : htmlspecialchars ('
 <div class="al_found%FOUND%">
  <div class="amazon_prod">
   <div class="amazon_img_container">%LINK_OPEN%<img src="%THUMB%" class="%IMAGE_CLASS%">%LINK_CLOSE%</div>
@@ -48,6 +50,8 @@
       </div>
    
      <p>'. __('by %ARTIST% [%MANUFACTURER%]', 'amazon-link') .'<br />
+     '. __('Type: %PRODUCT%', 'amazon-link') .'<br />
+     '. __('Binding: %BINDING%', 'amazon-link') .'<br />
      '. __('Rank/Rating: %RANK%/%RATING%', 'amazon-link').'<br />
      <b>' .__('Price', 'amazon-link').': <span style="color:red;">%PRICE%</span></b>
     </p>
@@ -132,11 +136,13 @@
    $optionList['template_user_keywords'] = array( 'Id' => 'AmazonLinkTemplates', 'Type' => 'hidden', 'Value' => implode(',',$user_data ));
    $optionList['shortcode_template'] = array( 'Id' => 'AmazonLinkOpt', 'Type' => 'hidden', 'Value' => htmlspecialchars (apply_filters( 'amazon_link_shortcode_template', '[amazon %ARGS%]', $this)));
 
+   $optionList = apply_filters('amazon_link_search_form', $optionList, $this);
+
 /*****************************************************************************************/
 
    // **********************************************************
    // Now display the options editing screen
-   $Settings['asin'] = (isset($Settings['asin']) && is_array($Settings['asin'])) ? implode(',', $Settings['asin']): '';
+   $Settings['asin'] = (isset($Settings['asin']) && is_array($Settings['asin'])) ? implode(',', $Settings['asin']): $Settings['asin'];
    $this->form->displayForm($optionList, $Settings, True, True);
 
 ?>

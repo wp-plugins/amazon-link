@@ -17,7 +17,7 @@ if (!class_exists('bing_translate')) {
          $this->URLRoot = plugins_url("", __FILE__);
          $this->base_name  = plugin_basename( __FILE__ );
          $this->plugin_dir = dirname( $this->base_name );
-         $this->translate_url = "http://api.microsofttranslator.com/v2/Http.svc/Translate";
+         $this->translate_url = "https://api.datamarket.azure.com/Data.ashx/Bing/MicrosoftTranslator/v1/Translate";
       }
 
       /*
@@ -27,20 +27,22 @@ if (!class_exists('bing_translate')) {
 
 //         $script = plugins_url("amazon-link-search.js", __FILE__);
 //         wp_register_script('amazon-link-search', $script, array('jquery'), '1.0.0');
-//         add_action('wp_ajax_amazon-link-search', array($this, 'performSearch'));      // Handle ajax search requests
+         add_action('wp_ajax_amazon-link-translate', array($this, 'do_translate'));      // Handle ajax translate requests
 
            $this->alink    = $parent;
+           add_filter('translate', array($this, 'translate'), 10, 3);
       }
 /*****************************************************************************************/
       /// AJAX Call Handlers
 /*****************************************************************************************/
 
       function do_translate() {
-         $Opts = $_POST;
-
-         print json_encode($this->parse_results($Items, $Settings));
+         $opts = $_POST;
+         $translation = $this->translate($opts['Text'], $opts['From'], $opts['To']);
+         print json_encode($translation);
          exit();
       }
+
 /*****************************************************************************************/
       /// API Functions
 /*****************************************************************************************/
@@ -50,26 +52,30 @@ if (!class_exists('bing_translate')) {
       }
 
       function translate ($text, $from, $to) {
-         $parameters['appId'] = $this->id;
-         $parameters['from'] = $from;
-         $parameters['to'] = $to;
-         $parameters['text'] = $text;
+         $parameters['From'] = "'".$from."'";
+         $parameters['To'] = "'".$to."'";
+         $parameters['Text'] = "'".$text."'";
+         $parameters['$format']= 'Raw';
          $url = $this->generate_url($this->translate_url, $parameters);
+         $headers = array( 'Authorization' => 'Basic ' . base64_encode($this->id. ':' . $this->id));
+         $result = wp_remote_get( $url, array( 'headers'=> $headers));
 
-         if( !class_exists( 'WP_Http' ) )
-            include_once( ABSPATH . WPINC. '/class-http.php' );
-         $request = new WP_Http;
-         $result = $request->request( $url );
          if ($result instanceof WP_Error )
             return new WP_Error('access_error',__('Could not access Bing API: '.$url,'amazon-link'));
 
          // Save file to media library
-         $content = $result['body'];
+         $content = preg_replace('!<.*>(.*)<.*>!', '\1',$result['body']);
+//         echo "<PRE>"; print_r($content); echo" </PRE>";
          return $content;
       }
 
+      function debug_resp ( $response, $args, $url )
+      {
+         echo "<PRE>DEBUG:$url :::"; print_r($args); echo "</PRE>";
+         return $reponse;
+      }
 
-
+      // Text=%27hello%27&To=%27fr%27&From=%27en%27&$top=100
       function generate_url($root, $parameters) {
          $args = array();
          foreach ( $parameters as $arg => $data) {

@@ -4,7 +4,7 @@
 Plugin Name: Amazon Link
 Plugin URI: http://www.houseindorset.co.uk/plugins/amazon-link
 Description: A plugin that provides a facility to insert Amazon product links directly into your site's Pages, Posts, Widgets and Templates.
-Version: 3.0.4
+Version: 3.1.0-rc1
 Text Domain: amazon-link
 Author: Paul Stuttard
 Author URI: http://www.houseindorset.co.uk
@@ -97,9 +97,8 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
       /// Settings:
 /*****************************************************************************************/
       // String to insert into Posts to indicate where to insert the amazon items
-      var $tag_head      = '<a class="amazon-link" args="';
-      var $tag_tail      = '</a>';
       var $cache_table   = 'amazon_link_cache';
+      var $refs_table    = 'amazon_link_refs';
       var $option_version= 6;
       var $plugin_version= '3.0.4';
       var $optionName    = 'AmazonLinkOptions';
@@ -127,23 +126,14 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          $this->base_name  = plugin_basename( __FILE__ );
          $this->plugin_dir = dirname( $this->base_name );
          $this->extras_dir = WP_PLUGIN_DIR . '/'. $this->plugin_dir. '/extras/';
-         $this->form = new AmazonWishlist_Options;
          $this->ip2n = new AmazonWishlist_ip2nation;
-         $this->search = new AmazonLinkSearch;
-
-         $this->regex = preg_quote($this->tag_head,'/');
-         // At least one space 
-         // 0 or more characters excluding '[' and ']' - not captured as \x
-         // Optionally followed by '[' alpha string ']' - not captured as \y
-         $this->regex .= '.*?'; //+((?:[^\[\]]*(?:\[[a-z]*\]){0,1})*)
-         $this->regex .= preg_quote($this->tag_tail,'/');
 
          // Frontend & Backend Related
          register_activation_hook(__FILE__, array($this, 'install'));                // To perform options installation
          register_uninstall_hook(__FILE__, array($this, 'uninstall'));               // To perform options removal
          add_action('init', array($this, 'init'));                                   // Load i18n and initialise translatable vars
          add_filter('the_content', array($this, 'content_filter'),15);               // Process the content
-         add_filter('widget_text', array($this, 'widget_filter'), 16 );              // Filter widget text (after the content?)
+         add_filter('widget_text', array($this, 'widget_filter'), 16);               // Filter widget text (after the content?)
 
          // Backend only 
          add_action('admin_menu', array($this, 'admin_menu'));                       // Add options page and page/post edit hooks
@@ -159,6 +149,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          $this->saveOptions($opts);
       }
 
+      // On removal of plugin - used to delete all related database entries
       function uninstall() {
          $opts = $this->getOptions();
          if ($opts['full_uninstall']) {
@@ -166,9 +157,6 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
             $this->ip2nation->uninstall();
             $this->delete_options();
          }
-      }
-      function upgrade_settings($Opts) {
-         include('include/upgradeSettings.php');
       }
 
       // On wordpress initialisation - load text domain and register styles & scripts
@@ -178,14 +166,17 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          load_plugin_textdomain('amazon-link', $this->plugin_dir . '/i18n', $this->plugin_dir . '/i18n');
 
          // Initialise dependent classes
-         $this->search->init($this);
-         $this->form->init($this);
-         $this->ip2n->init($this);
+         $this->form = new AmazonWishlist_Options;
+         $this->form->init($this);                     // Need to register form styles
+         $this->search = new AmazonLinkSearch;
+         $this->search->init($this);                   // Need to register scripts & ajax callbacks
+         $this->ip2n->init($this);                     // ip2nation needed on Frontend
 
          // Register our styles and scripts
          $script = plugins_url("amazon.js", __FILE__);
          $edit_script = plugins_url("postedit.js", __FILE__);
          $admin_script = plugins_url("include/amazon-admin.js", __FILE__);
+         $multi_script = plugins_url("include/amazon-multi.js", __FILE__);
          // Allow the user to override our default styles. 
          if (file_exists(dirname (__FILE__).'/user_styles.css')) {
             $stylesheet = plugins_url("user_styles.css", __FILE__); 
@@ -195,6 +186,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
 
          wp_register_style ('amazon-link-style', $stylesheet, false, $this->plugin_version);
          wp_register_script('amazon-link-script', $script, false, $this->plugin_version);
+         wp_register_script('amazon-link-multi-script', $multi_script, false, $this->plugin_version);
          wp_register_script('amazon-link-edit-script', $edit_script, array('jquery', 'amazon-link-search'), $this->plugin_version);
          wp_register_script('amazon-link-admin-script', $admin_script, false, $this->plugin_version);
 
@@ -203,6 +195,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
 
          // Add default url generator - low priority
          add_filter('amazon_link_url', array($this, 'get_url'), 20, 6);
+         add_filter('amazon_link_format_list', array($this, 'format_list'), 10, 2);
 
          // Call any user hooks - passing the current plugin Settings and the Amazon Link Instance.
          do_action('amazon_link_init', $this->getSettings(), $this);
@@ -222,6 +215,15 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
             add_action('load-'.$ID, array(&$this, 'load_settings_page'));
             add_action( 'admin_print_styles-' . $ID, array($this,'amazon_admin_styles') );
             add_action( 'admin_print_scripts-' . $ID, array($this,'amazon_admin_scripts') );
+
+            if (isset($menu['Scripts'])) {
+               foreach ($menu['Scripts'] as $script)
+                  add_action( 'admin_print_scripts-' . $ID, $script );
+
+            }
+            if (isset($menu['Styles'])) {
+               add_action( 'admin_print_styles-' . $ID, $menu['Styles'] );
+            }
          }
 
          // Add support for Post edit metabox, this requires our styles and post edit AJAX scripts.
@@ -229,7 +231,6 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          foreach ( $post_types as $post_type ) {
             add_meta_box('amazonLinkID', 'Add Amazon Link', array($this,'insertForm'), $post_type, 'normal');
          }
-         add_action( 'admin_head-post', array(&$this, 'load_edit_page'));
 
          add_action( "admin_print_scripts-post.php", array($this,'edit_scripts') );
          add_action( "admin_print_scripts-post-new.php", array($this,'edit_scripts') );
@@ -241,19 +242,6 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          add_action('edit_user_profile', array($this, 'show_user_options') );        // Display User Options
          add_action('personal_options_update', array($this, 'update_user_options')); // Update User Options
          add_action('edit_user_profile_update', array($this, 'update_user_options'));// Update User Options
-
-      }
-
-      function load_edit_page() {
-
-         $screen = get_current_screen();
-echo "<PRE>"; print_r($screen); echo "</PRE>";
-         $screen->add_help_tab( array( 'id'      => 'amazon-options-tab',
-                                       'title'   => __('Options', 'amazon-link'),
-                                       'content' => '<p>' . __('Use this section to set up the global <b>Display Options</b> that change how links are displayed and their behaviour, to enable advance options like \'<code>live data</code>\', the Product search tool or \'<code>Wishlist</code>\' facility you must also configure your AWS keys in the <b>Amazon Associate Information</b> sub section.','amazon-link') . '</p>' .
-                                                    '<p>' . __('Within this section you can also set up the Amazon Product Data Cache, select Enable to install the cache, Disable to remove it, and Flush to empty any cached data.','amazon-link') . '</p>' .
-                                                    '<p>' . __('The status of the ip2nation database is displayed at the bottom of this section, with options to Install the database if it is not already installed or a new version is available on the ip2nation website.','amazon-link') . '</p>')
-                               );
 
       }
 
@@ -273,23 +261,19 @@ echo "<PRE>"; print_r($screen); echo "</PRE>";
          wp_enqueue_script('wp-lists');
          wp_enqueue_script('postbox');
 
-         if ($slug == 'amazon-link-settings') {
-            add_meta_box( 'alOptions', __( 'Options', 'amazon-link' ), array (&$this, 'show_options' ), $this->opts_page, 'normal', 'core' );
-         } else if ($slug == 'amazon-link-channels') {
-            add_meta_box( 'alChannels', __( 'Amazon Tracking ID Channels', 'amazon-link' ), array (&$this, 'show_channels' ), $this->opts_page, 'normal', 'core' );
-         } else if ($slug == 'amazon-link-templates') {
-            add_meta_box( 'alTemplateHelp', __( 'Template Help', 'amazon-link' ), array (&$this, 'displayTemplateHelp' ), $this->opts_page, 'side', 'low' );
-            add_meta_box( 'alTemplates', __( 'Templates', 'amazon-link' ), array (&$this, 'show_templates' ), $this->opts_page, 'normal', 'core' );
-            add_meta_box( 'alManageTemplates', __( 'Default Templates', 'amazon-link' ), array (&$this, 'show_default_templates' ), $this->opts_page, 'normal', 'low' );
-         } else if ($slug == 'amazon-link-extras') {
-            add_meta_box( 'alExtras', __( 'Extras', 'amazon-link' ), array (&$this, 'show_extras' ), $this->extras_page, 'normal', 'core' );
+         if (isset($page['Metaboxes'])) {
+            foreach($page['Metaboxes'] as $id => $data) {
+               add_meta_box( $id, $data['Title'], $data['Callback'], $screen->id, $data['Context'], $data['Priority'], $this);
+            }
          }
 
-         add_meta_box( 'alInfo', __( 'About', 'amazon-link' ), array (&$this, 'show_info' ), $this->opts_page, 'side', 'core' );
+         add_meta_box( 'alInfo', __( 'About', 'amazon-link' ), array (&$this, 'show_info' ), $screen->id, 'side', 'core' );
 
          // Add Contextual Help
-         $tabs = include( $page['Help']);
-         foreach ($tabs as $tab) $screen->add_help_tab( $tab );
+         if (isset($page['Help'])) {
+            $tabs = include( $page['Help']);
+            foreach ($tabs as $tab) $screen->add_help_tab( $tab );
+         }
 
          $screen->set_help_sidebar('<p><b>'. __('For more information:', 'amazon-link'). '</b></p>' .
                                    '<p><a target="_blank" href="'. $this->plugin_home . '">' . __('Plugin Home Page','amazon-link') . '</a></p>' .
@@ -321,56 +305,22 @@ echo "<PRE>"; print_r($screen); echo "</PRE>";
 
       function edit_scripts() {
          wp_enqueue_script('amazon-link-edit-script');
+         wp_localize_script('amazon-link-edit-script', 'AmazonLinkData', $this->get_country_data());
       }
 
-      function generate_multi_script() {
+      function footer_scripts() {
+         $settings     = $this->getSettings();
 
          wp_print_scripts('amazon-link-script');
-
-         $Settings     = $this->getSettings();
-         $country_data = $this->get_country_data();
-         $channels     = $this->get_channels(True, True);
-
-         $TARGET = $Settings['new_window'] ? 'target="_blank"' : '';
-         ?>
-<span id="al_popup" onmouseover="al_div_in()" onmouseout="al_div_out()"></span>
-<script type='text/javascript'> 
-function al_gen_multi (id, term, def, chan) {
-   var country_data = new Array();
-<?php
-         foreach ($country_data as $cc => $data) {
-            echo "   country_data['". $cc ."'] = { 'flag' : '" . $data['flag'] . "', ";
-            foreach ($channels as $id => $chan_data) {
-               echo " 'tag_" .$id . "' : '". $chan_data['tag_' .$cc]. "', ";
-            }
-            echo "'tld' : '" . $data['tld'] . "'};\n";
-         }
-?>
-   var content = "";
-
-   for (var cc in country_data) {
-      var type = term[cc].substr(0,1);
-      var arg  = term[cc].substr(2);
-      if (cc != def) {
-         if ( type == 'A' ) {
-            var url = 'http://www.amazon.' + country_data[cc].tld + '/gp/product/' + arg+ '?ie=UTF8&linkCode=as2&camp=1634&creative=6738&tag=' + country_data[cc]['tag_'+chan] + '&creativeASIN='+ arg;
-         } else if( type == 'S') {
-            var url = 'http://www.amazon.' + country_data[cc].tld + '/mn/search/?_encoding=UTF8&linkCode=ur2&camp=1634&creative=19450&tag=' + country_data[cc]['tag_'+chan] + '&field-keywords=' + arg;
-         } else {
-            var url = 'http://www.amazon.' + country_data[cc].tld + '/review/' + arg+ '?ie=UTF8&linkCode=ur2&camp=1634&creative=6738&tag=' + country_data[cc]['tag_'+chan];
-         }
-         content = content +'<a <?php echo $TARGET; ?> href="' + url + '"><img src="' + country_data[cc].flag + '"></a>';
+         echo '<span id="al_popup" onmouseover="al_div_in()" onmouseout="al_div_out()"></span>';
+         wp_localize_script('amazon-link-multi-script', 
+                            AmazonLinkMulti,
+                            array('country_data' => $this->get_country_data(), 'channels' => $this->get_channels(True, True), 'target' => ($settings['new_window'] ? 'target="_blank"' : ''))
+                           );
+         wp_print_scripts('amazon-link-multi-script');
+         remove_action('wp_print_footer_scripts', array($this, 'footer_scripts'));
       }
-   }
-   al_link_in (id, content);
-}
-</script> 
 
-
-<?php
-      remove_action('wp_print_footer_scripts', array($this, 'generate_multi_script'));
-
-      }
 
       function register_plugin_links($links, $file) {
          if ($file == $this->base_name) {
@@ -400,9 +350,12 @@ function al_gen_multi (id, term, def, chan) {
              'asins'        => array( 'Description' => __('Comma seperated list of ASINs', 'amazon-link'), 'Default' => '0'),
              'product'      => array( 'Description' => __('Item\'s Product Group', 'amazon-link'), 'Live' => '1', 'Group' => 'ItemAttributes', 'Default' => '-',
                                       'Position' => array(array('ItemAttributes','ProductGroup'))),
+             'binding'      => array( 'Description' => __('Item\'s Format (Paperbook, MP3 download, etc.)', 'amazon-link'), 'Live' => '1', 'Group' => 'ItemAttributes',
+                                      'Position' => array(array('ItemAttributes','Binding'))),
+             'features'     => array( 'Description' => __('Item\'s Features', 'amazon-link'), 'Live' => '1', 'Group' => 'ItemAttributes', 'Filter' => 'amazon_link_format_list',
+                                      'Position' => array(array('ItemAttributes','Feature'))),
              'title'        => array( 'Description' => __('Item\'s Title', 'amazon-link'), 'Live' => '1', 'Group' => 'ItemAttributes',
                                       'Position' => array(array('ItemAttributes','Title'))),
-
              'artist'       => array( 'Description' => __('Item\'s Author, Artist or Creator', 'amazon-link'), 'Live' => '1', 'Group' => 'ItemAttributes', 'Default' => '-',
                                       'Position' => array(array('ItemAttributes','Artist'),
                                                           array('ItemAttributes','Author'),
@@ -458,17 +411,6 @@ function al_gen_multi (id, term, def, chan) {
          return $this->keywords;
       }
 
-      function get_response_groups() {
-         if (!isset($this->response_groups)) {
-            $this->response_groups = array();
-            foreach ($this->get_keywords() as $key => $key_data) {
-               if (isset($key_data['Group']) && !in_array($key_data['Group'],$this->response_groups)) $this->response_groups[] = $key_data['Group'];
-            }
-            $this->response_groups=implode(',',$this->response_groups);
-         }
-         return $this->response_groups;
-      }
-
       function get_country_data() {
 
          if (!isset($this->country_data)) {
@@ -511,7 +453,7 @@ function al_gen_multi (id, term, def, chan) {
 
             /* Hidden Options - not saved in Settings */
 
-            'nonce' => array ( 'Type' => 'nonce', 'Name' => 'update-AmazonLink-options' ),
+            'nonce' => array ( 'Type' => 'nonce', 'Value' => 'update-AmazonLink-options' ),
             'cat' => array ( 'Type' => 'hidden' ),
             'last' => array ( 'Type' => 'hidden' ),
             'template' => array(  'Type' => 'hidden' ),
@@ -606,32 +548,71 @@ function al_gen_multi (id, term, def, chan) {
       }
 
       function get_menus() {
-         $menus = array('amazon-link-settings'   => array( 'Slug' => 'amazon-link-settings' , 
+         $menus = array('amazon-link-settings'   => array( 'Slug' => 'amazon-link-settings', 
                                                            'Help' => 'help/settings.php',
                                                            'Description' => __('Use this page to update the main Amazon Link settings to control the basic behaviour of the plugin, the appearance of the links and control the additional features such as localisation and the data cache. Use the Contextual Help tab above for more information about the settings.','amazon-link'),
                                                            'Title' => __('Amazon Link Settings', 'amazon-link'), 
                                                            'Label' =>__('Settings', 'amazon-link'), 
-                                                           'Capability' => 'manage_options'),
+                                                           'Capability' => 'manage_options',
+                                                           'Metaboxes' => array( 'alOptions' => array( 'Title' => __( 'Options', 'amazon-link' ),
+                                                                                                       'Callback' => array (&$this, 'show_options' ), 
+                                                                                                       'Context' => 'normal', 
+                                                                                                       'Priority' => 'core'))
+                                                           ),
                         'amazon-link-channels'   => array( 'Slug' => 'amazon-link-channels', 
                                                            'Help' => 'help/channels.php',
                                                            'Description' => __('If you have joined the Amazon Affiliate Program then on this page you can enter your Amazon Associate Tracking Identities. If you have more than one Tracking ID on each locale then you can create extra Channels to manage them.','amazon-link'),
                                                            'Title' => __('Manage Amazon Associate IDs', 'amazon-link'), 
                                                            'Label' =>__('Associate IDs', 'amazon-link'), 
-                                                           'Capability' => 'manage_options'),
+                                                           'Capability' => 'manage_options',
+                                                           'Metaboxes' => array( 'alChannels' => array( 'Title' => __( 'Amazon Tracking ID Channels', 'amazon-link' ),
+                                                                                                        'Callback' => array (&$this, 'show_channels' ), 
+                                                                                                        'Context' => 'normal', 
+                                                                                                        'Priority' => 'core'))
+                                                           ),
                         'amazon-link-templates'  => array( 'Slug' => 'amazon-link-templates',
                                                            'Help' => 'help/templates.php',
                                                            'Description' => __('Use this page to manage your templates - pre-designed html and javascript code that can be used to quickly create consistant page content. Use the editor to modify existing templates, make copies, delete or add new ones of your own design.','amazon-link'),
                                                            'Title' => __('Manage Amazon Link Templates', 'amazon-link'), 
                                                            'Label' =>__('Templates', 'amazon-link'),
-                                                           'Capability' => 'manage_options'),
+                                                           'Capability' => 'manage_options',
+                                                           'Metaboxes' => array( 'alTemplateHelp' => array( 'Title' => __( 'Template Help', 'amazon-link' ),
+                                                                                                       'Callback' => array (&$this, 'show_template_help' ), 
+                                                                                                       'Context' => 'side', 
+                                                                                                       'Priority' => 'low'),
+                                                                                 'alTemplates' => array( 'Title' => __( 'Templates', 'amazon-link' ),
+                                                                                                       'Callback' => array (&$this, 'show_templates' ), 
+                                                                                                       'Context' => 'normal', 
+                                                                                                       'Priority' => 'core'),
+                                                                                 'alManageTemplates' => array( 'Title' => __( 'Default Templates', 'amazon-link' ),
+                                                                                                       'Callback' => array (&$this, 'show_default_templates' ), 
+                                                                                                       'Context' => 'normal', 
+                                                                                                       'Priority' => 'low'))
+                                                           ),
                         'amazon-link-extras'     => array( 'Slug' => 'amazon-link-extras',
                                                            'Help' => 'help/extras.php',
                                                            'Icon' => 'plugins',
                                                            'Description' => __('On this page you can manage user provided or requested extra functionality for the Amazon Link plugin. These items are not part of the main Amazon Link plugin as they provide features that not every user wants and may have a negative impact on your site (e.g. reduced performance, extra database usage, etc.).', 'amazon-link'),
                                                            'Title' => __('Manage Amazon Link Extras', 'amazon-link'), 
                                                            'Label' => __('Extras', 'amazon-link'), 
-                                                           'Capability' => 'activate_plugins'));
+                                                           'Capability' => 'activate_plugins',
+                                                           'Metaboxes' => array( 'alExtras' => array( 'Title' => __( 'Extras', 'amazon-link' ),
+                                                                                                       'Callback' => array (&$this, 'show_extras' ), 
+                                                                                                       'Context' => 'normal', 
+                                                                                                       'Priority' => 'core'))
+                                                           ));
          return apply_filters( 'amazon_link_admin_menus', $menus, $this);
+      }
+
+      function get_response_groups() {
+         if (!isset($this->response_groups)) {
+            $this->response_groups = array();
+            foreach ($this->get_keywords() as $key => $key_data) {
+               if (isset($key_data['Group']) && !in_array($key_data['Group'],$this->response_groups)) $this->response_groups[] = $key_data['Group'];
+            }
+            $this->response_groups=implode(',',$this->response_groups);
+         }
+         return $this->response_groups;
       }
 
       function getOptions() {
@@ -776,6 +757,7 @@ function alx_'.$slug.'_default_templates ($templates) {
          $arg_str = html_entity_decode($arguments, ENT_QUOTES, 'UTF-8'); // ensure '&#8217; => '’' characters are decoded
 
          parse_str($arg_str, $args);
+         $args = apply_filters('amazon_link_process_args', $args, $this);
 
          $Opts = $this->getOptions();
          unset($this->Settings);
@@ -825,6 +807,7 @@ function alx_'.$slug.'_default_templates ($templates) {
             foreach ($temp_asins as $cc => $cc_asins)
                $this->Settings['asin'][$index][$cc] = (isset ($cc_asins[$index]) ? $cc_asins[$index] : NULL);
          }
+         return $this->Settings;
       }
 
       /*
@@ -881,6 +864,10 @@ function alx_'.$slug.'_default_templates ($templates) {
          return $result;
       }
 
+      function upgrade_settings($Opts) {
+         include('include/upgradeSettings.php');
+      }
+
 /*****************************************************************************************/
 
       function cache_install() {
@@ -934,6 +921,34 @@ function alx_'.$slug.'_default_templates ($templates) {
          $cache_table = $wpdb->prefix . $this->cache_table;
          $sql = "DELETE FROM $cache_table WHERE updated < DATE_SUB(NOW(),INTERVAL " . $settings['cache_age']. " HOUR);";
          $wpdb->query($sql);
+      }
+
+      function cache_update_item($asin, $cc, $data) {
+         global $wpdb;
+         $settings = $this->getOptions();
+         $cache_table = $wpdb->prefix . $this->cache_table;
+         if ($settings['cache_enabled']) {
+            $sql = "DELETE FROM $cache_table WHERE asin LIKE '$asin' AND cc LIKE '$cc'";
+            $wpdb->query($sql);
+            $sql_data = array( 'asin' => $asin, 'cc' => $cc, 'xml' => serialize($data), updated => current_time('mysql'));
+            $wpdb->insert($cache_table, $sql_data);
+         }
+      }
+
+      function cache_lookup_item($asin, $cc) {
+         global $wpdb;
+         $settings = $this->getOptions();
+         $cache_table = $wpdb->prefix . $this->cache_table;
+
+         if ($settings['cache_enabled']) {
+            // Check if asin is already in the cache
+            $sql = "SELECT xml FROM $cache_table WHERE asin LIKE '$asin' AND cc LIKE '$cc' AND  updated >= DATE_SUB(NOW(),INTERVAL " . $settings['cache_age']. " HOUR)";
+            $result = $wpdb->get_row($sql, ARRAY_A);
+            if ($result !== NULL) {
+               return unserialize($result['xml']);
+            }
+         }
+         return NULL;
       }
 
 /*****************************************************************************************/
@@ -1060,9 +1075,18 @@ function alx_'.$slug.'_default_templates ($templates) {
          return $settings['default_cc'];
       }
 
-      function widget_filter($content) {
-         return $this->content_filter($content, TRUE, FALSE);
+      function get_local_info($settings = NULL) {
+
+         if ($settings === NULL)
+            $settings = $this->getSettings();
+
+         $channel      = $this->get_channel($settings);
+         $top_cc       = $this->get_country($settings);
+         $country_data = $this->get_country_data();
+         $info         = array( 'flag' => $country_data[$top_cc]['flag'], 'cc' => $top_cc, 'rcm' => $country_data[$top_cc]['rcm'], 'mplace_id' => $country_data[$top_cc]['m_id'], 'mplace' => $country_data[$top_cc]['market'], 'tld' => $country_data[$top_cc]['tld'], 'tag' => $channel['tag_' . $top_cc], 'channel' => $channel['ID']);
+         return $info;
       }
+
 /*****************************************************************************************/
       /// Searches through the_content for our 'Tag' and replaces it with the lists or links
       /*
@@ -1086,15 +1110,29 @@ function alx_'.$slug.'_default_templates ($templates) {
          return $new_content;
       }
 
+      function widget_filter($content) {
+         return $this->content_filter($content, TRUE, FALSE);
+      }
+
       function shortcode_expand ($split_content) {
-//echo "<PRE>"; print_r($split_content); echo "</pRE>";
 
          $in_post = $this->in_post;
 
          $output='';
-         $asin  = empty($split_content['asin']) ? '' : 'asin=' .$split_content['asin']. '&';
-         $text  = empty($split_content['text']) ? '' : 'text=' .$split_content['text']. '&';
-         $args  = $asin.$text.$split_content['args'];
+         
+         // Get all named args
+         $extra_args  = !empty($split_content['args']) ? '&' . $split_content['args'] : '';
+         unset ($split_content['args']);
+         $args = $sep ='';
+         foreach ($split_content as $arg => $data) {
+            if (!is_int($arg) && !empty($data)) {
+               $args .= $sep. $arg .'='. $data;
+               $sep = '&';
+            }
+         }
+         $args .= $extra_args;
+
+
          $this->parseArgs($args);
          if (isset($this->Settings['cat'])) {
             $this->Settings['in_post'] = $in_post;
@@ -1117,20 +1155,21 @@ function alx_'.$slug.'_default_templates ($templates) {
       }
 
       function shortcode_extract_asins ($split_content) {
-         $asin  = empty($split_content['asin']) ? '' : 'asin=' .$split_content['asin']. '&';
-         $title = empty($split_content['title']) ? '' : 'title=' .$split_content['title']. '&';
-         $args  = $asin.$title.$split_content['args'];
+         // Get all named args
+         $extra_args  = !empty($split_content['args']) ? '&' . $split_content['args'] : '';
+         unset ($split_content['args']);
+         $args = $sep ='';
+         foreach ($split_content as $arg => $data) {
+            if (!is_int($arg) && !empty($data)) {
+               $args .= $sep. $arg .'='. $data;
+               $sep = '&';
+            }
+         }
+         $args .= $extra_args;
+
          $this->parseArgs($args);
          $this->tags = array_merge($this->Settings['asin'], $this->tags);
          return $split_content[0];
-      }
-
-      function generate_shortcode ($opts) {
-         if (!is_array($opts)) $opts = $_POST;
-
-         $results = array('success' => True, 'shortcode' => '[amazon ]');
-         print json_encode($results);
-         exit();
       }
 
 /*****************************************************************************************/
@@ -1150,8 +1189,8 @@ function alx_'.$slug.'_default_templates ($templates) {
          $description = $data['Description'];
          $icon = isset($data['Icon']) ? $data['Icon'] : 'options-general';
 
-wp_nonce_field('closedpostboxes', 'closedpostboxesnonce', false );
-wp_nonce_field('meta-box-order', 'meta-box-order-nonce', false );
+         wp_nonce_field('closedpostboxes', 'closedpostboxesnonce', false );
+         wp_nonce_field('meta-box-order', 'meta-box-order-nonce', false );
 
 ?>
 <div class="wrap">
@@ -1225,7 +1264,7 @@ wp_nonce_field('meta-box-order', 'meta-box-order-nonce', false );
 
 /*****************************************************************************************/
 
-      function displayTemplateHelp () {
+      function show_template_help() {
          /*
           * Populate the help popup.
           */
@@ -1239,7 +1278,7 @@ wp_nonce_field('meta-box-order', 'meta-box-order-nonce', false );
 /*****************************************************************************************/
 
       // Page/Post Edit Screen Widget
-      function insertForm($post) {
+      function insertForm($post, $args) {
          include('include/insertForm.php');
       }
 
@@ -1260,24 +1299,47 @@ wp_nonce_field('meta-box-order', 'meta-box-order-nonce', false );
          }
       }
 
+      function format_list ( $array, $key_info = array()) {
+
+         /* Only process if it is an array, if it isn't then it probably has already been filtered. */
+         if (!is_array($array)) return $array;
+
+         $class = isset($key_info['Class']) ? $key_info['Class'] : 'al_'. $key_info['Keyword'];
+         $ul = '<ul class="'. $class .'">';
+         foreach ($array as $item) {
+            $ul .= '<li>'. $item . '</li>';
+         }
+         $ul .= '</ul>';
+         return $ul;
+      }
+
+      /*
+       * Utility function to create some html based on an associative array.
+       */
+      function merge_items($items, $elements, $preserve_duplicates = False) {
+         if (!isset($items[0])) {
+            $items = array('0' => $items);
+         }
+         $unique_items = array();
+         $primary = key($elements);
+         $result = '';
+         foreach ($items as $item) {
+            if (isset($item[$primary]) && ($preserve_duplicates || !in_array($item[$primary], $unique_items))) {
+               $unique_items[] = $item[$primary];
+               foreach($elements as $element => $info) {
+                  $result .= $info['Pre'] . $item[$element] . $info['Post'];
+               }
+            }
+         }
+         return $result;
+      }
+
 /*****************************************************************************************/
       /// Do Amazon Link Constructs
 /*****************************************************************************************/
 
       function showRecommendations ($categories='1', $last='30') {
          return include('include/showRecommendations.php');
-      }
-
-      function get_local_info($settings = NULL) {
-
-         if ($settings === NULL)
-            $settings = $this->getSettings();
-
-         $channel      = $this->get_channel($settings);
-         $top_cc       = $this->get_country($settings);
-         $country_data = $this->get_country_data();
-         $info         = array( 'flag' => $country_data[$top_cc]['flag'], 'cc' => $top_cc, 'rcm' => $country_data[$top_cc]['rcm'], 'mplace_id' => $country_data[$top_cc]['m_id'], 'mplace' => $country_data[$top_cc]['market'], 'tld' => $country_data[$top_cc]['tld'], 'tag' => $channel['tag_' . $top_cc], 'channel' => $channel['ID']);
-         return $info;
       }
 
       function grab($data, $keys, $default) {
@@ -1291,8 +1353,6 @@ wp_nonce_field('meta-box-order', 'meta-box-order-nonce', false );
       }
 
       function cached_query($request, $settings = NULL) {
-         global $wpdb;
-         $cache_table = $wpdb->prefix . $this->cache_table;
 
          if ($settings === NULL)
             $settings = $this->getSettings();
@@ -1302,90 +1362,77 @@ wp_nonce_field('meta-box-order', 'meta-box-order-nonce', false );
             $asin = $request;
 
 if (TIMING) $time_start = microtime(true);
-
-         $result = NULL;
-         if ($settings['cache_enabled']) {
-            // Check if asin is already in the cache
+         $data = NULL;
+         if (!is_array($request)) {
             $li = $this->get_local_info($settings);
             $cc = $li['cc'];
-            if (!is_array($request)) {
-               $sql = "SELECT xml FROM $cache_table WHERE asin LIKE '$asin' AND cc LIKE '$cc' AND  updated >= DATE_SUB(NOW(),INTERVAL " . $settings['cache_age']. " HOUR)";
-               $result = $wpdb->get_row($sql, ARRAY_A);
-               if ($result !== NULL) {
-                  $data[0] = unserialize($result['xml']);
-                  $data[0]['cached'] = 1;
-               }
+            $data[0] = $this->cache_lookup_item($asin, $cc);
+if (TIMING) {$time_taken = microtime(true)-$time_start;echo "<!--Cache Lookup: $time_taken -->";}
+            if ($data[0] !== NULL) {
+               $data[0]['cached'] = 1;
+               return $data;
             }
          }
-//echo "<PRE>"; print_r($data); echo "</PRE>";
-
-if (TIMING) {$time_taken = microtime(true)-$time_start;echo "<!--Cache Lookup: $time_taken -->";}
-
-         if ($result === NULL) {
 
 if (TIMING) $time_start = microtime(true);
-            // Create query to retrieve the an item
-            if (!is_array($request)) {
-               $request = array();
-               $request['Operation']     = 'ItemLookup';
-               $request['ItemId']        = $asin;
-               $request['IdType']        = 'ASIN';
-               $request['ResponseGroup'] = $this->get_response_groups();
-            } else { 
-               $request['ResponseGroup'] = $this->get_response_groups();
-            }
-            $pxml = $this->doQuery($request, $settings);
+         // Create query to retrieve the an item
+         if (!is_array($request)) {
+            $request = array();
+            $request['Operation']     = 'ItemLookup';
+            $request['ItemId']        = $asin;
+            $request['IdType']        = 'ASIN';
+            $request['ResponseGroup'] = $this->get_response_groups();
+         } else { 
+            $request['ResponseGroup'] = $this->get_response_groups();
+         }
+
+         $pxml = $this->doQuery($request, $settings);
 if (TIMING) {$time_taken = microtime(true)-$time_start;echo "<!--AWS Lookup: $time_taken -->";}
 
-            if (($pxml === False) || !isset($pxml['Items']['Item'])) {
-               // Failed to return any results
-               $data = array(array('ASIN' => $asin, 'found' => 0 ));
-               $data['Error'] = (isset($pxml['Error']['Message'])? $pxml['Error']['Message'] : 
-                                 (isset($pxml['Items']['Request']['Errors']['Error']['Message']) ? 
-                                         $pxml['Items']['Request']['Errors']['Error']['Message'] : 'No Items Found'));
-               return $data;
-            } else {
-               if (array_key_exists('ASIN', $pxml['Items']['Item'])) {
-                  // Returned a single result (not in an array)
+         if (($pxml === False) || !isset($pxml['Items']['Item'])) {
+            // Failed to return any results
+            $data = array(array('ASIN' => $asin, 'found' => 0 ));
+            $data['Error'] = (isset($pxml['Error']['Message'])? $pxml['Error']['Message'] : 
+                              (isset($pxml['Items']['Request']['Errors']['Error']['Message']) ? 
+                                      $pxml['Items']['Request']['Errors']['Error']['Message'] : 'No Items Found'));
+            return $data;
+         } else {
+            if (array_key_exists('ASIN', $pxml['Items']['Item'])) {
+               // Returned a single result (not in an array)
 if (TIMING) $time_start = microtime(true);
 
-                  $items = array($pxml['Items']['Item']);
-               } else {
-                  // Returned several results
-                  $items =$pxml['Items']['Item'];
+               $items = array($pxml['Items']['Item']);
+            } else {
+               // Returned several results
+               $items =$pxml['Items']['Item'];
+            }
 
-               }
+            $keywords = $this->get_keywords();
 
-               $keywords = $this->get_keywords();
+            /* Extract useful information from the xml */
+            $data= array();
+            for ($index=0; $index < count($items); $index++ ) {
+               $result = $items[$index];
 
-               /* Extract useful information from the xml */
-               $data= array();
-               for ($index=0; $index < count($items); $index++ ) {
-                  $result = $items[$index];
-
-                  foreach ($keywords as $keyword => $key_info) {
-                     if (isset($key_info['Live'])) {
-                        $key_data = $this->grab($result, $key_info['Position'], $key_info['Default']);
-                        if (isset($key_info['Filter'])) $key_data = apply_filters($key_info['Filter'], $key_data, $settings);
-                        $data[$index][$keyword] = $key_data;
-                     }
+               foreach ($keywords as $keyword => $key_info) {
+                  if (isset($key_info['Live'])) {
+                     $key_data = $this->grab($result, $key_info['Position'], $key_info['Default']);
+                     $key_info['Keyword'] = $keyword;
+                     if (isset($key_info['Filter'])) $key_data = apply_filters($key_info['Filter'], $key_data, $key_info, $this);
+                     $data[$index][$keyword] = $key_data;
                   }
-                  $data[$index]['asins']  = 0;
-                  $data[$index]['artist'] = $this->remove_parents($data[$index]['artist']);
-                  $data[$index]['type']   = 'Amazon';
-                  $data[$index]['found']  = 1;
+               }
+               $data[$index]['asins']  = 0;
+               $data[$index]['artist'] = $this->remove_parents($data[$index]['artist']);
+               $data[$index]['type']   = 'Amazon';
+               $data[$index]['found']  = 1;
 
-                  /* Save each item to the cache if it is enabled */
-                  if ($settings['cache_enabled']) {
-                     $sql = "DELETE FROM $cache_table WHERE asin LIKE '". $data[$index]['asin'] ."' AND cc LIKE '$cc'";
-                     $wpdb->query($sql);
-                     $sql_data = array( 'asin' => $data[$index]['asin'], 'cc' => $cc, 'xml' => serialize($data[$index]), updated => current_time('mysql'));
-                     $wpdb->insert($cache_table, $sql_data);
+               /* Save each item to the cache if it is enabled */
+               $this->cache_update_item($data[$index]['asin'], $cc, $data[$index]);
 if (TIMING) {$time_taken = microtime(true)-$time_start;echo "<!--Cache Save: $time_taken -->";}
-                  }
-               }
 
             }
+
          }
          return $data;
       }
@@ -1422,11 +1469,11 @@ if (TIMING) {$time_taken = microtime(true)-$time_start;echo "<!--Cache Save: $ti
           * Generate a localised/multinational link, wrapped around '$object'
           */
          $TARGET = $settings['new_window'] ? 'target="_blank"' : '';
-         $url = apply_filters('amazon_link_url', '', $type, $asin, $search[0], $local_info, $settings);
+         $url = apply_filters('amazon_link_url', '', $type, $asin, $search[0], $local_info, $settings, $this);
          $text='<a rel="nofollow" '. $TARGET .' href="' . $url.'">' . $object . ($close ?'</a>' : '');
          if ($settings['multi_cc']) {
             $multi_data = array('settings' => $settings, 'type' => $type, 'asin' => $asin, 'search' => $search[1], 'cc' => $local_info['cc'], 'channel' => $local_info['channel'] );
-            $text = $this->create_popup($multi_data, $text, $close);
+            $text = $this->create_popup($multi_data, $text);
          }
          return $text;
       }
@@ -1436,20 +1483,24 @@ if (TIMING) {$time_taken = microtime(true)-$time_start;echo "<!--Cache Save: $ti
          // URL already created just drop out.
          if ($url != '') return $url;
 
-         if (isset($asin[$local_info['cc']])) {
+         if (!empty($asin[$local_info['cc']])) {
 
             // User Specified ASIN always use
             $asin = $asin[$local_info['cc']];
-         } else if ($settings['search_link'] && ($type == 'product')) {
+         } else if ($settings['search_link'] && ($type == 'product') && !empty($asin[$settings['home_cc']]) ) {
 
             $type = 'search';
-         } else {
+         } else if (!empty($asin[$settings['home_cc']])) {
+
             $asin = $asin[$settings['home_cc']];
+         } else if (!empty($settings['url'])) {
+            $url = isset($settings['url'][$local_info['cc']]) ? $settings['url'][$local_info['cc']] :  $settings['url'][$settings['home_cc']];
+            return $url;
          }
 
-         if ($type == 'product')
+         if ($type == 'product') {
             $text='http://www.amazon.' . $local_info['tld'] . '/gp/product/'. $asin. '?ie=UTF8&linkCode=as2&camp=1634&creative=6738&tag=' . $local_info['tag'] .'&creativeASIN='. $asin;
-         else if ($type == 'search') {
+         } else if ($type == 'search') {
             $text='http://www.amazon.' . $local_info['tld'] . '/mn/search/?_encoding=UTF8&linkCode=ur2&camp=1634&creative=19450&tag=' . $local_info['tag'] . '&field-keywords=' . $search;
          } else {
             $text='http://www.amazon.' . $local_info['tld'] . '/review/'. $asin. '?_encoding=UTF8&linkCode=ur2&camp=1634&creative=19450&tag=' . $local_info['tag'];
@@ -1461,13 +1512,14 @@ if (TIMING) {$time_taken = microtime(true)-$time_start;echo "<!--Cache Save: $ti
       function create_popup ($data, $text){
          if (!$this->scripts_done) {
              $this->scripts_done = True;
-             add_action('wp_print_footer_scripts', array($this, 'generate_multi_script'));
+             add_action('wp_print_footer_scripts', array($this, 'footer_scripts'));
          }
 
          // Need to check all locales...
-         $sep = '{';
-         $term ='';
+         $sep = '';
+         $term ='{';
          $countries = $this->get_country_data();
+         $home_cc = $data['settings']['home_cc'];
          foreach ($countries as $country => $country_data) {
             if ($data['type'] == 'search' ) {
                $term .= $sep. $country .' : \'S-'. ($data['search']) .'\'';
@@ -1477,25 +1529,25 @@ if (TIMING) {$time_taken = microtime(true)-$time_start;echo "<!--Cache Save: $ti
                } else if ($data['type'] == 'product') {
                   $type = 'A-';
                }
-               if (isset($data['asin'][$country])) {
+               if (!empty($data['asin'][$country])) {
                   $term .= $sep. $country .' : \''. $type. $data['asin'][$country].'\'';
-               } else if ($data['settings']['search_link']) {
+               } else if ($data['settings']['search_link'] && !empty($data['asin'][$home_cc])) {
                   $term .= $sep. $country .' : \'S-'. ($data['search']) .'\'';
+               } else if (empty($data['asin'][$home_cc]) && !empty($data['settings']['url'][$country])){
+                  $term .= $sep. $country .' : \''. 'U-'. $data['settings']['url'][$country].'\'';
                } else {
-                  $term .= $sep. $country .' : \''. $type. $data['asin'][$data['settings']['home_cc']].'\'';
+                  $term .= $sep. $country .' : \'X-\'';
                }
             }
             $sep = ',';
          }
          $term .= '}';
 
-         $script = ' onMouseOut="al_link_out()" onMouseOver="al_gen_multi('. $this->multi_id . ', ' . $term. ', \''. $data['cc']. '\', \''. $data['channel'] .'\');" ';
-         $script = str_replace ('<a', '<a' . $script, $text);
+         $script = 'onMouseOut="al_link_out()" onMouseOver="al_gen_multi('. $this->multi_id . ', ' . $term. ', \''. $data['cc']. '\', \''. $data['channel'] .'\');" ';
+         $script = str_replace ('<a', '<a ' . $script, $text);
          $this->multi_id++;
          return $script;
       }
-
-
 
       function make_links($asins, $link_text, $Settings = NULL)
       {
@@ -1525,7 +1577,6 @@ if (TIMING) {$time_taken = microtime(true)-$time_start;echo "<!--Cache Save: $ti
                /* Multi-product template collapse array back to a list, respecting country specific selection */
                $sep = ''; $list='';
                foreach ($asins as $i => $asin) {
-                  /* TODO: Check this! */
                   $list .= $sep .(is_array($asin) ? (isset($asin[$local_info['cc']]) ? $asin[$local_info['cc']] : $asin[$Settings['default_cc']]) : $asin);
                   $sep=',';
                }
@@ -1634,7 +1685,7 @@ function amazon_get_link($args)
 function amazon_scripts()
 {
   global $awlfw;
-  $this->generate_multi_script();
+  $this->footer_scripts();
 }
 
 

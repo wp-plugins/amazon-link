@@ -9,7 +9,7 @@
    $default_templates = $this->get_default_templates();
 
    $templateOpts = array( 
-         'nonce'       => array ( 'Type' => 'nonce', 'Name' => 'update-AmazonLink-templates' ),
+         'nonce'       => array ( 'Type' => 'nonce', 'Value' => 'update-AmazonLink-templates' ),
 
          'ID'          => array ( 'Default' => '', 'Type' => 'hidden'),
          'title'       => array ( 'Type' => 'section', 'Value' => '', 'Class' => 'hidden', 'Section_Class' => 'al_subhead'),
@@ -28,7 +28,7 @@
          );
 
    $global_opts = array( 
-         'nonce'       => array ( 'Type' => 'nonce', 'Name' => 'update-AmazonLink-templates' ),
+         'nonce'       => array ( 'Type' => 'nonce', 'Value' => 'update-AmazonLink-templates' ),
          'Buttons1'    => array ( 'Type' => 'buttons', 'Buttons' => 
                                            array ( __('Export', 'amazon-link') => array( 'Action' => 'ALTemplateAction', 'Hint' => __( 'Export Templates to a Amazon Link Extra Plugin', 'amazon-link'), 'Class' => 'button-secondary'),
                                                    __('New', 'amazon-link') => array( 'Action' => 'ALTemplateAction', 'Hint' => __( 'Create a New blank template', 'amazon-link'), 'Class' => 'button-secondary') )),

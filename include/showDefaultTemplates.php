@@ -9,9 +9,7 @@
    $default_templates = $this->get_default_templates();
 
    $templateOpts = array( 
-         'nonce'       => array ( 'Type' => 'nonce', 'Name' => 'update-AmazonLink-def-templates' ),
-         'nonce1'      => array ( 'Type' => 'nonce', 'Action' => 'closedpostboxes', 'Name' => 'closedpostboxesnonce', 'Referer' => false),
-         'nonce2'      => array ( 'Type' => 'nonce', 'Action' => 'meta-box-order', 'Name' => 'meta-box-order-nonce', 'Referer' => false),
+         'nonce'       => array ( 'Type' => 'nonce', 'Value' => 'update-AmazonLink-def-templates' ),
 
          'ID'          => array ( 'Default' => '', 'Type' => 'hidden'),
          'title'       => array ( 'Type' => 'section', 'Read_Only' => 1, 'Value' => '', 'Class' => 'hidden', 'Section_Class' => 'al_subhead'),
@@ -66,8 +64,6 @@
          $templateOpts['preview']['Value'] = '';
       }
       $this->form->displayForm($templateOpts, $default_templates[$templateID]);
-      unset($templateOpts['nonce1']);
-      unset($templateOpts['nonce2']);
    }
 
 

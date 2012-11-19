@@ -1,5 +1,9 @@
 .al_opt_container {
  clear:both;
+ display: inline-block;
+ width: 100%;
+ margin-top:1px;
+ margin-bottom:0px;
 }
 
 .al_border {
@@ -7,7 +11,7 @@
 }
 
 .al_label {
- display:inline;
+ display:block;
  float:left;
  width:30%;
  padding-left: 4px;
@@ -18,8 +22,17 @@
 }
 
 .al_input {
- float:left; 
+ display: inline;
  margin-right:10px;
+}
+
+.al_fixed_width {
+ width:200px;
+}
+
+
+.al_fixed_width_wide {
+ width:400px;
 }
 
 .al_pad {
@@ -98,10 +111,20 @@
  font: italic normal normal 24px/29px Georgia,"Times New Roman","Bitstream Charter",Times,serif;
  font-size: 1.5em;
 }
+
+.amazon-link-info dl{
+ clear:both;
+ display: inline-block;
+ width: 100%;
+ margin-top:1px;
+ margin-bottom:0px;
+}
+
 .amazon-link-info dt{
- display:inline;
- float:left;
+/* display:inline;*/
+ display:block;
  width:40%;
+ float:left;
  padding-left: 4px;
 }
 

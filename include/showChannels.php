@@ -8,9 +8,7 @@
    $channels = $this->get_channels(False, False);
 
    $channel_opts = array( 
-         'nonce'       => array ( 'Type' => 'nonce', 'Name' => 'update-AmazonLink-channels' ),
-         'nonce1'       => array ( 'Type' => 'nonce', 'Action' => 'closedpostboxes', 'Name' => 'closedpostboxesnonce', 'Referer' => false),
-         'nonce2'       => array ( 'Type' => 'nonce', 'Action' => 'meta-box-order', 'Name' => 'meta-box-order-nonce', 'Referer' => false),
+         'nonce'       => array ( 'Type' => 'nonce', 'Value' => 'update-AmazonLink-channels' ),
 
          'ID'          => array ( 'Type' => 'hidden'),
          'title'       => array ( 'Type' => 'section', 'Value' => '', 'Class' => 'hidden', 'Section_Class' => 'al_subhead'),
@@ -133,8 +131,6 @@
       $channel_opts ['ID']['Default'] = $channel_id;
       $channel_opts ['title']['Value'] = sprintf(__('<b>%s</b> - %s','amazon-link'), $channel_id, $channel_details['Description']);
       $this->form->displayForm($channel_opts , $channels[$channel_id]);
-      unset($channel_opts ['nonce1']);
-      unset($channel_opts ['nonce2']);
    }
 
 

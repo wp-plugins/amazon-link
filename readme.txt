@@ -724,34 +724,6 @@ The plugin comes with translation support but as yet no translations are include
 If you want to help to translate the plugin to your language, please have a look at the i18n/amazon-link.pot file which contains all definitions and may be used to create a language specific .po file, if you do then
 contact me and I will add it to the plugin ready for the next update.
 
-= amazon_link_editorial =
-
-
-This is an example filter that is installed when the 'amzon-link-extra-editorial' plugin is installed and provides an example of how to process the data returned from Amazon.
-
-This filter passes the editorial content as returned by the Amazon Web Services API, currently this is in the form of an array either of the form:
-
-Multiple Editorial Content:
-` => 'Source 1',  => 'Content 1'`
-
-or
-
-One Editorial Content:
-` => 'Source 1',  => 'Content 1'`
-
-The Amazon Link Plugin has a filter of priority 5, adding your own filter of higher priority will override the default plugin action.
-
-e.g. Adding something like:
-
-
-add_filter('amazon_link_editorial', 'my_editorial_filter', 1, 2);
-
-function my_editorial_filter($editorial, $settings) {
-   $editorial = do_stuff($editorial);
-   return $editorial;
-}
-
-
 == Disclosure ==
 
 
