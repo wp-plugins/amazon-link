@@ -1487,6 +1487,8 @@ if (TIMING) {$time_taken = microtime(true)-$time_start;echo "<!--Cache Save: $ti
 
             // User Specified ASIN always use
             $asin = $asin[$local_info['cc']];
+         } else if (($type == 'product') && !empty($settings['url'][$local_info['cc']]) ) {
+            return $settings['url'][$local_info['cc']];
          } else if ($settings['search_link'] && ($type == 'product') && !empty($asin[$settings['home_cc']]) ) {
 
             $type = 'search';
@@ -1531,6 +1533,8 @@ if (TIMING) {$time_taken = microtime(true)-$time_start;echo "<!--Cache Save: $ti
                }
                if (!empty($data['asin'][$country])) {
                   $term .= $sep. $country .' : \''. $type. $data['asin'][$country].'\'';
+               } else if (($data['type'] == 'product') && !empty($data['settings']['url'][$country]) ) {
+                  $term .= $sep. $country .' : \''. 'U-'. $data['settings']['url'][$country].'\'';
                } else if ($data['settings']['search_link'] && !empty($data['asin'][$home_cc])) {
                   $term .= $sep. $country .' : \'S-'. ($data['search']) .'\'';
                } else if (empty($data['asin'][$home_cc]) && !empty($data['settings']['url'][$country])){
