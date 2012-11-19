@@ -1,6 +1,20 @@
 var al_isOpera = (navigator.userAgent.indexOf('Opera') != -1);
 var al_isIE = (!al_isOpera && navigator.userAgent.indexOf('MSIE') != -1);
 var al_isNav = (navigator.appName.indexOf("Netscape") !=-1);
+
+window.Object.defineProperty( Element.prototype, 'documentOffsetTop', {
+    get: function () { 
+        return this.offsetTop + ( this.offsetParent ? this.offsetParent.documentOffsetTop : 0 );
+    }
+} );
+
+window.Object.defineProperty( Element.prototype, 'documentOffsetLeft', {
+    get: function () { 
+        return this.offsetLeft + ( this.offsetParent ? this.offsetParent.documentOffsetLeft : 0 );
+    }
+} );
+
+
 function al_handlerMM(e){
 	if (!e) var e = window.event;
 if (e.pageX || e.pageY)
@@ -21,7 +35,6 @@ else if (e.clientX || e.clientY)
 }
 
 document.onmousemove = al_handlerMM;
-
 
 al_x = 100;
 al_y = 100;

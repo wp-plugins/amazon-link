@@ -1,5 +1,5 @@
 jQuery(document).ready(function(){
-		jQuery('.al_section h4').click(function(){
-			jQuery(this).parent().next('.al_options').toggle();
+		jQuery('.al_subhead1,.al_subhead').click(function(){
+			jQuery(this).next('.al_options').toggle();
 		});
 });

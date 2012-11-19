@@ -11,11 +11,12 @@ var wpAmazonLinkAdmin = function () {}
 
 wpAmazonLinkAdmin.prototype = {
     options           : {},
+    keywords          : {},
     default_options   : {},
     list_options      : {},
 
     toggleAdvanced : function(event) {
-        var collection = jQuery(event).find("input[name='multi_cc'], input[name='localise'], input[name='live'], input[name='remote_images']");
+        var collection = jQuery(event).find("input[name='multi_cc'], input[name='localise'], input[name='live'], input[name='search_link']");
         var defaults   = jQuery(event).find("input[name='defaults']:checked").length;
         if (defaults) {
            jQuery(collection).parent().parent().hide();
@@ -25,7 +26,8 @@ wpAmazonLinkAdmin.prototype = {
     },
 
     addASIN : function(event, options) {
-        var ASIN = jQuery(event).find("input[name='asin']");
+        if (!options['cc']) options['cc'] = '';
+        var ASIN = jQuery(event).find("input[name='asin"+options['cc']+"']");
         if (ASIN.val() == "") {
            ASIN.val(options['asin']);
         } else {
@@ -33,72 +35,124 @@ wpAmazonLinkAdmin.prototype = {
         }
     },
 
-    generateShortCode : function() {
+    trans_update: function(result) {
+        var s_title_trans = jQuery("input[name='s_title_trans']");
+        s_title_trans.val( result );
+    },
+
+    translate : function(event, options) {
+
+        var s_title = jQuery(event).find("input[name='s_title']").val();
+        var s_title_trans = jQuery(event).find("input[name='s_title_trans']");
+        var default_cc = jQuery(event).find("select[name='default_cc']").val();
+        var home_cc = jQuery(event).find("input[name='home_cc']").val();
+        var $ths = this;
+
+        $ths['options']['action'] = 'amazon-link-translate';
+        $ths['options']['Text'] = s_title;
+        $ths['options']['To'] = AmazonLinkData[default_cc]['lang'];
+        $ths['options']['From'] = AmazonLinkData[home_cc]['lang'];
+
+        if (options != undefined) {
+           jQuery.extend($ths['options'], options); 
+        }
+        jQuery.post('admin-ajax.php', $ths['options'] , $ths.trans_update, 'json');
+
+    },
+
+
+    generateArgs : function(cc) {
         var content = this['options']['content'];
-        var options = this['options'];
         var list_options = this['list_options'];
         var d_options = this['default_options'];
-        var keywords = this['template_user_keywords'].concat(',',this['template_live_keywords']).split(',');
+
         var live_keywords = new String(this['template_live_keywords']);
         var template_keywords = new String(this['template_keywords']);
 
-        delete options['content'];
+        delete this['options']['content'];
 
         /* If 'use defaults' is set then reset to the defaults */
-        if (options['defaults'] == "1") {
-           options['multi_cc'] = d_options['multi_cc'];
-           options['localise'] = d_options['localise'];
-           options['live'] = d_options['live'];
+        if (this['options']['defaults'] == "1") {
+           this['options']['multi_cc'] = d_options['multi_cc'];
+           this['options']['localise'] = d_options['localise'];
+           this['options']['live'] = d_options['live'];
+           this['options']['search_link'] = d_options['search_link'];
         }
 
         /* If 'wishlist' is set then include wishlist specific options */
-        if (options['wishlist'] == "1") {
-           jQuery().extend(options, list_options);
-           options['live'] = 1;
+        if (this['options']['wishlist'] == "1") {
+           jQuery().extend(this['options'], list_options);
+           this['options']['live'] = 1;
         } 
  
-        if (options['asin'].indexOf(',') != -1) {
-           options['live'] = 1;
+        if (this['options']['asin'].indexOf(',') != -1) {
+           this['options']['live'] = 1;
         }
 
+        var shortcode_options = jQuery().extend({}, this.options);
         /* Only put keywords relevant to the selected template */
-        for(var i = 0; i < keywords.length; i++) {
-           if ((keywords[i] != "asin") &&                             // Not 'asin' - this is always inserted
-               ((template_keywords.indexOf(keywords[i]) == -1) ||     // and Not in the current template
-                ((options['live'] == "1") &&                          // or user wants live data and this is a live keyword
-                 (live_keywords.indexOf(keywords[i]) != -1)))) {
-              delete options[keywords[i]];
-           } else if (options[keywords[i]] == undefined) {
-              options[keywords[i]] = '-';
+        for(var i = 0; i < this['keywords'].length; i++) {
+           if ( ( (template_keywords.indexOf(this['keywords'][i]) == -1) ||     // If Not in the current template
+                  ( (this['options']['live'] == "1") &&                          // or user wants live data and this is a live keyword
+                    (live_keywords.indexOf(this['keywords'][i]) != -1) )
+              ) ) {
+              delete shortcode_options[this['keywords'][i]];
+           } else if (shortcode_options[this['keywords'][i]] == undefined) {
+              shortcode_options[this['keywords'][i]] = '-';
+              this['options'][this['keywords'][i]] = '-';
            }
         }
+        if (this['options']['ref']) shortcode_options['ref'] =this['options']['ref'];
+        if (this['options']['asin']) shortcode_options['asin'] =this['options']['asin'];
 
         /* If 'use defaults' is set then do not force these options */
-        if (options['defaults'] == "1") {
-           delete options['multi_cc'];
-           delete options['localise'];
-           delete options['live'];
+        if (this['options']['defaults'] == "1") {
+           delete shortcode_options['multi_cc'];
+           delete shortcode_options['localise'];
+           delete shortcode_options['live'];
+           delete shortcode_options['search_link'];
         }
 
         /* Delete temporary options only used by the java exchange */
-        delete options['image_url'];
-        delete options['thumb_url'];
-        delete options['defaults'];
-        delete options['wishlist'];
+        delete shortcode_options['image_url'];
+        delete shortcode_options['thumb_url'];
+        delete shortcode_options['defaults'];
+        delete shortcode_options['wishlist'];
+        delete shortcode_options['shortcode_template'];
 
         /* Now generate the short code with what is left */
         var attrs = '';
         var sep = '';
-        jQuery.each(options, function(name, value){
+        jQuery.each(shortcode_options, function(name, value){
             if (value != ' ') {
-                attrs += sep + name + '=' + value;
+                attrs += sep + name + cc + '='+value;
                 sep = '&';
             }
         });
-        return '[amazon ' + attrs + ']'
+        return attrs;
     },
 
-    sendToEditor      : function(f, options) {
+
+    generateShortCode : function() {
+
+        var template = new String(this['shortcode']);
+        args = this.generateArgs('');
+        var $this = this;
+        this['options']['args'] = args;
+        this['options']['unused_args'] = args;
+        this['keywords'].push('args');
+        this['keywords'].push('unused_args');
+        jQuery.each(this['keywords'], function (id, keyword){
+           var match = template.match( new RegExp( '%'+keyword+'%','i'));
+           template = template.replace( new RegExp( '%'+keyword+'%','gi'), $this['options'][keyword]);
+           if (match) {
+              $this['options']['unused_args'] = $this['options']['unused_args'].replace( new RegExp( '(&?)'+keyword+'=[^&]*(\\1?)&?','i'), '$2');
+           }
+        });
+        return template;
+    },
+
+    grabSettings: function(f, options) {
         var link_options = jQuery(f).find("input[id^=AmazonLinkOpt], select[id^=AmazonLinkOpt]");
         var list_options = jQuery(f).find("input[id^=AmazonListOpt], select[id^=AmazonListOpt]");
         var $this = this;
@@ -126,14 +180,32 @@ wpAmazonLinkAdmin.prototype = {
             }
         });
 
+        $this['shortcode']              = jQuery(f).find('#amazonLinkID input[name="shortcode_template"]').val();
         $this['template_user_keywords'] = jQuery(f).find('#amazonLinkID input[name="template_user_keywords"]').val();
         $this['template_live_keywords'] = jQuery(f).find('#amazonLinkID input[name="template_live_keywords"]').val();
         $this['template_keywords']      = jQuery(f).find('input[name="T_' + $this['options']['template'] + '"]').val();
+        if ($this['template_user_keywords'] != undefined) {
+           this['keywords'] = $this['template_user_keywords'].concat(',',$this['template_live_keywords']).split(',');
+        }
 
         if (options != undefined) {
-           jQuery.extend($this['options'], options);
+           jQuery().extend($this['options'], options);
         }
-        send_to_editor(this.generateShortCode());
+    },
+
+
+    addShortcode: function(f, options) {
+
+        var shortcode = jQuery("input[name='Shortcode']");
+        this.grabSettings(f,options);
+        shortcode.val(escape(this.generateArgs('['+this['options']['default_cc']+']')));
+        return false;
+    },
+
+    sendToEditor      : function(f, options) {
+
+        this.grabSettings(f,options);
+        send_to_editor(this.generateShortCode(''));
         return false;
     }
 }
