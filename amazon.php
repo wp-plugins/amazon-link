@@ -333,7 +333,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
 
 
 /*****************************************************************************************/
-      /// Options & Templates Handling
+      // Various Arrays to Control the Plugin
 /*****************************************************************************************/
 
       function get_keywords() {
@@ -381,7 +381,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
                                       'Position' => array(array('Offers','Offer','OfferListing','Price','FormattedPrice'),
                                                           array('OfferSummary','LowestNewPrice','FormattedPrice'),
                                                           array('OfferSummary','LowestUsedPrice','FormattedPrice'))),
-             'list_price'   => array( 'Description' => __('List Price of Item', 'amazon-link'), 'Live' => '1', 'Group' => 'Offers', 'Default' => '-',
+             'list_price'   => array( 'Description' => __('List Price of Item', 'amazon-link'), 'Live' => '1', 'Group' => 'ItemAttributes', 'Default' => '-',
                                       'Position' => array(array('ItemAttributes','ListPrice','FormattedPrice'))),
              'price'        => array( 'Description' => __('Price of Item (Combination of Offer then List Price)', 'amazon-link'), 'Live' => '1', 'Group' => 'Offers', 'Default' => '-',
                                       'Position' => array(array('Offers','Offer','OfferListing','Price','FormattedPrice'),
@@ -467,10 +467,8 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
             'wishlist_template' => array (  'Default' => 'Wishlist', 'Name' => __('Wishlist Template', 'amazon-link') , 'Description' => __('Default template to use for the wishlist <em>* <a href="#aws_notes" title="AWS Access keys required for full functionality">AWS</a> *</em>', 'amazon-link'), 'Type' => 'selection', 'Class' => 'al_border'  ),
             'wishlist_items' => array (  'Name' => __('Wishlist Length', 'amazon-link'), 'Description' => __('Maximum number of items to display in a wishlist (Amazon only returns a maximum of 5, for the \'Similar\' type of list) <em>* <a href="#aws_notes" title="AWS Access keys required for full functionality">AWS</a> *</em>', 'amazon-link'), 'Default' => 5, 'Type' => 'text', 'Class' => 'alternate al_border' ),
             'wishlist_type' => array (  'Name' => __('Wishlist Type', 'amazon-link'), 'Description' => __('Default type of wishlist to display, \'Similar\' shows items similar to the ones found, \'Random\' shows a random selection of the ones found <em>* <a href="#aws_notes" title="AWS Access keys required for full functionality">AWS</a> *</em>', 'amazon-link'), 'Default' => 'Similar', 'Options' => array('Similar', 'Random', 'Multi'), 'Type' => 'selection', 'Class' => 'al_border'  ),
-
-            /* Options that change the behaviour of the links */
-
-            'new_window' => array('Name' => __('New Window Link', 'amazon-link'), 'Description' => __('When link is clicked on, open it in a new browser window', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox', 'Class' => 'alternate' ),
+            'new_window' => array('Name' => __('New Window Link', 'amazon-link'), 'Description' => __('When link is clicked on, open it in a new browser window', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox', 'Class' => 'alternate al_border' ),
+            'link_title' => array( 'Name' => __('Link Title Text', 'amazon-link'), 'Description' => __('The text to put in the link \'title\' attribute, can use the same keywords as in the Templates (e.g. %TITLE% %ARTIST%), leave blank to not have a link title.', 'amazon-link'), 'Default' => '', 'Type' => 'text', 'Size' => '40', 'Class' => '' ),
 
             'hd1e' => array ( 'Type' => 'end'),
 
@@ -614,6 +612,10 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          }
          return $this->response_groups;
       }
+
+/*****************************************************************************************/
+      // Various Options, Arguments, Templates and Channels Handling
+/*****************************************************************************************/
 
       function getOptions() {
          if (!isset($this->Opts)) {
@@ -838,14 +840,6 @@ function alx_'.$slug.'_default_templates ($templates) {
 	 update_usermeta( $ID, $this->user_options,  $options );
       }
 
-      /*function valid_keys() {
-         $Settings = $this->getSettings();
-
-         if ( (strlen($Settings['pub_key']) > 10) && (strlen($Settings['priv_key']) > 10))
-            return True;
-         return False;
-      }*/
-
       function validate_keys($Settings = NULL) {
          if (Settings === NULL) $Settings = $this->getSettings();
 
@@ -869,7 +863,8 @@ function alx_'.$slug.'_default_templates ($templates) {
       }
 
 /*****************************************************************************************/
-
+      // Cache Facility
+/*****************************************************************************************/
       function cache_install() {
          global $wpdb;
          $settings = $this->getOptions();
@@ -1361,20 +1356,17 @@ function alx_'.$slug.'_default_templates ($templates) {
          if (!is_array($request))
             $asin = $request;
 
-if (TIMING) $time_start = microtime(true);
          $data = NULL;
          if (!is_array($request)) {
             $li = $this->get_local_info($settings);
             $cc = $li['cc'];
             $data[0] = $this->cache_lookup_item($asin, $cc);
-if (TIMING) {$time_taken = microtime(true)-$time_start;echo "<!--Cache Lookup: $time_taken -->";}
             if ($data[0] !== NULL) {
                $data[0]['cached'] = 1;
                return $data;
             }
          }
 
-if (TIMING) $time_start = microtime(true);
          // Create query to retrieve the an item
          if (!is_array($request)) {
             $request = array();
@@ -1387,7 +1379,6 @@ if (TIMING) $time_start = microtime(true);
          }
 
          $pxml = $this->doQuery($request, $settings);
-if (TIMING) {$time_taken = microtime(true)-$time_start;echo "<!--AWS Lookup: $time_taken -->";}
 
          if (($pxml === False) || !isset($pxml['Items']['Item'])) {
             // Failed to return any results
@@ -1399,7 +1390,6 @@ if (TIMING) {$time_taken = microtime(true)-$time_start;echo "<!--AWS Lookup: $ti
          } else {
             if (array_key_exists('ASIN', $pxml['Items']['Item'])) {
                // Returned a single result (not in an array)
-if (TIMING) $time_start = microtime(true);
 
                $items = array($pxml['Items']['Item']);
             } else {
@@ -1429,10 +1419,7 @@ if (TIMING) $time_start = microtime(true);
 
                /* Save each item to the cache if it is enabled */
                $this->cache_update_item($data[$index]['asin'], $cc, $data[$index]);
-if (TIMING) {$time_taken = microtime(true)-$time_start;echo "<!--Cache Save: $time_taken -->";}
-
             }
-
          }
          return $data;
       }
@@ -1468,7 +1455,9 @@ if (TIMING) {$time_taken = microtime(true)-$time_start;echo "<!--Cache Save: $ti
          /*
           * Generate a localised/multinational link, wrapped around '$object'
           */
-         $TARGET = $settings['new_window'] ? 'target="_blank"' : '';
+         $TARGET  = $settings['new_window'] ? 'target="_blank"' : '';
+         $TARGET .= !empty($settings['link_title']) ? ' title="'.$settings['link_title'].'"' : '';
+
          $url = apply_filters('amazon_link_url', '', $type, $asin, $search[0], $local_info, $settings, $this);
          $text='<a rel="nofollow" '. $TARGET .' href="' . $url.'">' . $object . ($close ?'</a>' : '');
          if ($settings['multi_cc']) {
@@ -1478,40 +1467,46 @@ if (TIMING) {$time_taken = microtime(true)-$time_start;echo "<!--Cache Save: $ti
          return $text;
       }
 
+      /*
+       * Create a Standard Amazon URL, examples returned from the AWS Response include:
+       * DetailPageURL:    http://www.amazon.fr/Les-Gens-Smiley-John-Carr%C3%A9/dp/2020479893%3FSubscriptionId%3DAKIAJ47GXTAGH4BSN3PQ%26tag%3Dhindorset-fr-21%26linkCode%3Dxm2%26camp%3D2025%26creative%3D165953%26creativeASIN%3D2020479893
+       *                   http://www.amazon.<TLD>/<TITLE>/dp/<ASIN>?SubscriptionId=<PUBLIC ID>&tag=<TAG>&linkCode=xm2&camp=2025&creative=165953&creativeASIN=<ASIN>
+       * Add To Wishlist:  http://www.amazon.fr/gp/registry/wishlist/add-item.html%3Fasin.0%3D2020479893%26SubscriptionId%3DAKIAJ47GXTAGH4BSN3PQ%26tag%3Dhindorset-fr-21%26linkCode%3Dxm2%26camp%3D2025%26creative%3D12742%26creativeASIN%3D2020479893
+       * Add To Wishlist:  http://www.amazon.<TLD>/gp/registry/wishlist/add-item.html%3Fasin.0%3D2020479893%26SubscriptionId%3DAKIAJ47GXTAGH4BSN3PQ%26tag%3Dhindorset-fr-21%26linkCode%3Dxm2%26camp%3D2025%26creative%3D12742%26creativeASIN%3D2020479893
+       * Tell A Friend:    http://www.amazon.fr/gp/pdp/taf/2020479893%3FSubscriptionId%3DAKIAJ47GXTAGH4BSN3PQ%26tag%3Dhindorset-fr-21%26linkCode%3Dxm2%26camp%3D2025%26creative%3D12742%26creativeASIN%3D2020479893
+       * Tell A Friend:    http://www.amazon.<TLD>/gp/pdp/taf/2020479893%3FSubscriptionId%3DAKIAJ47GXTAGH4BSN3PQ%26tag%3Dhindorset-fr-21%26linkCode%3Dxm2%26camp%3D2025%26creative%3D12742%26creativeASIN%3D2020479893
+       * Customer Reviews: http://www.amazon.fr/review/product/2020479893%3FSubscriptionId%3DAKIAJ47GXTAGH4BSN3PQ%26tag%3Dhindorset-fr-21%26linkCode%3Dxm2%26camp%3D2025%26creative%3D12742%26creativeASIN%3D2020479893
+       *                   http://www.amazon.<TLD>/review/product/<ASIN>SubscriptionId=<PUBLIC ID>&tag=<TAG>&linkCode=xm2&camp=2025&creative=12742&creativeASIN=<ASIN>
+       * Offers:           http://www.amazon.fr/gp/offer-listing/2020479893%3FSubscriptionId%3DAKIAJ47GXTAGH4BSN3PQ%26tag%3Dhindorset-fr-21%26linkCode%3Dxm2%26camp%3D2025%26creative%3D12742%26creativeASIN%3D2020479893
+       * Offers:           http://www.amazon.<TLD>/gp/offer-listing/2020479893%3FSubscriptionId%3DAKIAJ47GXTAGH4BSN3PQ%26tag%3Dhindorset-fr-21%26linkCode%3Dxm2%26camp%3D2025%26creative%3D12742%26creativeASIN%3D2020479893
+       * Search:           http://www.amazon.com/gp/redirect.html?camp=2025&creative=386001&location=http%3A%2F%2Fwww.amazon.com%2Fgp%2Fsearch%3Fkeywords%3Dkeyword%26url%3Dsearch-alias%253Daws-amazon-aps&linkCode=xm2&tag=andilike-21&SubscriptionId=AKIAJ47GXTAGH4BSN3PQ
+       *                   http://www.amazon.<TLD>/gp/redirect.html?camp=2025&creative=386001&location=http://www.amazon.<TLD>&gp=search&keywords=<KEYWORD>&url=search-alias%3Daws-amazon-aps&linkCode=xm2&tag=<TAG>&SubscriptionId=<PUBLIC_ID>
+       * examples from Amazon Web Tool:
+       * Search:           http://www.amazon.co.uk/gp/search?ie=UTF8&camp=1634&creative=6738&index=aps&keywords=<KEYWORDS>&linkCode=ur2&tag=<TAG>
+       */
       function get_url($url, $type, $asin, $search, $local_info, $settings) {
 
          // URL already created just drop out.
          if ($url != '') return $url;
 
-         if (!empty($asin[$local_info['cc']])) {
+         $link = $this->get_link_type ($type, $asin, $local_info['cc'], $search, $settings);
 
-            // User Specified ASIN always use
-            $asin = $asin[$local_info['cc']];
-         } else if (($type == 'product') && !empty($settings['url'][$local_info['cc']]) ) {
-            return $settings['url'][$local_info['cc']];
-         } else if ($settings['search_link'] && ($type == 'product') && !empty($asin[$settings['home_cc']]) ) {
-
-            $type = 'search';
-         } else if (!empty($asin[$settings['home_cc']])) {
-
-            $asin = $asin[$settings['home_cc']];
-         } else if (!empty($settings['url'])) {
-            $url = isset($settings['url'][$local_info['cc']]) ? $settings['url'][$local_info['cc']] :  $settings['url'][$settings['home_cc']];
-            return $url;
-         }
-
-         if ($type == 'product') {
-            $text='http://www.amazon.' . $local_info['tld'] . '/gp/product/'. $asin. '?ie=UTF8&linkCode=as2&camp=1634&creative=6738&tag=' . $local_info['tag'] .'&creativeASIN='. $asin;
-         } else if ($type == 'search') {
-            $text='http://www.amazon.' . $local_info['tld'] . '/mn/search/?_encoding=UTF8&linkCode=ur2&camp=1634&creative=19450&tag=' . $local_info['tag'] . '&field-keywords=' . $search;
+         if ($link['type'] == 'url' || $link['type'] == 'nolink') {
+            return $link['term'];
+         } else if ($link['type'] == 'product') {
+            $text='http://www.amazon.' . $local_info['tld'] . '/gp/product/'. $link['term'] . '?ie=UTF8&linkCode=as2&camp=1634&creative=6738&tag=' . $local_info['tag'] .'&creativeASIN='. $link['term'];
+         } else if ($link['type'] == 'search') {
+            $text='http://www.amazon.' . $local_info['tld'] . '/mn/search/?_encoding=UTF8&linkCode=ur2&camp=1634&creative=19450&tag=' . $local_info['tag'] . '&field-keywords=' . $link['term'];
          } else {
-            $text='http://www.amazon.' . $local_info['tld'] . '/review/'. $asin. '?_encoding=UTF8&linkCode=ur2&camp=1634&creative=19450&tag=' . $local_info['tag'];
+            $text='http://www.amazon.' . $local_info['tld'] . '/review/'. $link['term']. '?_encoding=UTF8&linkCode=ur2&camp=1634&creative=19450&tag=' . $local_info['tag'];
          }
          return $text;
 
       }
 
       function create_popup ($data, $text){
+         $type_map = array( 'product' => 'A', 'search' => 'S', 'review' => 'R', 'url' => 'U', 'nolink' => 'X');
+
          if (!$this->scripts_done) {
              $this->scripts_done = True;
              add_action('wp_print_footer_scripts', array($this, 'footer_scripts'));
@@ -1523,26 +1518,8 @@ if (TIMING) {$time_taken = microtime(true)-$time_start;echo "<!--Cache Save: $ti
          $countries = $this->get_country_data();
          $home_cc = $data['settings']['home_cc'];
          foreach ($countries as $country => $country_data) {
-            if ($data['type'] == 'search' ) {
-               $term .= $sep. $country .' : \'S-'. ($data['search']) .'\'';
-            } else {
-               if ($data['type'] == 'review') {
-                  $type = 'R-';
-               } else if ($data['type'] == 'product') {
-                  $type = 'A-';
-               }
-               if (!empty($data['asin'][$country])) {
-                  $term .= $sep. $country .' : \''. $type. $data['asin'][$country].'\'';
-               } else if (($data['type'] == 'product') && !empty($data['settings']['url'][$country]) ) {
-                  $term .= $sep. $country .' : \''. 'U-'. $data['settings']['url'][$country].'\'';
-               } else if ($data['settings']['search_link'] && !empty($data['asin'][$home_cc])) {
-                  $term .= $sep. $country .' : \'S-'. ($data['search']) .'\'';
-               } else if (empty($data['asin'][$home_cc]) && !empty($data['settings']['url'][$country])){
-                  $term .= $sep. $country .' : \''. 'U-'. $data['settings']['url'][$country].'\'';
-               } else {
-                  $term .= $sep. $country .' : \'X-\'';
-               }
-            }
+            $link = $this->get_link_type ($data['type'], $data['asin'], $country, $data['search'], $data['settings']);
+            $term .= $sep. $country .' : \''.$type_map[$link['type']].'-' . $link['term'] . '\'';
             $sep = ',';
          }
          $term .= '}';
@@ -1551,6 +1528,34 @@ if (TIMING) {$time_taken = microtime(true)-$time_start;echo "<!--Cache Save: $ti
          $script = str_replace ('<a', '<a ' . $script, $text);
          $this->multi_id++;
          return $script;
+      }
+
+
+      function get_link_type ($type, $asin, $cc, $search, $settings) {
+         $home_cc = $settings['home_cc'];
+
+         if ($type == 'search' ) {
+            $term = $search;
+         } else {
+            if (!empty($asin[$cc])) {
+               $term = $asin[$cc];
+            } else if (($type == 'product') && !empty($settings['url'][$cc]) ) {
+               $type = 'url';
+               $term = $settings['url'][$cc];
+            } else if ($settings['search_link'] && !empty($asin[$home_cc])) {
+               $type = 'search';
+               $term = $search;
+            } else if (empty($asin[$home_cc]) && !empty($settings['url'][$cc])){
+               $type = 'url';
+               $term = $settings['url'][$cc];
+            } else if (!empty($asin[$home_cc])) {
+               $term = $asin[$home_cc];
+            } else {
+               $type = 'nolink';
+               $term = isset($settings['url'][$home_cc]) ? $settings['url'][$home_cc] :'';
+            }
+         }
+         return array('type' => $type, 'term' => $term);
       }
 
       function make_links($asins, $link_text, $Settings = NULL)
@@ -1615,6 +1620,7 @@ if (TIMING) {$time_taken = microtime(true)-$time_start;echo "<!--Cache Save: $ti
 
          foreach ($asins as $asin) {
 
+            /*****************************************************************************************/
             /*
              * This code required to maintain backward compatibility
              */
@@ -1653,15 +1659,16 @@ if (TIMING) {$time_taken = microtime(true)-$time_start;echo "<!--Cache Save: $ti
             if (isset($thumb))
                $object = '<img class="'. $Settings['image_class'] .'" src="'. $thumb . '" alt="'. $link_text .'">';
 
+            /*****************************************************************************************/
 
-            if ($Settings['search_link']) {
-               $Settings['template_content'] = $Settings['search_text'];
-               $search = $this->search->parse_template($Settings);
-               $search = array( '0' => $search, '1' => urlencode($search));
-            } else {
-               $search = NULL;
-            }
-            $output .= $this->make_link($asin, $object, $Settings, $local_info, $search);
+            /*
+             * Simple Text Link, populate the 'search' array with normal and escaped search template
+             */
+            $search = array( '0' => $Settings['search_text'], '1' => preg_replace('!(%[A-Z_]*%)!', '\1S#',$Settings['search_text']));
+            $Settings['template_content'] = $this->make_link($asin, $object, $Settings, $local_info, $search);
+
+            /* Run through the template parser to strip out any Keywords */
+            $output .= $this->search->parse_template($Settings);
 
          }
          return $output;

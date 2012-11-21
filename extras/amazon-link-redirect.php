@@ -4,7 +4,7 @@
 Plugin Name: Amazon Link Extra - Redirect
 Plugin URI: http://www.houseindorset.co.uk/plugins/amazon-link/
 Description: Adds the ability to redirect to any Amazon Link product using a URL of the format www.mydomain.com/go/&lt;ASIN>/&lt;LINK TYPE S,R or A>/&lt;Domain ca,cn,de, etc.>/?args. Note if using these type of links it is recommended that you clearly indicate on your site that the link is to Amazon otherwise you might be in breach of the terms and conditions of your associates account.
-Version: 1.1
+Version: 1.2
 Author: Paul Stuttard
 Author URI: http://www.houseindorset.co.uk
 */
@@ -42,6 +42,7 @@ function alx_redirect($settings, $al) {
       $home_cc = $settings['default_cc'];
 
       // Get all named args
+      $opts = array();
       foreach ($args as $arg => $data)
          if (!is_int($arg) && !empty($data)) $opts[$arg] = $data;
 
@@ -69,9 +70,11 @@ function alx_redirect($settings, $al) {
       $settings['home_cc'] = $home_cc;
 
       $url = $al->get_url('',$type, $settings['asin'], rawurlencode($al->search->parse_template($settings)), $al->get_local_info($settings), $settings);
-//echo "<PRE>"; print_r($url); echo "</PRE>";
-      wp_redirect($url, '302');
-      die();
+//echo "<PRE>URL:"; print_r($url); echo "</PRE>";
+      if ($url) {
+         wp_redirect($url, '302');
+         die();
+      }
    }
 
    if ($settings['redirect_url']) {
