@@ -403,8 +403,8 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
              'tld'          => array( 'Description' => __('Localised Top Level Domain (.com, .co.uk, etc.)', 'amazon-link')),
              'rcm'          => array( 'Description' => __('Localised RCM site host domain (rcm.amazon.com, rcm-uk.amazon.co.uk, etc.)', 'amazon-link')),
 
-             'downloaded'   => array( 'Description' => __('1 if Images are in the local Wordpress media library', 'amazon-link')),
-             'found'        => array( 'Description' => __('1 if product was found doing a live data request (also 1 if live not enabled).', 'amazon-link'))
+             'downloaded'   => array( 'Description' => __('1 if Images are in the local Wordpress media library', 'amazon-link'), 'Calculated' => '1'),
+             'found'        => array( 'Description' => __('1 if product was found doing a live data request (also 1 if live not enabled).', 'amazon-link'), 'Calculated' => '1')
                                   );
              $this->keywords = apply_filters('amazon_link_keywords', $this->keywords);
          }
@@ -1095,7 +1095,7 @@ function alx_'.$slug.'_default_templates ($templates) {
          $new_content='';
          $this->in_post = $in_post;
 
-         $regex = apply_filters('amazon_link_regex', '/\[amazon +'. '(?<args>(?:[^\[\]]*(?:\[[a-z]*\]){0,1})*)'. '\]/', $this);
+         $regex = apply_filters('amazon_link_regex', '/\[amazon +'. '(?P<args>(?:[^\[\]]*(?:\[[a-z]*\]){0,1})*)'. '\]/', $this);
 
          if ($doLinks) {
             $new_content = preg_replace_callback( $regex, array($this,'shortcode_expand'), $content);

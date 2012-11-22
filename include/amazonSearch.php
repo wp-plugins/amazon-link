@@ -317,7 +317,7 @@ if (!class_exists('AmazonLinkSearch')) {
          }
       }
 
-      function parse_template ($item) {
+      function parse_template_old ($item) {
          $countries       = array_keys($this->alink->get_country_data());
          $local_info      = $this->alink->get_local_info($item);
          $local_country   = $local_info['cc'];
@@ -463,7 +463,7 @@ if (!class_exists('AmazonLinkSearch')) {
        * found in the template - e.g. 'FOUND' will be done first!
        * We need to run the regex twice to catch new template tags replacing old ones (LINK_OPEN)
        */
-      function parse_template_regex ($item) {
+      function parse_template ($item) {
          $countries        = array_keys($this->alink->get_country_data());
 
          $local_info       = $this->alink->get_local_info($item);
@@ -489,7 +489,9 @@ if (!class_exists('AmazonLinkSearch')) {
          $this->data     = $data;
 
          $countries       = implode('|',$countries);
+         $this->settings['skip_calculated'] = True;
          $output = preg_replace_callback("!%(?<keyword>[A-Z_]+)%(?:(?<cc>$countries)?(?<escape>S)?#)?!i", array($this, 'parse_template_callback'), $input);
+         $this->settings['skip_calculated'] = False;
          $output = preg_replace_callback("!%(?<keyword>[A-Z_]+)%(?:(?<cc>$countries)?(?<escape>S)?#)?!i", array($this, 'parse_template_callback'), $output);
          $this->alink->Settings['default_cc'] = $item['default_cc'];
          $this->alink->Settings['multi_cc'] = $item['multi_cc'];
@@ -511,7 +513,7 @@ if (!class_exists('AmazonLinkSearch')) {
          $asins            = $item['asin'];
          $default_country  = $item['home_cc'];
 
-         if (!array_key_exists($keyword, $keywords)) return $args[0]; // or '';
+         if (!array_key_exists($keyword, $keywords) || (!empty($keywords[$keyword]['Calculated']) && $this->settings['skip_calculated'])) return $args[0]; // or '';
           
          $key_data  = $keywords[$keyword];
          $country   = $item['local_cc'];

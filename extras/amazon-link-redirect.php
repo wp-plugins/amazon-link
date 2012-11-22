@@ -35,7 +35,7 @@ function alx_redirect($settings, $al) {
    $type_map = array ( 'A' => 'product', 'S' => 'search', 'R' => 'review');
 
    $uri = $_SERVER['REQUEST_URI'];
-   $match = preg_match( '!^/'.$settings['redirect_word'].'(?:/(?<asin>[A-Z0-9]{10})|/(?<ref>[^/]{2,}))?(?:/(?<type>A|S|R))?(?:/(?<default_cc>ca|cn|de|fr|it|es|jp|uk|us))?!', $uri, $args);
+   $match = preg_match( '!^/'.$settings['redirect_word'].'(?:/(?P<asin>[A-Z0-9]{10})|/(?P<ref>[^/]{2,}))?(?:/(?P<type>A|S|R))?(?:/(?P<default_cc>ca|cn|de|fr|it|es|jp|uk|us))?!', $uri, $args);
    if ( $match ) {
       $arg_position = strpos($uri,'?');
       if ($arg_position > 0) $parameters = substr($uri,$arg_position+1);
@@ -145,10 +145,10 @@ function alx_redirect_shortcode_template ($template, $al) {
 function alx_redirect_regex ($regex, $al) {
    $settings = $al->getSettings();
    return '!<a\sclass="(?U:.*)amazon-link(?U:.*)"'. // Must start with class element ignoring any other classes
-          ' (?:(?U:.*)href=".*/'. $settings['redirect_word'] .'(?:/(?<asin>[A-Z0-9]{10})|/(?<ref>[^/?]{2,}))(?:\?(?<args>(?U:[^\[\]]*(?:\[[a-z]*\]){0,1})))?")?'. // optional href
+          ' (?:(?U:.*)href=".*/'. $settings['redirect_word'] .'(?:/(?P<asin>[A-Z0-9]{10})|/(?P<ref>[^/?]{2,}))(?:\?(?P<args>(?U:[^\[\]]*(?:\[[a-z]*\]){0,1})))?")?'. // optional href
           ' (?:[>]*)' .                             // ignore any further data inside the element
           ' > '.                                    // End of link tag
-          ' (?<text>.*)'.                           // optional text
+          ' (?P<text>.*)'.                           // optional text
           ' </a>!x';                                // close link tag
 }
 

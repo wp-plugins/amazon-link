@@ -4,7 +4,7 @@
 Plugin Name: Amazon Link Extra - References
 Plugin URI: http://www.houseindorset.co.uk/plugins/amazon-link/
 Description: !!!BETA!!! This plugin adds the ability to pre-define shortcodes and save them in the database with a unique reference that can be re-used many times across your site from within multiple shortcodes, updating the single item in the database will change all the links that use that reference. Create the named reference on the 'Reference' settings page and then in the shortcode simply add the argument 'ref=XXX'
-Version: 1.2
+Version: 1.3
 Author: Paul Stuttard
 Author URI: http://www.houseindorset.co.uk
 */
@@ -295,8 +295,10 @@ function alx_reference_search_form($options, $al) {
    $insert_at = array_search('text', $keys);
    $new_options = array_slice( $options, 1, $insert_at, true);
    $ref_options = alx_reference_get_options ($al);
+   $refs = array('' => array('Name' => '')) + (isset($ref_options['ref']['Options']) ? $ref_options['ref']['Options'] : array());
+
    $new_options['ref'] = array( 'Name' => 'Reference', 'Hint' => __('Use this reference as the basis for the shortcode','amazon-link'), 
-                                'Options' => array('' => array('Name' => '')) + $ref_options['ref']['Options'], 'Type' => 'selection', 'Id' => 'AmazonLinkOpt');
+                                'Options' => $refs, 'Type' => 'selection', 'Id' => 'AmazonLinkOpt');
 
    $new_options += array_slice( $options, $insert_at+1, NULL, true);
    return $new_options;
