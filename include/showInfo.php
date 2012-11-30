@@ -1,18 +1,24 @@
+<?php
+   $info = get_plugin_data($this->filename);
+?>
 <div class="amazon-link-info">
-<div class="amazon-link-info-heading">Amazon Link Plugin</div>
+<div class="amazon-link-info-heading"><?php echo $info['Name']?></div>
 
-<p>A plugin that provides a facility to insert Amazon product links directly into your site's Pages, Posts and Widgets and Templates.</p>
+<p><?php echo $info['Description']?></p>
 <dl>
 <dt>Author:</dt>
-<dd><a href="http://profiles.wordpress.org/users/paulstuttard/">Paul Stuttard</a></dd>
+<dd><?php echo $info['Author']?></dd>
+</dl>
 <dl>
 <dt>Documentation:</dt>
-<dd><a href="http://wordpress.org/extend/plugins/amazon-link/">Wordpress Plugin Page</a></dd>
+<dd><a href="http://wordpress.org/extend/plugins/<?php echo $info['TextDomain']?>/">Wordpress Plugin Page</a></dd>
+</dl>
 <dl>
 <dt>Homepage:</dt>
-<dd><a href="http://www.houseindorset.co.uk/plugins/amazon-link/">My Plugin Page</a></dd>
+<dd><?php echo $info['Title']?></dd>
+</dl>
 <dl>
 <dt>Version:</dt>
-<dd><?php echo $this->plugin_version;?></dd>
-
+<dd><?php echo $info['Version']?></dd>
+</dl>
 </div>
