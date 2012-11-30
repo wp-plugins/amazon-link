@@ -4,7 +4,7 @@
 Plugin Name: Amazon Link Extra - Import / Export
 Plugin URI: http://www.houseindorset.co.uk/plugins/amazon-link/
 Description: !!!BETA!!! This plugin adds the ability to search for Amazon Link shortcodes and replace with static content or links of a different format and vice versa.
-Version: 1.1
+Version: 1.3
 Author: Paul Stuttard
 Author URI: http://www.houseindorset.co.uk
 */
@@ -36,7 +36,7 @@ function alx_impexp_show_panel () {
    /*
     * Possible Search and Replace Patterns
     */
-   $expressions = array( 'standard'    => array ( 'Regex'       => '/\[amazon +(?<args>(?:[^\[\]]*(?:\[[a-z]*\]){0,1})*)\]/',
+   $expressions = array( 'standard'    => array ( 'Regex'       => '/\[amazon +(?P<args>(?:[^\[\]]*(?:\[[a-z]*\]){0,1})*)\]/',
                                                   'Name'        => __('Standard Shortcode', 'amazon-link'),
                                                   'Description' => 'The original Amazon Link shortcode of the form [amazon arg=xxx].',
                                                   'Template'    => '[amazon %ARGS%]'),
@@ -46,14 +46,14 @@ function alx_impexp_show_panel () {
                          'remove'      => array ( 'Name'        => __('Remove Shortcodes', 'amazon-link'),
                                                   'Description' => 'Remove all shortcodes',
                                                   'Template'    => ''),
-                         'hide'        => array ( 'Regex'       => '/<!--amazon-link-open (?<args>(?:[^\[\]]*(?:\[[a-z]*\]){0,1})*)-->(?U:.*)<!--amazon-link-close-->/',
+                         'hide'        => array ( 'Regex'       => '/<!--amazon-link-open (?P<args>(?:[^\[\]]*(?:\[[a-z]*\]){0,1})*)-->(?U:.*)<!--amazon-link-close-->/',
                                                   'Name'        => __('Hidden Shortcodes', 'amazon-link'),
                                                   'Description' => 'Links are represented by hidden html elements of the form <!--amazon-link-open: %ARGS%-->...<!--amazon-link-close-->',
                                                   'Template'    => '<!--amazon-link-open: %ARGS%--><!--amazon-link-close-->'),
                          'static-hide' => array ( 'Name'        => __('Static + Hidden Shortcodes', 'amazon-link'),
                                                   'Description' => 'Links are expanded into static content and enclosed with hidden html elements of the form <!--amazon-link-open: %ARGS%-->Expanded Static Link<!--amazon-link-close-->',
                                                   'Template'    => '<!--amazon-link-open: %ARGS%-->%STATIC%<!--amazon-link-close-->'),
-                         'amazon'      => array ( 'Regex'       => '!<a(?U:.*)href="(?U:[^"]*)www.amazon.(?:com|co.uk|ca|fr|jp|de|es)/(?U:[^/?]*[/?])*?(?<asin>[0-9A-Z]{10})(?U:[/?][^"/?]*)*?"(?U:.*)>(?<text>.*?)</a>!',
+                         'amazon'      => array ( 'Regex'       => '!<a(?U:.*)href="(?U:[^"]*)www.amazon.(?:com|co.uk|ca|fr|jp|de|es)/(?U:[^/?]*[/?])*?(?P<asin>[0-9A-Z]{10})(?U:[/?][^"/?]*)*?"(?U:.*)>(?P<text>.*?)</a>!',
                                                   'Name'        => __('Amazon Link', 'amazon-link'),
                                                   'Description' => 'Standard Amazon Product Links of the form <a ... href="www.amazon.%TLD%/.../%ASIN%/" ... >%TEXT%</a>',
                                                   )
@@ -204,9 +204,17 @@ function alx_impexp_show_panel () {
 function alx_impexp_do_shortcode($match) {
    global $awlfw, $alx_impexp;
 
-   $asin = isset($match['asin']) ? 'asin='.$match['asin']. '&' : '';
-   $text= isset($match['text']) ? 'text='.$match['text']. '&' : '';
-   $args = $asin.$text.$match['args'];
+   $extra_args  = !empty($match['args']) ? '&' . $match['args'] : '';
+   unset ($match['args']);
+   $args = $sep ='';
+   foreach ($match as $arg => $data) {
+      if (!is_int($arg) && !empty($data)) {
+         $args .= $sep. $arg .'='. $data;
+         $sep = '&';
+      }
+   }
+   $args .= $extra_args;
+
    remove_all_filters ('amazon_link_process_args');
 
    $settings = $awlfw->parseArgs($args);

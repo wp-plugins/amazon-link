@@ -113,10 +113,10 @@ if (!class_exists('bing_translate')) {
        */
       function options ($options_list) {
          $options_list['windows_live_id'] = array ( 'Name' => __('Translate Key', 'amazon-link'),
-                                                   'Description' => __('Windows Live/Azure Secure Account Key that is subscribed to the Microsoft Translator Service.', 'amazon-link'),
-                                                   'Type' => 'text',
-                                                   'Default' => '',
-                                                   'Class' => 'al_border');
+                                                    'Description' => __('Windows Live/Azure Secure Account Key that is subscribed to the Microsoft Translator Service.', 'amazon-link'),
+                                                    'Type' => 'text',
+                                                    'Default' => '',
+                                                    'Class' => 'al_border');
          return $options_list;
       }
 

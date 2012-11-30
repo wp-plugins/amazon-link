@@ -97,13 +97,21 @@ function al_show( id ) {
 
       if (document.getElementById) { // DOM3 = IE5, NS6
          var menu_element = document.getElementById('al_popup');
+         
          if (al_y> 10) al_y -= 5;
          al_x += 15;
          menu_element.style.left = al_x + "px";
          menu_element.style.top = al_y + "px";
          menu_element.style.visibility = 'visible';
-         menu_element.innerHTML=al_content;
+         menu_element.innerHTML= al_content;
          menu_element.style.display = 'block';
+         actual_x = menu_element.documentOffsetLeft;
+         actual_y = menu_element.documentOffsetTop;
+         al_x = al_x + (al_x - actual_x);
+         al_y = al_y + (al_y - actual_y);
+         menu_element.style.left = al_x + "px";
+         menu_element.style.top = al_y + "px";
+
       }
    } else {
       al_id = -1;

@@ -105,7 +105,7 @@ if (!class_exists('AmazonLinkSearch')) {
          $results['message'] = 'No Error ';
          $results['success'] = 0;
          if (isset($Items['Error'])) {
-            $results['message'] = 'Error: ' . $Items['Error'];
+            $results['message'] = 'Error: ' . (isset($Items['Error']['Message']) ? $Items['Error']['Message'] : 'No Error Message');
          } else if (is_array($Items) && (count($Items) >0)) {
             foreach($Items as $item) {
                $item = array_merge($Settings,$item);
@@ -269,6 +269,8 @@ if (!class_exists('AmazonLinkSearch')) {
          return $items;
       }
 
+/*****************************************************************************************/
+
       function get_links ($asin, $settings, $local_info, &$data) {
 
          if (!isset($data['search_text_s'])) {
@@ -281,9 +283,9 @@ if (!class_exists('AmazonLinkSearch')) {
          $search_s = $data['search_text_s'];
          $search = $settings['search_text'];
 
-         if (!isset($data[$local_info['cc']]['link_open'])) $data[$local_info['cc']]['link_open'] = substr($this->alink->make_link($asin,'',$settings, $local_info, array($search, $search_s)),0,-4);
-         if (!isset($data[$local_info['cc']]['rlink_open'])) $data[$local_info['cc']]['rlink_open'] = substr($this->alink->make_link($asin,'',$settings, $local_info, array($search, $search_s), 'review'),0,-4);
-         if (!isset($data[$local_info['cc']]['slink_open'])) $data[$local_info['cc']]['slink_open'] = substr($this->alink->make_link($asin,'',$settings, $local_info, array($search, $search_s), 'search'),0,-4);
+         if (!isset($data[$local_info['cc']]['link_open'])) $data[$local_info['cc']]['link_open'] = $this->alink->make_link($asin,$settings, $local_info, array($search, $search_s), 'product');
+         if (!isset($data[$local_info['cc']]['rlink_open'])) $data[$local_info['cc']]['rlink_open'] = $this->alink->make_link($asin,$settings, $local_info, array($search, $search_s), 'review');
+         if (!isset($data[$local_info['cc']]['slink_open'])) $data[$local_info['cc']]['slink_open'] = $this->alink->make_link($asin,$settings, $local_info, array($search, $search_s), 'search');
          if (!isset($data[$local_info['cc']]['link_close'])) $data[$local_info['cc']]['link_close'] = '</a>';
 
       }
@@ -316,6 +318,220 @@ if (!class_exists('AmazonLinkSearch')) {
             }
          }
       }
+
+      /*
+       * This will perform differently to the usual parser as it does the keywords in the order
+       * found in the template - e.g. 'FOUND' will be done first!
+       * We need to run the regex twice to catch new template tags replacing old ones (LINK_OPEN)
+       */
+      function parse_template ($item) {
+         $countries        = array_keys($this->alink->get_country_data());
+
+         $local_info       = $this->alink->get_local_info($item);
+         $local_country    = $local_info['cc'];
+         $default_country  = $item['default_cc'];
+         $item['home_cc']  = $default_country;
+         $item['local_cc'] = $local_country;
+         
+         // 'channel' used may be different for each shortcode or post so need to refresh every template
+         $data = array( $local_country => $local_info);
+
+         if (!is_array($item['asin'])) $item['asin'] = array($default_country => $item['asin']);
+
+         if ($item['global_over']) {
+            $this->remap_data($item, $countries, $data);
+         } else {
+            $this->remap_data($item, array($local_country), $data);
+         }
+
+         $input = htmlspecialchars_decode (stripslashes($item['template_content']));
+
+         $this->settings = $item;
+         $this->data     = $data;
+
+         $countries       = implode('|',$countries);
+         $this->settings['skip_calculated'] = True;
+         $output = preg_replace_callback("!%(?<keyword>[A-Z_]+)%(?:(?<cc>$countries)?(?<escape>S)?#)?!i", array($this, 'parse_template_callback'), $input);
+         $this->settings['skip_calculated'] = False;
+         $output = preg_replace_callback("!%(?<keyword>[A-Z_]+)%(?:(?<cc>$countries)?(?<escape>S)?#)?!i", array($this, 'parse_template_callback'), $output);
+         $this->alink->Settings['default_cc'] = $item['default_cc'];
+         $this->alink->Settings['multi_cc'] = $item['multi_cc'];
+         $this->alink->Settings['localise'] = $item['localise'];
+
+         return $output;
+      }
+
+      function parse_template_callback ($args) {
+
+         $keyword  = strtolower($args['keyword']);
+         $keywords = $this->alink->get_keywords();
+         $settings = $this->settings;
+
+         if (!array_key_exists($keyword, $keywords) || (!empty($keywords[$keyword]['Calculated']) && $settings['skip_calculated'])) return $args[0]; // or '';
+          
+         $asins            = $settings['asin'];
+         $default_country  = $settings['home_cc'];
+
+         $key_data  = $keywords[$keyword];
+
+         // Process Modifiers
+         $escaped   = !empty($args['escape']);
+         $local_settings = $settings;
+         if (empty($args['cc'])) {
+            $localised = true;
+            $country   = $settings['local_cc'];
+         } else {
+            $country = strtolower($args['cc']);
+            $local_settings['multi_cc'] = 0;
+            $local_settings['localise'] = 0;
+            $local_settings['default_cc'] = $country;
+            $localised = false;
+         }
+   
+         if (!isset($this->data[$country][$keyword])) {
+            $local_info = $this->alink->get_local_info($local_settings);
+            if (!isset($this->data[$country]['asin'])) {
+               $this->data[$country]['asin'] = $this->data[$default_country]['asin'];
+            }
+            $asin = $this->data[$country]['asin'];
+
+            if ($local_settings['live'] && $local_settings['prefetch']) {
+echo "<PRE>Prefetch: $country -> $keyword </prE>";
+               $item_data = array_shift($this->alink->cached_query($asin, $local_settings));
+//echo "<PRE>item: "; print_r($item_data); echo " isset: "; var_export(isset($item_data[$keyword])); echo " </prE>";
+               if ($item_data['found'] && empty($asins[$country])) {
+                  $asins[$country] = $asin;
+                  $this->settings['asin'][$country] = $asin;
+               } else if ($localised && $settings['localise'] && ($country != $settings['default_cc'])) {
+                  $local_settings['default_cc'] = $settings['default_cc'];
+                  $local_settings['localise']   = 0;
+                  $item_data = array_shift($this->alink->cached_query($asin, $local_settings));
+               }
+               $this->data[$country] = array_merge($item_data, (array)$this->data[$country]);
+//echo "<PRE>data: "; print_r($this->data); echo " </prE>";
+            }
+
+
+            if ($key_data['Link']) {
+               $this->get_links($asins, $local_settings, $local_info, $this->data);
+            } else if ($key_data['Image']) {
+               /* First try and get uploaded image info */
+               $this->get_images($asin, $this->data[$country]);
+            }
+
+            if ($key_data['Live'] && !isset($this->data[$country][$keyword]) ) {
+               if ($local_settings['live']) {
+                  $item_data = array_shift($this->alink->cached_query($asin, $local_settings));
+                  if ($item_data['found'] && empty($asins[$country])) {
+//                    $asins[$country] = $asin;
+//                    $this->settings['asin'][$country] = $asin;
+//echo "<PRE>ASINS: $country:"; print_r($asins); echo "</pRE>";
+                  } else if ($localised && $settings['localise'] && ($country != $settings['default_cc'])) {
+                     $local_settings['default_cc'] = $settings['default_cc'];
+                     $local_settings['localise']   = 0;
+                     $item_data = array_shift($this->alink->cached_query($asin, $local_settings));
+
+                  }
+                  if ($settings['debug'] && isset($item_data['Error'])) {
+                     echo "<!-- amazon-link ERROR: "; print_r($item_data); echo "-->";
+                  }
+
+                  $this->data[$country] = array_merge($item_data, (array)$this->data[$country]);
+
+               } else {
+
+                  // Live keyword, but live data not enabled and item not provided by the user
+                  $this->data[$country][$keyword] = $key_data['Default'];
+                  $this->data[$country]['found']  = 1;
+
+               }
+
+            } else if (($keyword == 'found') && !isset($this->data[$country][$keyword])) {
+               $this->data[$country][$keyword] = 1;
+            } else {
+               $this->data[$country] = array_merge($local_info, $this->data[$country]);
+               if (!isset($this->data[$country][$keyword])) $this->data[$country][$keyword] = 'NL';
+            }
+         }
+
+         $phrase = $this->data[$country][$keyword];
+
+         if ($settings['multi_cc'] && $key_data['Link']) unset ($this->data[$country][$keyword]); // Only use links once
+
+         /*
+          * We urlencode the "'","\r" and "\n" so the javascript parses correctly.
+          * We encode the "&" so the parse_args & html_entity_decode do not see it as a field separator. (data inserted into shortcode from helper)
+          * urlencode works for 'multisite' javascript
+          * ''' & '\n' also causes problems for insertForm results form javascript
+          * Don't do full urlencode as it makes the shortcode data unreadable in the post
+          */
+         if ($escaped) $phrase = addslashes(htmlspecialchars (str_ireplace(array( '&', "'", "\r", "\n"), array('%26', '&#39;','%0D','%0A'), $phrase),ENT_COMPAT | ENT_HTML401,'UTF-8')); //urlencode
+
+         $this->data[$default_country]['unused_args'] = preg_replace('!(&?)'.$keyword.'=[^&]*(\1?)&?!','\2', $this->data[$default_country]['unused_args']);
+         return $phrase;
+      }
+
+/*****************************************************************************************/
+
+      function find_attachments ($asin) {
+
+         // Do we already have a local image ? 
+         $args = array( 'post_type' => 'attachment', 'numberposts' => -1, 'post_status' => 'all', 'no_filters' => true,
+                        'meta_query' => array(array('key' => 'amazon-link-ASIN', 'value' => $asin)));
+         $query = new WP_Query( $args );
+         $media_ids = $query->posts;
+         if ($media_ids) {
+            return $media_ids;
+         } else {
+            return new WP_Error(__('No images found','amazon-link'));
+         }
+      }
+
+      function grab_image ($ASIN, $post_id = 0) {
+
+         $ASIN = strtoupper($ASIN);
+
+         $data = array_shift($this->alink->cached_query($ASIN));
+
+         if ( ! ( ( $uploads = wp_upload_dir() ) && false === $uploads['error'] ) )
+            return new WP_Error($uploads['error']);
+
+         $filename = $ASIN. '.JPG';
+         $filename = '/' . wp_unique_filename( $uploads['path'], basename($filename));
+         $filename_full = $uploads['path'] . $filename;
+
+         $result = wp_remote_get($data['image']);
+         if (is_wp_error($result))
+            return $result; //new WP_Error(__('Could not retrieve remote image file','amazon-link'));
+
+         // Save file to media library
+         $content = $result['body'];
+         $size = file_put_contents ($filename_full, $content);
+
+         if (is_readable($filename_full)) {
+            // Grabbed Image successfully now add it to the media library
+            $wp_filetype = wp_check_filetype(basename($filename_full), null );
+            $attachment = array(
+               'guid' => $filename,
+               'post_mime_type' => $wp_filetype['type'],
+               'post_title' => $data['artist'] . ' - ' . $data['title'],   // Title
+               'post_excerpt' => $data['title'],                     // Caption
+               'post_content' => '',                           // Description
+               'post_status' => 'inherit');
+            $attach_id = wp_insert_attachment( $attachment, $filename_full, $post_id);
+            // you must first include the image.php file
+            // for the function wp_generate_attachment_metadata() to work
+            update_post_meta($attach_id , 'amazon-link-ASIN', $ASIN);
+            require_once(ABSPATH . "wp-admin" . '/includes/image.php');
+            $attach_data = wp_generate_attachment_metadata( $attach_id, $filename_full );
+            //echo "<PRE>"; print_r($attach_data); echo "</PRE>";
+            wp_update_attachment_metadata( $attach_id,  $attach_data );
+         } else {
+            return new WP_Error(__('Could not read downloaded image','amazon-link'));
+         }
+         return $attach_id;
+      }
+
 
       function parse_template_old ($item) {
          $countries       = array_keys($this->alink->get_country_data());
@@ -413,9 +629,8 @@ if (!class_exists('AmazonLinkSearch')) {
                            $item_data = array_shift($this->alink->cached_query($asin, $local_settings));
 //echo "<PRE>DATA: "; print_r($item_data); echo "</pRE>";
                         }
-                        if ($item['debug'] && isset($item_data['error'])) {
+                        if ($item['debug'] && isset($item_data['Error'])) {
                            echo "<!-- amazon-link ERROR: "; print_r($item_data); echo "-->";
-
                         }
 //echo "<PRE>DATA: "; print_r($item_data); echo "</pRE>";
                           $data[$country] = array_merge($item_data, (array)$data[$country]);
@@ -458,195 +673,7 @@ if (!class_exists('AmazonLinkSearch')) {
       }
 
 
-      /*
-       * This will perform differently to the usual parser as it does the keywords in the order
-       * found in the template - e.g. 'FOUND' will be done first!
-       * We need to run the regex twice to catch new template tags replacing old ones (LINK_OPEN)
-       */
-      function parse_template ($item) {
-         $countries        = array_keys($this->alink->get_country_data());
 
-         $local_info       = $this->alink->get_local_info($item);
-         $local_country    = $local_info['cc'];
-         $default_country  = $item['default_cc'];
-         $item['home_cc']  = $default_country;
-         $item['local_cc'] = $local_country;
-         
-         // 'channel' used may be different for each shortcode or post so need to refresh every template
-         $data = array( $local_country => $local_info);
-
-         if (!is_array($item['asin'])) $item['asin'] = array($default_country => $item['asin']);
-
-         if ($item['global_over']) {
-            $this->remap_data($item, $countries, $data);
-         } else {
-            $this->remap_data($item, array($local_country), $data);
-         }
-
-         $input = htmlspecialchars_decode (stripslashes($item['template_content']));
-
-         $this->settings = $item;
-         $this->data     = $data;
-
-         $countries       = implode('|',$countries);
-         $this->settings['skip_calculated'] = True;
-         $output = preg_replace_callback("!%(?<keyword>[A-Z_]+)%(?:(?<cc>$countries)?(?<escape>S)?#)?!i", array($this, 'parse_template_callback'), $input);
-         $this->settings['skip_calculated'] = False;
-         $output = preg_replace_callback("!%(?<keyword>[A-Z_]+)%(?:(?<cc>$countries)?(?<escape>S)?#)?!i", array($this, 'parse_template_callback'), $output);
-         $this->alink->Settings['default_cc'] = $item['default_cc'];
-         $this->alink->Settings['multi_cc'] = $item['multi_cc'];
-         $this->alink->Settings['localise'] = $item['localise'];
-
-         return $output;
-      }
-
-      function parse_template_callback ($args) {
-
-
-         $keyword     = strtolower($args['keyword']);
-         $modifier_cc = strtolower($args['cc']);
-         $modifier_s  = $args['escape'];
-
-         $keywords = $this->alink->get_keywords();
-         $item     = $this->settings;
-
-         $asins            = $item['asin'];
-         $default_country  = $item['home_cc'];
-
-         if (!array_key_exists($keyword, $keywords) || (!empty($keywords[$keyword]['Calculated']) && $this->settings['skip_calculated'])) return $args[0]; // or '';
-          
-         $key_data  = $keywords[$keyword];
-         $country   = $item['local_cc'];
-         $localised = true;
-         $escaped   = !empty($modifier_s);
-         $local_settings = $item;
-
-         if (!empty($modifier_cc)) {
-            $country= $modifier_cc;
-            $local_settings['multi_cc'] = 0;
-            $local_settings['localise'] = 0;
-            $local_settings['default_cc'] = $country;
-            $localised = false;
-         }
-   
-         if (!isset($this->data[$country][$keyword])) {
-            $local_info = $this->alink->get_local_info($local_settings);
-            if (!isset($this->data[$country]['asin'])) {
-               $this->data[$country]['asin'] = $this->data[$default_country]['asin'];
-            }
-            $asin = $this->data[$country]['asin'];
-                  
-            if ($key_data['Link']) {
-               $this->get_links($asins, $local_settings, $local_info, $this->data);
-            }
-            if ($key_data['Image']) {
-               /* First try and get uploaded image info */
-               $this->get_images($asin, $this->data[$country]);
-            }
-            if ($key_data['Live'] && !isset($this->data[$country][$keyword]) ) {
-               if ($local_settings['live']) {
-                  $item_data = array_shift($this->alink->cached_query($asin, $local_settings));
-                  if ($localised && !$item_data['found'] && $item['localise'] && ($country != $item['default_cc'])) {
-                     $local_settings['default_cc'] = $item['default_cc'];
-                     $local_settings['localise']   = 0;
-                     $item_data = array_shift($this->alink->cached_query($asin, $local_settings));
-
-                  }
-                  if ($item['debug'] && isset($item_data['error'])) {
-                     echo "<!-- amazon-link ERROR: "; print_r($item_data); echo "-->";
-                  }
-
-//echo "<PRE>DATA: "; print_r($item_data); echo "</pRE>";
-                  $this->data[$country] = array_merge($item_data, (array)$this->data[$country]);
-//echo "<PRE>DATA: "; print_r($data); echo "</pRE>";
-               } else {
-                  $this->data[$country][$keyword] = 'Undefined';
-                  $this->data[$country]['found'] = 1;
-               }
-            } else if (($keyword == 'found') && !isset($this->data[$country][$keyword])) {
-               $this->data[$country][$keyword] = 1;
-            } else {
-               $this->data[$country] = array_merge($local_info, $this->data[$country]);
-               if (!isset($this->data[$country][$keyword])) $this->data[$country][$keyword] = 'NL';
-            }
-         }
-
-         $phrase = $this->data[$country][$keyword];
-
-         if ($item['multi_cc'] && $key_data['Link']) unset ($this->data[$country][$keyword]); // Only use links once
-
-         /*
-          * We urlencode the "'","\r" and "\n" so the javascript parses correctly.
-          * We encode the "&" so the parse_args & html_entity_decode do not see it as a field separator. (data inserted into shortcode from helper)
-          * urlencode works for 'multisite' javascript
-          * ''' & '\n' also causes problems for insertForm results form javascript
-          * Don't do full urlencode as it makes the shortcode data unreadable in the post
-          */
-         if ($escaped) $phrase = addslashes(htmlspecialchars (str_ireplace(array( '&', "'", "\r", "\n"), array('%26', '&#39;','%0D','%0A'), $phrase),ENT_COMPAT | ENT_HTML401,'UTF-8')); //urlencode
-
-         $this->data[$default_country]['unused_args'] = preg_replace('!(&?)'.$keyword.'=[^&]*(\1?)&?!','\2', $this->data[$default_country]['unused_args']);
-         return $phrase;
-      }
-
-
-      function find_attachments ($asin) {
-
-         // Do we already have a local image ? 
-         $args = array( 'post_type' => 'attachment', 'numberposts' => -1, 'post_status' => 'all', 'no_filters' => true,
-                        'meta_query' => array(array('key' => 'amazon-link-ASIN', 'value' => $asin)));
-         $query = new WP_Query( $args );
-         $media_ids = $query->posts;
-         if ($media_ids) {
-            return $media_ids;
-         } else {
-            return new WP_Error(__('No images found','amazon-link'));
-         }
-      }
-
-      function grab_image ($ASIN, $post_id = 0) {
-
-         $ASIN = strtoupper($ASIN);
-
-         $data = array_shift($this->alink->cached_query($ASIN));
-
-         if ( ! ( ( $uploads = wp_upload_dir() ) && false === $uploads['error'] ) )
-            return new WP_Error($uploads['error']);
-
-         $filename = $ASIN. '.JPG';
-         $filename = '/' . wp_unique_filename( $uploads['path'], basename($filename));
-         $filename_full = $uploads['path'] . $filename;
-
-         $result = wp_remote_get($data['image']);
-         if (is_wp_error($result))
-            return $result; //new WP_Error(__('Could not retrieve remote image file','amazon-link'));
-
-         // Save file to media library
-         $content = $result['body'];
-         $size = file_put_contents ($filename_full, $content);
-
-         if (is_readable($filename_full)) {
-            // Grabbed Image successfully now add it to the media library
-            $wp_filetype = wp_check_filetype(basename($filename_full), null );
-            $attachment = array(
-               'guid' => $filename,
-               'post_mime_type' => $wp_filetype['type'],
-               'post_title' => $data['artist'] . ' - ' . $data['title'],   // Title
-               'post_excerpt' => $data['title'],                     // Caption
-               'post_content' => '',                           // Description
-               'post_status' => 'inherit');
-            $attach_id = wp_insert_attachment( $attachment, $filename_full, $post_id);
-            // you must first include the image.php file
-            // for the function wp_generate_attachment_metadata() to work
-            update_post_meta($attach_id , 'amazon-link-ASIN', $ASIN);
-            require_once(ABSPATH . "wp-admin" . '/includes/image.php');
-            $attach_data = wp_generate_attachment_metadata( $attach_id, $filename_full );
-            //echo "<PRE>"; print_r($attach_data); echo "</PRE>";
-            wp_update_attachment_metadata( $attach_id,  $attach_data );
-         } else {
-            return new WP_Error(__('Could not read downloaded image','amazon-link'));
-         }
-         return $attach_id;
-      }
    }
 }
 ?>

@@ -4,7 +4,7 @@
 Plugin Name: Amazon Link Extra - Spoof Locale
 Plugin URI: http://www.houseindorset.co.uk/plugins/amazon-link/
 Description: Used for testing the appearance of your site when viewed from another country (needs ip2nation installed & localise Amazon Link option enabled to have any affect).  To change the locale, update the 'Spoof Locale' option in the Amazon Link settings page, or append `?spoof_locale=&lt;country code>` to the page URL. You must Deactivate/Un-install this plugin to disable the spoofing.
-Version: 1.0
+Version: 1.1
 Author: Paul Stuttard
 Author URI: http://www.houseindorset.co.uk
 */
@@ -45,10 +45,12 @@ function alx_spoof_locale_options ($options_list) {
 /*
  * The Spoof Locale action function that is called when the Amazon Link plugin is Initialised
  */
-function alx_spoof_locale ($settings) {
+function alx_spoof_locale ($s, $al) {
 
    global $wpdb, $_SERVER, $_REQUEST;
    $db = 'ip2nation';
+
+   $settings = $al->getSettings();
 
    // Check Database is installed
    $sql = "SHOW TABLE STATUS WHERE Name LIKE '". $db ."'";
@@ -67,6 +69,6 @@ function alx_spoof_locale ($settings) {
 /*
  * Install the Spoof Locale option and action
  */
-add_filter('amazon_link_option_list', 'alx_spoof_locale_options');
-add_action('amazon_link_init', 'alx_spoof_locale',10,1);
+add_filter('amazon_link_option_list', 'alx_spoof_locale_options', 10,1);
+add_action('amazon_link_init', 'alx_spoof_locale',10,2);
 ?>

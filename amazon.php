@@ -4,7 +4,7 @@
 Plugin Name: Amazon Link
 Plugin URI: http://www.houseindorset.co.uk/plugins/amazon-link
 Description: A plugin that provides a facility to insert Amazon product links directly into your site's Pages, Posts, Widgets and Templates.
-Version: 3.1.0-rc1
+Version: 3.1.0-rc2
 Text Domain: amazon-link
 Author: Paul Stuttard
 Author URI: http://www.houseindorset.co.uk
@@ -109,7 +109,14 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
       var $plugin_home   = 'http://www.houseindorset.co.uk/plugins/amazon-link/';
 
       var $multi_id      = 0;
-      var $scripts_done  = False;
+      var $shortcodes    = 0;
+      var $lookups       = array();
+      var $cache_hit     = array();
+      var $cache_miss    = array();
+      var $aws_hit       = array();
+      var $aws_miss      = array();
+ 
+     var $scripts_done  = False;
       var $tags          = array();
 
 /*****************************************************************************************/
@@ -350,11 +357,11 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
              'asins'        => array( 'Description' => __('Comma seperated list of ASINs', 'amazon-link'), 'Default' => '0'),
              'product'      => array( 'Description' => __('Item\'s Product Group', 'amazon-link'), 'Live' => '1', 'Group' => 'ItemAttributes', 'Default' => '-',
                                       'Position' => array(array('ItemAttributes','ProductGroup'))),
-             'binding'      => array( 'Description' => __('Item\'s Format (Paperbook, MP3 download, etc.)', 'amazon-link'), 'Live' => '1', 'Group' => 'ItemAttributes',
+             'binding'      => array( 'Description' => __('Item\'s Format (Paperbook, MP3 download, etc.)', 'amazon-link'), 'Live' => '1', 'Group' => 'ItemAttributes', 'Default' => ' ',
                                       'Position' => array(array('ItemAttributes','Binding'))),
-             'features'     => array( 'Description' => __('Item\'s Features', 'amazon-link'), 'Live' => '1', 'Group' => 'ItemAttributes', 'Filter' => 'amazon_link_format_list',
+             'features'     => array( 'Description' => __('Item\'s Features', 'amazon-link'), 'Live' => '1', 'Group' => 'ItemAttributes', 'Filter' => 'amazon_link_format_list', 'Default' => ' ',
                                       'Position' => array(array('ItemAttributes','Feature'))),
-             'title'        => array( 'Description' => __('Item\'s Title', 'amazon-link'), 'Live' => '1', 'Group' => 'ItemAttributes',
+             'title'        => array( 'Description' => __('Item\'s Title', 'amazon-link'), 'Live' => '1', 'Group' => 'ItemAttributes', 'Default' => ' ',
                                       'Position' => array(array('ItemAttributes','Title'))),
              'artist'       => array( 'Description' => __('Item\'s Author, Artist or Creator', 'amazon-link'), 'Live' => '1', 'Group' => 'ItemAttributes', 'Default' => '-',
                                       'Position' => array(array('ItemAttributes','Artist'),
@@ -371,7 +378,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
                                       'Position' => array(array('LargeImage','URL'),
                                                           array('MediumImage','URL'))),
              'image_class'  => array( 'Description' => __('Class of Image as defined in settings', 'amazon-link')),
-             'url'          => array( 'Description' => __('The URL returned from the Item Search (not localised!)', 'amazon-link'), 'Live' => '1', 'Group' => 'Small',
+             'url'          => array( 'Description' => __('The URL returned from the Item Search (not localised!)', 'amazon-link'), 'Live' => '1', 'Group' => 'Small', 'Default' => ' ',
                                       'Position' => array(array('DetailPageURL'))),
              'rank'         => array( 'Description' => __('Amazon Rank', 'amazon-link'), 'Live' => '1', 'Group' => 'SalesRank', 'Default' => '-',
                                       'Position' => array(array('SalesRank'))),
@@ -404,9 +411,9 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
              'rcm'          => array( 'Description' => __('Localised RCM site host domain (rcm.amazon.com, rcm-uk.amazon.co.uk, etc.)', 'amazon-link')),
 
              'downloaded'   => array( 'Description' => __('1 if Images are in the local Wordpress media library', 'amazon-link'), 'Calculated' => '1'),
-             'found'        => array( 'Description' => __('1 if product was found doing a live data request (also 1 if live not enabled).', 'amazon-link'), 'Calculated' => '1')
-                                  );
-             $this->keywords = apply_filters('amazon_link_keywords', $this->keywords);
+             'found'        => array( 'Description' => __('1 if product was found doing a live data request (also 1 if live not enabled).', 'amazon-link'), 'Calculated' => '1'),
+             'timestamp'    => array( 'Description' => __('Date and time of when the Amazon product data was retrieved from Amazon.', 'amazon-link'), 'Calculated' => 1, 'Default' => '0')                                  );
+             $this->keywords = apply_filters('amazon_link_keywords', $this->keywords, $al);
          }
          return $this->keywords;
       }
@@ -491,7 +498,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
             'priv_key' => array( 'Name' => __('AWS Private key', 'amazon-link'), 'Description' => __('Secret Access Key ID provided by your AWS Account.', 'amazon-link'), 'Default' => '', 'Type' => 'text', 'Size' => '40', 'Class' => '' ),
             'aws_valid' => array ( 'Type' => 'checkbox', 'Read_Only' => 1, 'Name' => 'AWS Keys Validated', 'Default' => '0', 'Class' => 'al_border'),
             'live' => array ( 'Name' => __('Live Data', 'amazon-link'), 'Description' => __('When creating Amazon links, use live data from the Amazon site, otherwise populate the shortcode with static information. <em>* <a href="#aws_notes" title="AWS Access keys required for full functionality">AWS</a> *</em>', 'amazon-link'), 'Default' => '1', 'Type' => 'checkbox', 'Class' => 'al_border' ),
-
+            'prefetch' => array ( 'Name' => __('Prefetch Data', 'amazon-link'), 'Description' => __('For every product link, prefetch the data from the Amazon Site - use of the cache essential for this option! <em>* <a href="#aws_notes" title="AWS Access keys required for full functionality">AWS</a> *</em>', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox', 'Class' => 'al_border' ),
             'hd3e' => array ( 'Type' => 'end'),
 
             'hd4s' => array ( 'Type' => 'section', 'Value' => __('Amazon Data Cache','amazon-link'), 'Title_Class' => 'al_section_head', 'Description' => __('Improve page performance by caching Amazon product data.','amazon-link'), 'Section_Class' => 'al_subhead1'),
@@ -542,6 +549,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
                                                 'Hint' => sprintf(__('Enter your affiliate tag for %1$s.', 'amazon-link'), $data['name'] ));
             $option_list ['title']['Description'] .= '<a href="' . $data['site']. '">'. $data['name']. '</a>, ';
          }
+         $option_list = apply_filters('amazon_link_user_option_list', $option_list, $this);
          return $option_list;
       }
 
@@ -617,6 +625,8 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
       // Various Options, Arguments, Templates and Channels Handling
 /*****************************************************************************************/
 
+      // Options and Argument Handling
+
       function getOptions() {
          if (!isset($this->Opts)) {
             $this->Opts = get_option($this->optionName, array());
@@ -647,6 +657,136 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          delete_option($this->channels_name);
          delete_option($this->templatesName);
       }
+
+      /*
+       * Normally Settings are populated from parsing user arguments, however some
+       * external calls do not cause argument parsing (e.g. amazon_query). So this
+       * ensures we have the defaults.
+       */
+      function getSettings() {
+         if (!isset($this->Settings)) {
+            $this->Settings = $this->getOptions();
+         }
+         $option_list = $this->get_option_list();
+         foreach ($option_list as $key => $details) {
+            if (!isset($this->Settings[$key]) && isset($details['Default'])) {
+               $this->Settings[$key] = $details['Default'];
+            }
+         }
+
+         return $this->Settings;
+      }
+
+      /*
+       * Parse the arguments passed in.
+       */
+      function parseArgs($arguments) {
+
+         $option_list = $this->get_option_list();
+
+         $args = array();
+         // Convert html encoded string back into raw characters (else parse_str does not see the '&'s).
+         $arg_str = html_entity_decode($arguments, ENT_QUOTES, 'UTF-8'); // ensure '&#8217; => '’' characters are decoded
+
+         parse_str($arg_str, $args);
+         $args = apply_filters('amazon_link_process_args', $args, $this);
+
+         $Opts = $this->getOptions();
+         unset($this->Settings);
+
+         /*
+          * Check for each setting, local overides saved option, otherwise fallback to default.
+          * Items not in the options_list are discarded.
+          */
+         foreach ($option_list as $key => $details) {
+
+            /* If Local Settings is provided then use that */
+            if (isset($args[$key])) {
+               if (is_array($args[$key])) {
+                  $this->Settings[$key] = array_map("trim", $args[$key]);
+               } else {
+                  $this->Settings[$key] = trim(stripslashes($args[$key]),"\x22\x27");
+               }
+
+            /* If No local setting but global setting is configured then use that. */
+            } else if (isset($Opts[$key])) {
+               $this->Settings[$key] = $Opts[$key];
+
+            /* Fall-back to the default if configured */
+            } else if (isset ($details['Default'])) {
+               $this->Settings[$key] = $details['Default'];
+            }
+
+         }
+
+         /*
+          * Convert the ASIN setting into a multinational array:
+          * FROM: array( 'cc1' => "1,,3", 'cc2' => "4,5")
+          * TO:   array ( '0' => array( 'cc1' => 1, 'cc2' => 4),
+          *               '1' => array( 'cc2' => 5),
+          *               '2' => array( 'cc1' => 3))
+          *
+          * Ensuring all cc arrays are the same length.
+          */
+         if (!is_array($this->Settings['asin'])) {
+            $this->Settings['asin'] = array( $this->Settings['default_cc'] => $this->Settings['asin']);
+         }
+         $max = 0;
+         foreach ($this->Settings['asin'] as $cc => $asins)
+         {
+            $temp_asins[$cc] = explode (',', $asins);
+            if (count($temp_asins[$cc]) > $max) {
+               $max = count($temp_asins[$cc]);
+            }
+         }
+         $this->Settings['asin'] = array();
+         for ($index=0; $index < $max; $index++) {
+            foreach ($temp_asins as $cc => $cc_asins)
+               if (!empty($cc_asins[$index])) $this->Settings['asin'][$index][$cc] = $cc_asins[$index];
+         }
+         return $this->Settings;
+      }
+
+
+      function validate_keys($Settings = NULL) {
+         if (Settings === NULL) $Settings = $this->getSettings();
+
+         $result['Valid'] = 0;
+         $result['Message'] = 'AWS query failed to get a response - try again later.';
+         $request = array('Operation'     => 'ItemLookup', 
+                          'ResponseGroup' => 'ItemAttributes',
+                          'IdType'        => 'ASIN', 'ItemId' => 'B000H2X2EW');
+         $pxml = $this->doQuery($request, $Settings);
+         if (isset($pxml['Items'])) {
+            $result['Valid'] = 1;
+         } else if (isset($pxml['Error'])) {
+            $result['Valid'] = 0;
+            $result['Message'] = $pxml['Error']['Message'];
+         }
+         return $result;
+      }
+
+      function upgrade_settings($Opts) {
+         include('include/upgradeSettings.php');
+      }
+
+
+/*****************************************************************************************/
+
+      // User Options
+
+      function get_user_options($ID) {
+         $options = get_the_author_meta( $this->user_options, $ID );
+         return $options;
+      }
+
+      function save_user_options($ID, $options ) {
+	 update_usermeta( $ID, $this->user_options,  $options );
+      }
+
+/*****************************************************************************************/
+
+      // Templates
 
       function getTemplates() {
          if (!isset($this->Templates)) {
@@ -702,6 +842,10 @@ function alx_'.$slug.'_default_templates ($templates) {
          }
       }
 
+/*****************************************************************************************/
+
+      // Channels
+
       function get_channels($override = False, $user_channels = False) {
          if (!$override || !isset($this->channels)) {
             $channels = get_option($this->channels_name, array());
@@ -747,208 +891,6 @@ function alx_'.$slug.'_default_templates ($templates) {
          $this->channels = $channels;
       }
 
-      /*
-       * Parse the arguments passed in.
-       */
-      function parseArgs($arguments) {
-
-         $option_list = $this->get_option_list();
-
-         $args = array();
-         // Convert html encoded string back into raw characters (else parse_str does not see the '&'s).
-         $arg_str = html_entity_decode($arguments, ENT_QUOTES, 'UTF-8'); // ensure '&#8217; => '’' characters are decoded
-
-         parse_str($arg_str, $args);
-         $args = apply_filters('amazon_link_process_args', $args, $this);
-
-         $Opts = $this->getOptions();
-         unset($this->Settings);
-
-         /*
-          * Check for each setting, local overides saved option, otherwise fallback to default.
-          * Items not in the options_list are discarded.
-          */
-         foreach ($option_list as $key => $details) {
-
-            /* If Local Settings is provided then use that */
-            if (isset($args[$key])) {
-               if (is_array($args[$key])) {
-                  $this->Settings[$key] = array_map("trim", $args[$key]);
-               } else {
-                  $this->Settings[$key] = trim(stripslashes($args[$key]),"\x22\x27");
-               }
-
-            /* If No local setting but global setting is configured then use that. */
-            } else if (isset($Opts[$key])) {
-               $this->Settings[$key] = $Opts[$key];
-
-            /* Fall-back to the default if configured */
-            } else if (isset ($details['Default'])) {
-               $this->Settings[$key] = $details['Default'];
-            }
-
-         }
-
-         /*
-          * Convert the ASIN setting into a multinational array => array ( [cc1] => array (1, 2, 3), [cc2] => array (4, 5, ...), ...)
-          * Ensuring all cc arrays are the same length.
-          */
-         if (!is_array($this->Settings['asin'])) {
-            $this->Settings['asin'] = array( $this->Settings['default_cc'] => $this->Settings['asin']);
-         }
-         $max = 0;
-         foreach ($this->Settings['asin'] as $cc => $asins)
-         {
-            $temp_asins[$cc] = explode (',', $asins);
-            if (count($temp_asins[$cc]) > $max) {
-               $max = count($temp_asins[$cc]);
-            }
-         }
-         $this->Settings['asin'] = array();
-         for ($index=0; $index < $max; $index++) {
-            foreach ($temp_asins as $cc => $cc_asins)
-               $this->Settings['asin'][$index][$cc] = (isset ($cc_asins[$index]) ? $cc_asins[$index] : NULL);
-         }
-         return $this->Settings;
-      }
-
-      /*
-       * Normally Settings are populated from parsing user arguments, however some
-       * external calls do not cause argument parsing (e.g. amazon_query). So this
-       * ensures we have the defaults.
-       */
-      function getSettings() {
-         if (!isset($this->Settings)) {
-            $this->Settings = $this->getOptions();
-         }
-         $option_list = $this->get_option_list();
-         foreach ($option_list as $key => $details) {
-            if (!isset($this->Settings[$key]) && isset($details['Default'])) {
-               $this->Settings[$key] = $details['Default'];
-            }
-         }
-
-         return $this->Settings;
-      }
-
-      function get_user_options($ID) {
-         $options = get_the_author_meta( $this->user_options, $ID );
-         return $options;
-      }
-
-      function save_user_options($ID, $options ) {
-	 update_usermeta( $ID, $this->user_options,  $options );
-      }
-
-      function validate_keys($Settings = NULL) {
-         if (Settings === NULL) $Settings = $this->getSettings();
-
-         $result['Valid'] = 0;
-         $result['Message'] = 'AWS query failed to get a response - try again later.';
-         $request = array('Operation'     => 'ItemLookup', 
-                          'ResponseGroup' => 'ItemAttributes',
-                          'IdType'        => 'ASIN', 'ItemId' => 'B000H2X2EW');
-         $pxml = $this->doQuery($request, $Settings);
-         if (isset($pxml['Items'])) {
-            $result['Valid'] = 1;
-         } else if (isset($pxml['Error'])) {
-            $result['Valid'] = 0;
-            $result['Message'] = $pxml['Error']['Message'];
-         }
-         return $result;
-      }
-
-      function upgrade_settings($Opts) {
-         include('include/upgradeSettings.php');
-      }
-
-/*****************************************************************************************/
-      // Cache Facility
-/*****************************************************************************************/
-      function cache_install() {
-         global $wpdb;
-         $settings = $this->getOptions();
-         if ($settings['cache_enabled']) return False;
-         $cache_table = $wpdb->prefix . $this->cache_table;
-         $sql = "CREATE TABLE $cache_table (
-                 asin varchar(10) NOT NULL,
-                 cc varchar(5) NOT NULL,
-                 updated datetime NOT NULL,
-                 xml blob NOT NULL,
-                 PRIMARY KEY  (asin, cc)
-                 );";
-         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-         dbDelta($sql);
-         $settings['cache_enabled'] = 1;
-         $this->saveOptions($settings);
-         return True;
-      }
-
-      function cache_remove() {
-         global $wpdb;
-
-         $settings = $this->getOptions();
-         if (!$settings['cache_enabled']) return False;
-         $settings['cache_enabled'] = 0;
-         $this->saveOptions($settings);
-
-         $cache_table = $wpdb->prefix . $this->cache_table;
-         $sql = "DROP TABLE $cache_table;";
-         $wpdb->query($sql);
-         return True;
-      }
-
-      function cache_empty() {
-         global $wpdb;
-
-         $settings = $this->getOptions();
-         if (!$settings['cache_enabled']) return False;
-
-         $cache_table = $wpdb->prefix . $this->cache_table;
-         $sql = "TRUNCATE TABLE $cache_table;";
-         $wpdb->query($sql);
-         return True;
-      }
-
-      function cache_flush() {
-         global $wpdb;
-         $settings = $this->getOptions();
-         $cache_table = $wpdb->prefix . $this->cache_table;
-         $sql = "DELETE FROM $cache_table WHERE updated < DATE_SUB(NOW(),INTERVAL " . $settings['cache_age']. " HOUR);";
-         $wpdb->query($sql);
-      }
-
-      function cache_update_item($asin, $cc, $data) {
-         global $wpdb;
-         $settings = $this->getOptions();
-         $cache_table = $wpdb->prefix . $this->cache_table;
-         if ($settings['cache_enabled']) {
-            $sql = "DELETE FROM $cache_table WHERE asin LIKE '$asin' AND cc LIKE '$cc'";
-            $wpdb->query($sql);
-            $sql_data = array( 'asin' => $asin, 'cc' => $cc, 'xml' => serialize($data), updated => current_time('mysql'));
-            $wpdb->insert($cache_table, $sql_data);
-         }
-      }
-
-      function cache_lookup_item($asin, $cc) {
-         global $wpdb;
-         $settings = $this->getOptions();
-         $cache_table = $wpdb->prefix . $this->cache_table;
-
-         if ($settings['cache_enabled']) {
-            // Check if asin is already in the cache
-            $sql = "SELECT xml FROM $cache_table WHERE asin LIKE '$asin' AND cc LIKE '$cc' AND  updated >= DATE_SUB(NOW(),INTERVAL " . $settings['cache_age']. " HOUR)";
-            $result = $wpdb->get_row($sql, ARRAY_A);
-            if ($result !== NULL) {
-               return unserialize($result['xml']);
-            }
-         }
-         return NULL;
-      }
-
-/*****************************************************************************************/
-      /// Affiliate Tracking ID Channels 
-/*****************************************************************************************/
 
       /*
        * Check the channels in order until we get a match
@@ -1026,45 +968,131 @@ function alx_'.$slug.'_default_templates ($templates) {
       }
       
 /*****************************************************************************************/
+      // Cache Facility
+/*****************************************************************************************/
+
+      function cache_install() {
+         global $wpdb;
+         $settings = $this->getOptions();
+         if ($settings['cache_enabled']) return False;
+         $cache_table = $wpdb->prefix . $this->cache_table;
+         $sql = "CREATE TABLE $cache_table (
+                 asin varchar(10) NOT NULL,
+                 cc varchar(5) NOT NULL,
+                 updated datetime NOT NULL,
+                 xml blob NOT NULL,
+                 PRIMARY KEY  (asin, cc)
+                 );";
+         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+         dbDelta($sql);
+         $settings['cache_enabled'] = 1;
+         $this->saveOptions($settings);
+         return True;
+      }
+
+      function cache_remove() {
+         global $wpdb;
+
+         $settings = $this->getOptions();
+         if (!$settings['cache_enabled']) return False;
+         $settings['cache_enabled'] = 0;
+         $this->saveOptions($settings);
+
+         $cache_table = $wpdb->prefix . $this->cache_table;
+         $sql = "DROP TABLE $cache_table;";
+         $wpdb->query($sql);
+         return True;
+      }
+
+      function cache_empty() {
+         global $wpdb;
+
+         $settings = $this->getOptions();
+         if (!$settings['cache_enabled']) return False;
+
+         $cache_table = $wpdb->prefix . $this->cache_table;
+         $sql = "TRUNCATE TABLE $cache_table;";
+         $wpdb->query($sql);
+         return True;
+      }
+
+      function cache_flush() {
+         global $wpdb;
+         $settings = $this->getOptions();
+         $cache_table = $wpdb->prefix . $this->cache_table;
+         $sql = "DELETE FROM $cache_table WHERE updated < DATE_SUB(NOW(),INTERVAL " . $settings['cache_age']. " HOUR);";
+         $wpdb->query($sql);
+      }
+
+      function cache_update_item($asin, $cc, &$data) {
+         global $wpdb;
+         $settings = $this->getOptions();
+         $updated  = current_time('mysql');
+         $data['timestamp'] = $updated;
+         $cache_table = $wpdb->prefix . $this->cache_table;
+         if ($settings['cache_enabled']) {
+            $sql = "DELETE FROM $cache_table WHERE asin LIKE '$asin' AND cc LIKE '$cc'";
+            $wpdb->query($sql);
+            $sql_data = array( 'asin' => $asin, 'cc' => $cc, 'xml' => serialize($data), updated => $updated);
+            $wpdb->insert($cache_table, $sql_data);
+         }
+      }
+
+      function cache_lookup_item($asin, $cc) {
+         global $wpdb;
+         $settings = $this->getOptions();
+
+         if (!empty($settings['cache_enabled'])) {
+            // Check if asin is already in the cache
+            $cache_table = $wpdb->prefix . $this->cache_table;
+            $sql = "SELECT xml FROM $cache_table WHERE asin LIKE '$asin' AND cc LIKE '$cc' AND  updated >= DATE_SUB(NOW(),INTERVAL " . $settings['cache_age']. " HOUR)";
+            $result = $wpdb->get_row($sql, ARRAY_A);
+            if ($result !== NULL) {
+               $data = unserialize($result['xml']);
+               $data['cached'] = 1;
+               return $data;
+            }
+         }
+         return NULL;
+      }
+
+/*****************************************************************************************/
       /// Localise Link Facility
 /*****************************************************************************************/
+
+      // Pretty arbitrary mapping of domains to Amazon sites, default to 'com' - the 'international' site.
+      var $country_map = array('uk' => array('uk', 'ie', 'gi', 'gl', 'nl', 'vg', 'cy', 'gb', 'dk'),
+                               'fr' => array('fr', 'be', 'bj', 'bf', 'bi', 'cm', 'cf', 'td', 'km', 'cg', 'dj', 'ga', 'gp',
+                                             'gf', 'gr', 'pf', 'tf', 'ht', 'ci', 'lu', 'mg', 'ml', 'mq', 'yt', 'mc', 'nc',
+                                             'ne', 're', 'sn', 'sc', 'tg', 'vu', 'wf'),
+                               'de' => array('de', 'at', 'ch', 'no', 'dn', 'li', 'sk'),
+                               'es' => array('es'),
+                               'it' => array('it'),
+                               'cn' => array('cn'),
+                               'ca' => array('ca', 'pm'),
+                               'jp' => array('jp')
+                              );
 
       function get_country($settings = NULL) {
 
          if ($settings === NULL)
             $settings = $this->getSettings();
 
-         // Pretty arbitrary mapping of domains to Amazon sites, default to 'com' - the 'international' site.
-         $country_map = array('uk' => array('uk', 'ie', 'gi', 'gl', 'nl', 'vg', 'cy', 'gb', 'dk'),
-                              'fr' => array('fr', 'be', 'bj', 'bf', 'bi', 'cm', 'cf', 'td', 'km', 'cg', 'dj', 'ga', 'gp',
-                                            'gf', 'gr', 'pf', 'tf', 'ht', 'ci', 'lu', 'mg', 'ml', 'mq', 'yt', 'mc', 'nc',
-                                            'ne', 're', 'sn', 'sc', 'tg', 'vu', 'wf'),
-                              'de' => array('de', 'at', 'ch', 'no', 'dn', 'li', 'sk'),
-                              'es' => array('es'),
-                              'it' => array('it'),
-                              'cn' => array('cn'),
-                              'ca' => array('ca', 'pm'),
-                              'jp' => array('jp')
-                             );
-                          
-         $country = False;
-
          if ($settings['localise'])
          {
-            if (!isset($this->local_country)) {
-               $cc = $this->ip2n->get_cc();
-               if ($cc === NULL) return $settings['default_cc'];
-               $country = 'us';
-               foreach ($country_map as $key => $countries) {
-                  if (in_array($cc, $countries)) {
-                     $country = $key;
-                     continue;
-                  }
-               }
-               $this->local_country = $country;
-            }
+            if (isset($this->local_country)) return $this->local_country;
 
-            return $this->local_country;
+            $cc = $this->ip2n->get_cc();
+            if ($cc === NULL) return $settings['default_cc'];
+            $country = 'us';
+            foreach ($this->country_map as $key => $countries) {
+               if (in_array($cc, $countries)) {
+                  $country = $key;
+                  continue;
+               }
+            }
+            $this->local_country = $country;
+            return $country;
          }
 
          return $settings['default_cc'];
@@ -1092,17 +1120,15 @@ function alx_'.$slug.'_default_templates ($templates) {
 /*****************************************************************************************/
       function content_filter($content, $doLinks=TRUE, $in_post=TRUE) {
 
-         $new_content='';
          $this->in_post = $in_post;
 
          $regex = apply_filters('amazon_link_regex', '/\[amazon +'. '(?P<args>(?:[^\[\]]*(?:\[[a-z]*\]){0,1})*)'. '\]/', $this);
 
          if ($doLinks) {
-            $new_content = preg_replace_callback( $regex, array($this,'shortcode_expand'), $content);
+            return preg_replace_callback( $regex, array($this,'shortcode_expand'), $content);
          } else {
-            $new_content = preg_replace_callback( $regex, array($this,'shortcode_extract_asins'), $content);
+            return preg_replace_callback( $regex, array($this,'shortcode_extract_asins'), $content);
          }
-         return $new_content;
       }
 
       function widget_filter($content) {
@@ -1113,10 +1139,8 @@ function alx_'.$slug.'_default_templates ($templates) {
 
          $in_post = $this->in_post;
 
-         $output='';
-         
          // Get all named args
-         $extra_args  = !empty($split_content['args']) ? '&' . $split_content['args'] : '';
+         $extra_args  = !empty($split_content['args']) ? $split_content['args'] : '';
          unset ($split_content['args']);
          $args = $sep ='';
          foreach ($split_content as $arg => $data) {
@@ -1125,18 +1149,13 @@ function alx_'.$slug.'_default_templates ($templates) {
                $sep = '&';
             }
          }
-         $args .= $extra_args;
-
+         if (!empty($extra_args)) $args .= $sep . $extra_args;
 
          $this->parseArgs($args);
-         if (isset($this->Settings['cat'])) {
-            $this->Settings['in_post'] = $in_post;
-            if ($this->Settings['debug']) {
-               $output .= '<!-- Amazon Link: Version:' . $this->plugin_version . ' - Args: ' . $args . "\n";
-               $output .= print_r($this->Settings, true) . ' -->';
-            }
-            $output .= $this->showRecommendations($this->Settings['cat'], $this->Settings['last']);
-         } else {
+         $this->shortcodes++;
+
+         $output='';     
+         if (empty($this->Settings['cat'])) {
             // Generate Amazon Link
             $this->tags = array_merge($this->Settings['asin'], $this->tags);
             $this->Settings['in_post'] = $in_post;
@@ -1145,13 +1164,20 @@ function alx_'.$slug.'_default_templates ($templates) {
                $output .= print_r($this->Settings, true) . ' -->';
             }
             $output .= $this->make_links($this->Settings['asin'], $this->Settings['text']);
+         } else {
+            $this->Settings['in_post'] = $in_post;
+            if ($this->Settings['debug']) {
+               $output .= '<!-- Amazon Link: Version:' . $this->plugin_version . ' - Args: ' . $args . "\n";
+               $output .= print_r($this->Settings, true) . ' -->';
+            }
+            $output .= $this->showRecommendations($this->Settings['cat'], $this->Settings['last']);
          }
          return $output;
       }
 
       function shortcode_extract_asins ($split_content) {
          // Get all named args
-         $extra_args  = !empty($split_content['args']) ? '&' . $split_content['args'] : '';
+         $extra_args  = !empty($split_content['args']) ? $split_content['args'] : '';
          unset ($split_content['args']);
          $args = $sep ='';
          foreach ($split_content as $arg => $data) {
@@ -1160,7 +1186,7 @@ function alx_'.$slug.'_default_templates ($templates) {
                $sep = '&';
             }
          }
-         $args .= $extra_args;
+         if (!empty($extra_args)) $args .= $sep . $extra_args;
 
          $this->parseArgs($args);
          $this->tags = array_merge($this->Settings['asin'], $this->tags);
@@ -1192,13 +1218,15 @@ function alx_'.$slug.'_default_templates ($templates) {
  <?php screen_icon($icon); ?>
   <h2><?php echo $title ?></h2>
    <p><?php echo $description ?></p>
-   <div id="poststuff" class="metabox-holder<?php echo 2 == $screen_layout_columns ? ' has-right-sidebar' : ''; ?>">
-    <div id="side-info-column" class="inner-sidebar">
-     <?php do_meta_boxes($page, 'side',0); ?>
-    </div>
-    <div id="post-body" class="has-sidebar" >
-     <div id="post-body-content" class="has-sidebar-content">
+   <div id="poststuff">
+    <div id="post-body" class="metabox-holder columns-<?php echo $screen_layout_columns; ?>" >
+     <div id="post-body-content">
       <?php do_meta_boxes($page, 'normal',0); ?>
+     </div>
+     <div id="postbox-container-1" class="postbox-container">
+      <?php do_meta_boxes($page, 'side',0); ?>
+     </div>
+     <div id="postbox-container-2" class="postbox-container">
       <?php do_meta_boxes($page, 'advanced',0); ?>
      </div>
     </div>
@@ -1255,7 +1283,6 @@ function alx_'.$slug.'_default_templates ($templates) {
       function show_info() {
          include('include/showInfo.php');
       }
-
 
 /*****************************************************************************************/
 
@@ -1343,7 +1370,7 @@ function alx_'.$slug.'_default_templates ($templates) {
              foreach ($location as $key) if (isset($result[$key])) {$result = $result[$key];} else {$result=NULL;break;}
              if (isset($result)) return $result;
           }
-          if ($keys = '') return $data; // If no keys then return the whole item
+          if (empty($keys)) return $data; // If no keys then return the whole item
           return $default;
       }
 
@@ -1353,18 +1380,20 @@ function alx_'.$slug.'_default_templates ($templates) {
             $settings = $this->getSettings();
 
          /* If not a request then must be a standard ASIN Lookup */
-         if (!is_array($request))
+         if (!is_array($request)) {
             $asin = $request;
-
+            $this->lookups[$asin]++;
+         }
          $data = NULL;
          if (!is_array($request)) {
             $li = $this->get_local_info($settings);
             $cc = $li['cc'];
             $data[0] = $this->cache_lookup_item($asin, $cc);
             if ($data[0] !== NULL) {
-               $data[0]['cached'] = 1;
+               $this->cache_hit[$asin]++;
                return $data;
             }
+            $this->cache_miss[$asin]++;
          }
 
          // Create query to retrieve the an item
@@ -1380,86 +1409,82 @@ function alx_'.$slug.'_default_templates ($templates) {
 
          $pxml = $this->doQuery($request, $settings);
 
-         if (($pxml === False) || !isset($pxml['Items']['Item'])) {
-            // Failed to return any results
-            $data = array(array('ASIN' => $asin, 'found' => 0 ));
-            $data['Error'] = (isset($pxml['Error']['Message'])? $pxml['Error']['Message'] : 
-                              (isset($pxml['Items']['Request']['Errors']['Error']['Message']) ? 
-                                      $pxml['Items']['Request']['Errors']['Error']['Message'] : 'No Items Found'));
-            return $data;
-         } else {
+         if (!empty($pxml['Items']['Item'])) {
+            $data = array();
+
             if (array_key_exists('ASIN', $pxml['Items']['Item'])) {
                // Returned a single result (not in an array)
-
                $items = array($pxml['Items']['Item']);
+               $this->aws_hit[$asin]++;
             } else {
                // Returned several results
                $items =$pxml['Items']['Item'];
             }
 
-            $keywords = $this->get_keywords();
+         } else {
 
-            /* Extract useful information from the xml */
-            $data= array();
-            for ($index=0; $index < count($items); $index++ ) {
-               $result = $items[$index];
+            $this->aws_miss[$asin]++;
+            // Failed to return any results
 
-               foreach ($keywords as $keyword => $key_info) {
-                  if (isset($key_info['Live'])) {
-                     $key_data = $this->grab($result, $key_info['Position'], $key_info['Default']);
-                     $key_info['Keyword'] = $keyword;
-                     if (isset($key_info['Filter'])) $key_data = apply_filters($key_info['Filter'], $key_data, $key_info, $this);
-                     $data[$index][$keyword] = $key_data;
-                  }
-               }
-               $data[$index]['asins']  = 0;
-               $data[$index]['artist'] = $this->remove_parents($data[$index]['artist']);
-               $data[$index]['type']   = 'Amazon';
-               $data[$index]['found']  = 1;
-
-               /* Save each item to the cache if it is enabled */
-               $this->cache_update_item($data[$index]['asin'], $cc, $data[$index]);
-            }
+            $data['Error'] = (isset($pxml['Error'])? $pxml['Error'] : 
+                                 (isset($pxml['Items']['Request']['Errors']['Error']) ? 
+                                      $pxml['Items']['Request']['Errors']['Error'] : array( 'Message' => 'No Items Found', 'Code' => 'NoResults') ) );
+            $items = array(array('ASIN' => $asin, 'found' => 0, 'Error' => $data['Error'] ));
          }
+
+         $keywords = $this->get_keywords();
+
+         /* Extract useful information from the xml */
+         for ($index=0; $index < count($items); $index++ ) {
+            $result = $items[$index];
+
+            foreach ($keywords as $keyword => $key_info) {
+               if (isset($key_info['Live'])) {
+                  $key_data = $this->grab($result, $key_info['Position'], $key_info['Default']);
+                  $key_info['Keyword'] = $keyword;
+                  if (isset($key_info['Callback'])) {
+                     $key_data = call_user_func($key_info['Callback'], $key_data, $key_info, $this);
+                  } else if (isset($key_info['Filter'])) {
+                     $key_data = apply_filters($key_info['Filter'], $key_data, $key_info, $this);
+                  }
+                  $data[$index][$keyword] = $key_data;
+               }
+            }
+            $data[$index]['asins']  = 0;
+            $data[$index]['artist'] = $this->remove_parents($data[$index]['artist']);
+            $data[$index]['found']  = isset($result['found']) ? $result['found'] : 1;
+
+            /* Save each item to the cache if it is enabled */
+            if ($data[$index]['found'] || ($result['Error']['Code'] == 'AWS.InvalidParameterValue'))
+               $this->cache_update_item($data[$index]['asin'], $cc, $data[$index]);
+         }
+
          return $data;
       }
 
-      function doQuery($request, $Settings = NULL)
+      function doQuery($request, $settings = NULL)
       {
 
-         if ($Settings === NULL)
-            $Settings = $this->getSettings();
-         else
-            $this->Settings = $Settings;
+         if ($settings === NULL)
+            $settings = $this->getSettings();
 
-         $li  = $this->get_local_info($Settings);
+         $li  = $this->get_local_info($settings);
          $tld = $li['tld'];
 
          if (!isset($request['AssociateTag'])) $request['AssociateTag'] = $li['tag'];
 
-         return $this->aws_signed_request($tld, $request, $Settings['pub_key'], $Settings['priv_key']);
+         return $this->aws_signed_request($tld, $request, $settings['pub_key'], $settings['priv_key']);
       }
 
-      function make_link($asin, $object, $settings = NULL, $local_info = NULL, $search = NULL, $type = 'product', $close = True)
+      function make_link($asin, $settings, $local_info, $search = array('',''), $type = 'product')
       {
-         if ($settings === NULL)
-            $settings = $this->getSettings();
-
-         if ($local_info === NULL)
-            $local_info = $this->get_local_info($settings);
-         if ($search === NULL)
-            $search = array('','');
-
-         if (!isset($settings['home_cc'])) $settings['home_cc'] = $settings['default_cc'];
-
          /*
-          * Generate a localised/multinational link, wrapped around '$object'
+          * Generate a localised/multinational link open tag <a ... >
           */
-         $TARGET  = $settings['new_window'] ? 'target="_blank"' : '';
-         $TARGET .= !empty($settings['link_title']) ? ' title="'.$settings['link_title'].'"' : '';
-
+         $attributes = 'rel="nofollow"' . $settings['new_window'] ? ' target="_blank"' : '';
+         $attributes .= !empty($settings['link_title']) ? ' title="'.addslashes(preg_replace( '!%([a-z_]+)%!i', '%\1%S#', $settings['link_title'])).'"' : '';
          $url = apply_filters('amazon_link_url', '', $type, $asin, $search[0], $local_info, $settings, $this);
-         $text='<a rel="nofollow" '. $TARGET .' href="' . $url.'">' . $object . ($close ?'</a>' : '');
+         $text="<a $attributes href=\"$url\">";
          if ($settings['multi_cc']) {
             $multi_data = array('settings' => $settings, 'type' => $type, 'asin' => $asin, 'search' => $search[1], 'cc' => $local_info['cc'], 'channel' => $local_info['channel'] );
             $text = $this->create_popup($multi_data, $text);
@@ -1530,7 +1555,6 @@ function alx_'.$slug.'_default_templates ($templates) {
          return $script;
       }
 
-
       function get_link_type ($type, $asin, $cc, $search, $settings) {
          $home_cc = $settings['home_cc'];
 
@@ -1566,7 +1590,6 @@ function alx_'.$slug.'_default_templates ($templates) {
             $Settings = $this->getSettings();
          $local_info = $this->get_local_info($Settings);
 
-         $output = '';
          /*
           * If a template is specified and exists then populate it
           */
@@ -1578,99 +1601,70 @@ function alx_'.$slug.'_default_templates ($templates) {
                $Settings['template_type'] = $Templates[$template]['Type'];
             }
          }
-         if (isset($Settings['template_content'])) {
-            $details = array();
-            unset($Settings['asin']);
-            
-            if ($Settings['template_type'] == 'Multi') {
-               /* Multi-product template collapse array back to a list, respecting country specific selection */
-               $sep = ''; $list='';
-               foreach ($asins as $i => $asin) {
-                  $list .= $sep .(is_array($asin) ? (isset($asin[$local_info['cc']]) ? $asin[$local_info['cc']] : $asin[$Settings['default_cc']]) : $asin);
-                  $sep=',';
-               }
-               $details[0] = $Settings;
-               $details[0]['asins'][$local_info['cc']] = $list;
-            } elseif ($Settings['template_type'] == 'No ASIN') {
-               /* No asin provided so don't try and parse it */
-               $details[0] = $Settings;
-               $details[0]['found'] = 1;
-            } else {
-               /* Usual case where user provides asin=X or asin=X,Y,Z */
-               for ($index=0; $index < count($asins); $index++ ) {
-                  if (count($asins) > 1) {
-                     $details[$index] = $Settings;
-                     $details[$index]['asin'] = $asins[$index];
-                     $details[$index]['live'] = 1;
-                  } else {
-                     $details[$index] = $Settings;
-                     $details[$index]['asin'] = $asins[$index];
-                  }
-               }
-            }
-            if (!empty($details))
-            {
-               foreach ($details as $item) {
-                  $output .= $this->search->parse_template($item);
-               }
+
+         if (!isset($Settings['template_content'])) {
+
+            // Backward Compatible Shortcode, just has image,thumb and text
+
+            if (!empty($Settings['image'])) {
+               $image = True;
+               if (strlen($Settings['image']) < 5) unset($Settings['image']);
             }
 
-            return $output;
-         }
-
-         foreach ($asins as $asin) {
-
-            /*****************************************************************************************/
-            /*
-             * This code required to maintain backward compatibility
-             */
-            $object = stripslashes($link_text);
-            // Do we need to display or link to an image ?
-            if (!empty($Settings['image']) || !empty($Settings['thumb'])) {
-               $media_ids = $this->search->find_attachments($asin);
-               if (!is_wp_error($media_ids)) {
-                  $media_id = $media_ids[0]->ID;
-               }
-
-               if (!empty($Settings['thumb'])) {
-                  if (isset($media_id)) {
-                     $thumb = wp_get_attachment_thumb_url($media_id);
-                  } elseif (strlen($Settings['thumb']) > 4) {
-                     $thumb = $Settings['thumb'];
-                  }
-               }
-               if (!empty($Settings['image'])) {
-                  if (isset($media_id)) {
-                     $image = wp_get_attachment_url($media_id);
-                  } elseif (strlen($Settings['image']) > 4) {
-                     $image = $Settings['image'];
-                  }
-               }
+            if (!empty($Settings['thumb'])) {
+               $thumb = True;
+               if (strlen($Settings['thumb']) < 5) unset($Settings['thumb']);
             }
 
-            // If both thumb and image are specified then just insert the image
             if (isset($thumb) && isset($image)) {
-               $object = '<a href = "'. $image .'"><img class="'. $Settings['image_class'] .'" src="'. $thumb. '" alt="'. $link_text .'"></a>';
-               return $object;
+               $Settings['template_content'] = '<a href="%IMAGE%"><img class="%IMAGE_CLASS%" src="%THUMB%" alt="%TEXT%"></a>';
+            } else if (isset($image)) {
+               $Settings['template_content']= '%LINK_OPEN%<img class="%IMAGE_CLASS%" src="%THUMB%" alt="%TEXT%">%LINK_CLOSE%';
+            } else if (isset($thumb)) {
+               $Settings['template_content']= '%LINK_OPEN%<img class="%IMAGE_CLASS%" src="%THUMB%" alt="%TEXT%">%LINK_CLOSE%';
+            } else {
+               $Settings['template_content']= '%LINK_OPEN%%TEXT%%LINK_CLOSE%';
             }
-
-            if (isset($image))
-               $object = '<img class="'. $Settings['image_class'] .'" src="'. $image . '" alt="'. $link_text .'">';
-            if (isset($thumb))
-               $object = '<img class="'. $Settings['image_class'] .'" src="'. $thumb . '" alt="'. $link_text .'">';
-
-            /*****************************************************************************************/
-
-            /*
-             * Simple Text Link, populate the 'search' array with normal and escaped search template
-             */
-            $search = array( '0' => $Settings['search_text'], '1' => preg_replace('!(%[A-Z_]*%)!', '\1S#',$Settings['search_text']));
-            $Settings['template_content'] = $this->make_link($asin, $object, $Settings, $local_info, $search);
-
-            /* Run through the template parser to strip out any Keywords */
-            $output .= $this->search->parse_template($Settings);
-
          }
+
+         $details = array();
+         unset($Settings['asin']);
+            
+         if ($Settings['template_type'] == 'Multi') {
+            /* Multi-product template collapse array back to a list, respecting country specific selection */
+            $sep = ''; $list='';
+            foreach ($asins as $i => $asin) {
+               $list .= $sep .(is_array($asin) ? (isset($asin[$local_info['cc']]) ? $asin[$local_info['cc']] : $asin[$Settings['default_cc']]) : $asin);
+               $sep=',';
+            }
+            $details[0] = $Settings;
+            $details[0]['asins'][$local_info['cc']] = $list;
+         } elseif ($Settings['template_type'] == 'No ASIN') {
+            /* No asin provided so don't try and parse it */
+            $details[0] = $Settings;
+            $details[0]['found'] = 1;
+         } else {
+            /* Usual case where user provides asin=X or asin=X,Y,Z */
+            for ($index=0; $index < count($asins); $index++ ) {
+               if (count($asins) > 1) {
+                  $details[$index] = $Settings;
+                  $details[$index]['asin'] = $asins[$index];
+                  $details[$index]['live'] = 1;
+               } else {
+                  $details[$index] = $Settings;
+                  $details[$index]['asin'] = $asins[$index];
+               }
+            }
+         }
+
+         $output = '';
+         if (!empty($details))
+         {
+            foreach ($details as $item) {
+               $output .= $this->search->parse_template($item);
+            }
+         }
+
          return $output;
       }
 
