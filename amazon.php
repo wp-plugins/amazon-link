@@ -100,7 +100,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
       var $cache_table   = 'amazon_link_cache';
       var $refs_table    = 'amazon_link_refs';
       var $option_version= 6;
-      var $plugin_version= '3.0.4';
+      var $plugin_version= '3.1.0-rc2';
       var $optionName    = 'AmazonLinkOptions';
       var $user_options  = 'amazonlinkoptions';
       var $templatesName = 'AmazonLinkTemplates';

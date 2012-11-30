@@ -295,9 +295,9 @@ See the Template Help on the same page for a description of each of the keywords
 
 Most of the keywords are self explanatory: `'%TITLE%'` will expand to be the product's title, `'%PRICE%'` the formatted product's price, etc.
 
-However links can be created by using the keyword pair `'%LINK_START%'` and `'%LINK_END%'` with the subject of the link being placed between them. For example `'%LINK_START%Amazon Product%LINK_END%'`. The link produced will comply with whatever settings you have used, i.e. localised to the user's country or produce a multinational popup, it will also use the appropriate Amazon associate IDs.
+However links can be created by using the keyword pair `'%LINK_OPEN%'` and `'%LINK_CLOSE%'` with the subject of the link being placed between them. For example `'%LINK_OPEN%Amazon Product%LINK_CLOSE%'`. The link produced will comply with whatever settings you have used, i.e. localised to the user's country or produce a multinational popup, it will also use the appropriate Amazon associate IDs.
 
-There are a number of other keywords that are also localised these include: `'%LINK_START%'` - as described above, `'%TLD%'` the Top Level Domain to be used '.co.uk', '.it', '.com', etc.; `'%MPLACE%'` - the Amazon Market place to use 'GB', 'IT', 'US', etc.; `'%CC%'` - the localised country code 'uk', 'it', 'us'; `'%TAG%'` - The amazon associate tag to use.
+There are a number of other keywords that are also localised these include: `'%LINK_OPEN%'` - as described above, `'%TLD%'` the Top Level Domain to be used '.co.uk', '.it', '.com', etc.; `'%MPLACE%'` - the Amazon Market place to use 'GB', 'IT', 'US', etc.; `'%CC%'` - the localised country code 'uk', 'it', 'us'; `'%TAG%'` - The amazon associate tag to use.
 
 By specifying the 'Live Data' setting either in the settings page or within the amazon shortcode the data used to fill the template can be generated when the link is displayed. Or if you prefer to use static data or override some of the template content the keywords can be specified in the shortcode.
 
