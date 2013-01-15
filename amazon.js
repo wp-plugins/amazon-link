@@ -14,7 +14,6 @@ window.Object.defineProperty( Element.prototype, 'documentOffsetLeft', {
     }
 } );
 
-
 function al_handlerMM(e){
 	if (!e) var e = window.event;
 if (e.pageX || e.pageY)
@@ -36,8 +35,8 @@ else if (e.clientX || e.clientY)
 
 document.onmousemove = al_handlerMM;
 
-al_x = 100;
-al_y = 100;
+al_x = -1;
+al_y = -1;
 al_timeout_ref=0;
 al_timeout_in_ref=0;
 al_overdiv=0;
@@ -66,9 +65,9 @@ function al_link_out () {
 }
 
 function al_link_in (id, content) {
-   if ((id != al_id) || ((al_overlink == 0) && (al_overdiv == 0) && (al_timeout_ref == 0))) {
+   if ((al_x != -1) && ((id != al_id) || ((al_overlink == 0) && (al_overdiv == 0) && (al_timeout_ref == 0)))) {
       al_content = content;
-      if (al_timeout_in_ref == 0) setTimeout('al_show('+id+')',200)
+      if (al_timeout_in_ref == 0) setTimeout('al_show('+id+')',500)
    }
    if (al_timeout_ref!= 0) clearTimeout(al_timeout_ref);
    al_timeout_ref = 0;
@@ -95,7 +94,7 @@ function al_show( id ) {
       al_timeout_in_ref = 0;
       al_id = id;
 
-      if (document.getElementById) { // DOM3 = IE5, NS6
+      if (document.getElementById && (al_x != -1)) { // DOM3 = IE5, NS6
          var menu_element = document.getElementById('al_popup');
          
          if (al_y> 10) al_y -= 5;
@@ -105,8 +104,10 @@ function al_show( id ) {
          menu_element.style.visibility = 'visible';
          menu_element.innerHTML= al_content;
          menu_element.style.display = 'block';
+
          actual_x = menu_element.documentOffsetLeft;
          actual_y = menu_element.documentOffsetTop;
+
          al_x = al_x + (al_x - actual_x);
          al_y = al_y + (al_y - actual_y);
          menu_element.style.left = al_x + "px";

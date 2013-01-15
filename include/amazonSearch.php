@@ -93,6 +93,7 @@ if (!class_exists('AmazonLinkSearch')) {
          $Settings = array_merge($this->alink->getSettings(), $Opts);
          $Settings['multi_cc'] = '0';
          $Settings['localise'] = 0;
+         $Settings['live'] = 1;
 
          if ( empty($Opts['s_title']) && empty($Opts['s_author']) ) {
             $Items = $this->alink->cached_query($Opts['asin'], $Settings);
@@ -336,7 +337,7 @@ if (!class_exists('AmazonLinkSearch')) {
          // 'channel' used may be different for each shortcode or post so need to refresh every template
          $data = array( $local_country => $local_info);
 
-         if (!is_array($item['asin'])) $item['asin'] = array($default_country => $item['asin']);
+         if (empty($item['asin']) || !is_array($item['asin'])) $item['asin'] = array($default_country => !empty($item['asin']) ? $item['asin'] : '');
 
          if ($item['global_over']) {
             $this->remap_data($item, $countries, $data);
@@ -351,9 +352,9 @@ if (!class_exists('AmazonLinkSearch')) {
 
          $countries       = implode('|',$countries);
          $this->settings['skip_calculated'] = True;
-         $output = preg_replace_callback("!%(?<keyword>[A-Z_]+)%(?:(?<cc>$countries)?(?<escape>S)?#)?!i", array($this, 'parse_template_callback'), $input);
+         $output = preg_replace_callback("!%(?<keyword>[A-Z0-9_]+)%(?:(?<cc>$countries)?(?<escape>S)?#)?!i", array($this, 'parse_template_callback'), $input);
          $this->settings['skip_calculated'] = False;
-         $output = preg_replace_callback("!%(?<keyword>[A-Z_]+)%(?:(?<cc>$countries)?(?<escape>S)?#)?!i", array($this, 'parse_template_callback'), $output);
+         $output = preg_replace_callback("!%(?<keyword>[A-Z0-9_]+)%(?:(?<cc>$countries)?(?<escape>S)?#)?!i", array($this, 'parse_template_callback'), $output);
          $this->alink->Settings['default_cc'] = $item['default_cc'];
          $this->alink->Settings['multi_cc'] = $item['multi_cc'];
          $this->alink->Settings['localise'] = $item['localise'];
@@ -396,7 +397,6 @@ if (!class_exists('AmazonLinkSearch')) {
             $asin = $this->data[$country]['asin'];
 
             if ($local_settings['live'] && $local_settings['prefetch']) {
-echo "<PRE>Prefetch: $country -> $keyword </prE>";
                $item_data = array_shift($this->alink->cached_query($asin, $local_settings));
 //echo "<PRE>item: "; print_r($item_data); echo " isset: "; var_export(isset($item_data[$keyword])); echo " </prE>";
                if ($item_data['found'] && empty($asins[$country])) {
@@ -412,14 +412,15 @@ echo "<PRE>Prefetch: $country -> $keyword </prE>";
             }
 
 
-            if ($key_data['Link']) {
+            if (!empty($key_data['Link'])) {
                $this->get_links($asins, $local_settings, $local_info, $this->data);
-            } else if ($key_data['Image']) {
+            } else if (!empty($key_data['Image'])) {
                /* First try and get uploaded image info */
                $this->get_images($asin, $this->data[$country]);
             }
 
-            if ($key_data['Live'] && !isset($this->data[$country][$keyword]) ) {
+            if (!array_key_exists($keyword, $this->data[$country]) ) {
+             if (!empty($key_data['Live'])) {
                if ($local_settings['live']) {
                   $item_data = array_shift($this->alink->cached_query($asin, $local_settings));
                   if ($item_data['found'] && empty($asins[$country])) {
@@ -441,33 +442,35 @@ echo "<PRE>Prefetch: $country -> $keyword </prE>";
                } else {
 
                   // Live keyword, but live data not enabled and item not provided by the user
-                  $this->data[$country][$keyword] = $key_data['Default'];
+                  $this->data[$country][$keyword] = (is_array($key_data['Default']) ? $key_data['Default'][$country] : $key_data['Default']);
                   $this->data[$country]['found']  = 1;
-
                }
-
-            } else if (($keyword == 'found') && !isset($this->data[$country][$keyword])) {
-               $this->data[$country][$keyword] = 1;
-            } else {
-               $this->data[$country] = array_merge($local_info, $this->data[$country]);
-               if (!isset($this->data[$country][$keyword])) $this->data[$country][$keyword] = 'NL';
-            }
+             } else {
+                $this->data[$country] = array_merge($local_info, $this->data[$country]);
+                if (!isset($this->data[$country][$keyword])) $this->data[$country][$keyword] = (is_array($key_data['Default']) ? $key_data['Default'][$country] : $key_data['Default']);
+             }
+           }
          }
 
          $phrase = $this->data[$country][$keyword];
-
-         if ($settings['multi_cc'] && $key_data['Link']) unset ($this->data[$country][$keyword]); // Only use links once
+         if ($settings['multi_cc'] && !empty($key_data['Link'])) unset ($this->data[$country][$keyword]); // Only use links once
 
          /*
-          * We urlencode the "'","\r" and "\n" so the javascript parses correctly.
-          * We encode the "&" so the parse_args & html_entity_decode do not see it as a field separator. (data inserted into shortcode from helper)
-          * urlencode works for 'multisite' javascript
-          * ''' & '\n' also causes problems for insertForm results form javascript
-          * Don't do full urlencode as it makes the shortcode data unreadable in the post
+          * This just needs to get the data through to the javascript, typical HTML looks like:
+          * <a onmouseover="Function( {'arg': '%KEYWORD%'} )">
+          * Need to ensure there are no unescaped ' or " characters or new lines
+          *
+          * It is up to the receiving javascript to ensure that the data is present correctly for the next stage
+          *  - in postedit -> strip out " and & and [ to ensure the shortcode is parsed correctly
+          *  - in popup (do nothing?).
           */
-         if ($escaped) $phrase = addslashes(htmlspecialchars (str_ireplace(array( '&', "'", "\r", "\n"), array('%26', '&#39;','%0D','%0A'), $phrase),ENT_COMPAT | ENT_HTML401,'UTF-8')); //urlencode
+//         if ($escaped) $phrase = addslashes(htmlspecialchars (str_ireplace(array( '&', "'", "\r", "\n"), array('%26', '&#39;','%0D','%0A'), $phrase),ENT_COMPAT | ENT_HTML401,'UTF-8')); //urlencode
+//         if ($escaped) $phrase = str_ireplace(array( '&', '"', "'", "\r", "\n"), array('%26', '%22', '%27','%0D','%0A'), $phrase);
+         if ($escaped) $phrase = str_ireplace(array( "'"), array("\'"), $phrase);
+         if (empty($key_data['Link']) && empty($key_data['Calculated'])) $phrase = str_ireplace(array( '"', "'", "\r", "\n"), array('&#34;', '&#39;','&#13;','&#10;'), $phrase);
 
-         $this->data[$default_country]['unused_args'] = preg_replace('!(&?)'.$keyword.'=[^&]*(\1?)&?!','\2', $this->data[$default_country]['unused_args']);
+
+         if (!empty($this->data[$default_country]['unused_args'])) $this->data[$default_country]['unused_args'] = preg_replace('!(&?)'.$keyword.'=[^&]*(\1?)&?!','\2', $this->data[$default_country]['unused_args']);
          return $phrase;
       }
 
@@ -650,13 +653,19 @@ echo "<PRE>Prefetch: $country -> $keyword </prE>";
 
                if ($item['multi_cc'] && $key_data['Link']) unset ($data[$country][$keyword]); // Only use links once
                /*
+                * We encode for the following cases:
+                *  So that the KEYWORDS in the search phrase passed into the multinational popup parse correctly (' , \r , \n)
+                *  So that the data passed through the search form gets to the javascript correctly
+                *  When the shortcode is inserted into the POST the javascript also needs to encode '"', '&' and '[' so that the shortcode is
+                *   found okay and the arguments parse okay.
                 * We urlencode the "'","\r" and "\n" so the javascript parses correctly.
                 * We encode the "&" so the parse_args & html_entity_decode do not see it as a field separator. (data inserted into shortcode from helper)
                 * urlencode works for 'multisite' javascript
                 * ''' & '\n' also causes problems for insertForm results form javascript
                 * Don't do full urlencode as it makes the shortcode data unreadable in the post
                 */
-               if ($escaped) $phrase = addslashes(htmlspecialchars (str_ireplace(array( '&', "'", "\r", "\n"), array('%26', '&#39;','%0D','%0A'), $phrase),ENT_COMPAT | ENT_HTML401,'UTF-8')); //urlencode
+//               if ($escaped) $phrase = addslashes(htmlspecialchars (str_ireplace(array( '&', "'", "\r", "\n"), array('%26', '&#39;','%0D','%0A'), $phrase),ENT_COMPAT | ENT_HTML401,'UTF-8')); //urlencode
+               if ($escaped) $phrase = str_ireplace(array( '&', "'", "\r", "\n"), array('%26', '&#39;','%0D','%0A'), $phrase);
 
                $output .= substr($input, $index, ($key_start-$index)) . $phrase;
                $index  = $key_end;

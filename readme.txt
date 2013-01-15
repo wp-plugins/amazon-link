@@ -73,7 +73,18 @@ This is created by either putting the line `amazon_recommends(<Category>,<Number
 
 
 * New Feature - Re-organise Settings pages and update Contextual Help
-* New Feature (BETA) - Add Redirect links an 'Extras' plugin to create links in the form `www.domain.com/al/0123456789` that auto redirect to the appropriate Amazon site.
+* New Plugin (BETA) - Add Redirect links an 'Extras' plugin to create links in the form `www.domain.com/al/0123456789` that auto redirect to the appropriate Amazon site.
+* New Plugin (BETA) - Add a database of predefined shortcodes accessed using a unique References ID
+* New Plugin (BETA) - Add a facility to search for and replace shortcodes in post content
+* New Plugin - Add a facility to change the size of the images retrieved from Amazon (BETA plugin)
+* New Feature - Ability to Export existing templates to a plugin file
+* New Feature - Add new keywords PUB_KEY, BUY_BUTTON
+* New Feature - Add new Amazon Link type 'URL' so can manually specify the link destination
+* New Template - Add To Cart Template added
+* Bug Fix - Change the way templates are processed, to improve page performance
+* Bug Fix - Update settings page to correctly handle 1 or 2 column mode
+* Bug Fix - Update multinational 'popup' to reposition itself if not in correct screen location.
+* Bug Fix - Remove various warnings when DEBUG enabled, and some CSS errors
 
 
 

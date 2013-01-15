@@ -125,7 +125,7 @@ wpAmazonLinkAdmin.prototype = {
         var sep = '';
         jQuery.each(shortcode_options, function(name, value){
             if (value != ' ') {
-                attrs += sep + name + cc + '='+value;
+                attrs += sep + name + cc + '='+value; //.replace(/"/g,'%22').replace(/\[/g, '&#91;').replace(/>/g,'%3E').replace(/&/g, '%26');
                 sep = '&';
             }
         });
@@ -136,8 +136,13 @@ wpAmazonLinkAdmin.prototype = {
     generateShortCode : function() {
 
         var template = new String(this['shortcode']);
-        args = this.generateArgs('');
         var $this = this;
+        jQuery.each(this['options'], function(name, value){
+         $this['options'][name] = value.replace(/"/g,'%22').replace(/\[/g, '&#91;').replace(/>/g,'%3E').replace(/&/g, '%26');
+        });
+
+        args = this.generateArgs('');
+
         this['options']['args'] = args;
         this['options']['unused_args'] = args;
         this['keywords'].push('args');

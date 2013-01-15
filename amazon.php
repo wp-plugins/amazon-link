@@ -78,8 +78,6 @@ To serve a page containing amazon links the plugin performs the following:
 
 *******************************************************************************************************/
 
-define (TIMING, False);
-
 require_once('include/displayForm.php');
 
 //require_once('include/translate.php');
@@ -116,7 +114,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
       var $aws_hit       = array();
       var $aws_miss      = array();
  
-     var $scripts_done  = False;
+      var $scripts_done  = False;
       var $tags          = array();
 
 /*****************************************************************************************/
@@ -137,9 +135,9 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
 
          // Frontend & Backend Related
          register_activation_hook(__FILE__, array($this, 'install'));                // To perform options installation
-         register_uninstall_hook(__FILE__, array($this, 'uninstall'));               // To perform options removal
+//         register_uninstall_hook(__FILE__, array($this, 'uninstall'));               // To perform options removal
          add_action('init', array($this, 'init'));                                   // Load i18n and initialise translatable vars
-         add_filter('the_content', array($this, 'content_filter'),15);               // Process the content
+         add_filter('the_content', array($this, 'content_filter'),15,1);             // Process the content
          add_filter('widget_text', array($this, 'widget_filter'), 16);               // Filter widget text (after the content?)
 
          // Backend only 
@@ -321,7 +319,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          wp_print_scripts('amazon-link-script');
          echo '<span id="al_popup" onmouseover="al_div_in()" onmouseout="al_div_out()"></span>';
          wp_localize_script('amazon-link-multi-script', 
-                            AmazonLinkMulti,
+                            'AmazonLinkMulti',
                             array('country_data' => $this->get_country_data(), 'channels' => $this->get_channels(True, True), 'target' => ($settings['new_window'] ? 'target="_blank"' : ''))
                            );
          wp_print_scripts('amazon-link-multi-script');
@@ -401,19 +399,22 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
              'text2'        => array( 'Description' => __('User Defined Text string', 'amazon-link'), 'User' => '1'),
              'text3'        => array( 'Description' => __('User Defined Text string', 'amazon-link'), 'User' => '1'),
              'text4'        => array( 'Description' => __('User Defined Text string', 'amazon-link'), 'User' => '1'),
+             'pub_key'      => array( 'Description' => __('Amazon Web Service Public Access Key ID', 'amazon-link')),
+             'mplace'       => array( 'Description' => __('Localised Amazon Marketplace Code (US, GB, etc.)', 'amazon-link'), 'Default' => array('uk' => 'GB', 'us' => 'US', 'de' => 'DE', 'es' => 'ES', 'fr' => 'FR', 'jp' => 'JP', 'it' => 'IT', 'cn' => 'CN', 'ca' => 'CA')),
+             'mplace_id'    => array( 'Description' => __('Localised Numeric Amazon Marketplace Code (2=uk, 8=fr, etc.)', 'amazon-link'), 'Default' => array('uk' => '2', 'us' => '1', 'de' => '3', 'es' => '30', 'fr' => '8', 'jp' => '9', 'it' => '29', 'cn' => '28', 'ca' => '15')),
+             'rcm'          => array( 'Description' => __('Localised RCM site host domain (rcm.amazon.com, rcm-uk.amazon.co.uk, etc.)', 'amazon-link'), 'Default' => array('uk' => 'rcm-uk.amazon.co.uk', 'us' => 'rcm.amazon.com', 'de' => 'rcm-de.amazon.de', 'es' => 'rcm-es.amazon.es', 'fr' => 'rcm-fr.amazon.fr', 'jp' => 'rcm-jp.amazon.co.jp', 'it' => 'rcm-it.amazon.it', 'cn' => 'rcm-cn.amazon.cn', 'ca' => 'rcm-ca.amazon.ca')),
+             'buy_button'   => array( 'Description' => __('Localised Buy from Amazon Button URL', 'amazon-link'), 'Default' => array('uk' => 'https://images-na.ssl-images-amazon.com/images/G/02/buttons/buy-from-tan.gif', 'us' => 'https://images-na.ssl-images-amazon.com/images/G/01/buttons/buy-from-tan.gif', 'de' => 'https://images-na.ssl-images-amazon.com/images/G/03/buttons/buy-from-tan.gif', 'es' => 'https://images-na.ssl-images-amazon.com/images/G/30/buttons/buy-from-tan.gif', 'fr' => 'https://images-na.ssl-images-amazon.com/images/G/08/buttons/buy-from-tan.gif', 'jp' => 'https://images-na.ssl-images-amazon.com/images/G/09/buttons/buy-from-tan.gif', 'it' => 'https://images-na.ssl-images-amazon.com/images/G/29/buttons/buy-from-tan.gif', 'cn' => 'https://images-na.ssl-images-amazon.com/images/G/28/buttons/buy-from-tan.gif', 'ca' => 'https://images-na.ssl-images-amazon.com/images/G/15/buttons/buy-from-tan.gif')),
 
              'tag'          => array( 'Description' => __('Localised Amazon Associate Tag', 'amazon-link')),
              'cc'           => array( 'Description' => __('Localised Country Code (us, uk, etc.)', 'amazon-link')),
              'flag'         => array( 'Description' => __('Localised Country Flag Image URL', 'amazon-link')),
-             'mplace'       => array( 'Description' => __('Localised Amazon Marketplace Code (US, GB, etc.)', 'amazon-link')),
-             'mplace_id'    => array( 'Description' => __('Localised Numeric Amazon Marketplace Code (2=uk, 8=fr, etc.)', 'amazon-link')),
              'tld'          => array( 'Description' => __('Localised Top Level Domain (.com, .co.uk, etc.)', 'amazon-link')),
-             'rcm'          => array( 'Description' => __('Localised RCM site host domain (rcm.amazon.com, rcm-uk.amazon.co.uk, etc.)', 'amazon-link')),
 
-             'downloaded'   => array( 'Description' => __('1 if Images are in the local Wordpress media library', 'amazon-link'), 'Calculated' => '1'),
-             'found'        => array( 'Description' => __('1 if product was found doing a live data request (also 1 if live not enabled).', 'amazon-link'), 'Calculated' => '1'),
-             'timestamp'    => array( 'Description' => __('Date and time of when the Amazon product data was retrieved from Amazon.', 'amazon-link'), 'Calculated' => 1, 'Default' => '0')                                  );
-             $this->keywords = apply_filters('amazon_link_keywords', $this->keywords, $al);
+             'downloaded'   => array( 'Description' => __('1 if Images are in the local WordPress media library', 'amazon-link'), 'Image' => 1, 'Calculated' => '1'),
+             'found'        => array( 'Description' => __('1 if product was found doing a live data request (also 1 if live not enabled).', 'amazon-link'), 'Calculated' => '1', 'Default' => 1),
+             'timestamp'    => array( 'Description' => __('Date and time of when the Amazon product data was retrieved from Amazon.', 'amazon-link'), 'Calculated' => 1, 'Default' => '0')
+            );
+            $this->keywords = apply_filters('amazon_link_keywords', $this->keywords, $this);
          }
          return $this->keywords;
       }
@@ -424,20 +425,20 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
             /* Move Country Data construction here so we can localise the strings */
             // Country specific aspects:
             // full name of country,
-            // country flag image
+            // country flag image                                        'Default' => array('uk' => 'http://images.amazon.com/images/G/02/associates/buttons/buy5.gif', 'us' => 'http://images.amazon.com/images/G/01/associates/add-to-cart.gif', 'de' => 'rcm-de.amazon.de', 'es' => 'http://images.amazon.com/images/G/01/associates/add-to-cart.gif', 'fr' => 'http://images.amazon.com/images/G/01/associates/add-to-cart.gif', 'jp' => 'http://images.amazon.com/images/G/01/associates/add-to-cart.gif', 'it' => 'http://images.amazon.com/images/G/01/associates/add-to-cart.gif', 'cn' => 'http://images.amazon.com/images/G/01/associates/add-to-cart.gif', 'ca' => 'http://images.amazon.com/images/G/01/associates/add-to-cart.gif')
             // market place of amazon site
             // tld of main amazon site
             // link to affiliate program site
             // Default tag if none set up 
-            $this->country_data = array('uk' => array('name' => __('United Kingdom', 'amazon-link'), 'lang' => 'en', 'flag' => $this->URLRoot. '/'. 'images/flag_uk.gif', 'market' => 'GB', 'm_id' => 2, 'tld' => 'co.uk', 'rcm' => 'rcm-uk.amazon.co.uk', 'site' => 'https://affiliate-program.amazon.co.uk', 'default_tag' => 'livpauls-21'),
-                                        'us' => array('name' => __('United States', 'amazon-link'), 'lang' => 'en', 'flag' => $this->URLRoot. '/'. 'images/flag_us.gif', 'market' => 'US', 'm_id' => 1, 'tld' => 'com', 'rcm' => 'rcm.amazon.com', 'site' => 'https://affiliate-program.amazon.com', 'default_tag' => 'lipawe-20'),
-                                        'de' => array('name' => __('Germany', 'amazon-link'), 'lang' => 'de', 'flag' => $this->URLRoot. '/'. 'images/flag_de.gif', 'market' => 'DE', 'm_id' => 3, 'tld' => 'de', 'rcm' => 'rcm-de.amazon.de', 'site' => 'https://partnernet.amazon.de', 'default_tag' => 'lipas03-21'),
-                                        'es' => array('name' => __('Spain', 'amazon-link'), 'lang' => 'es', 'flag' => $this->URLRoot. '/'. 'images/flag_es.gif', 'market' => 'ES', 'm_id' => 30, 'tld' => 'es', 'rcm' => 'rcm-es.amazon.es', 'site' => 'https://afiliados.amazon.es', 'default_tag' => 'livpauls0b-21'),
-                                        'fr' => array('name' => __('France', 'amazon-link'), 'lang' => 'fr', 'flag' => $this->URLRoot. '/'. 'images/flag_fr.gif', 'market' => 'FR', 'm_id' => 8, 'tld' => 'fr', 'rcm' => 'rcm-fr.amazon.fr', 'site' => 'https://partenaires.amazon.fr', 'default_tag' => 'lipas-21'),
-                                        'jp' => array('name' => __('Japan', 'amazon-link'), 'lang' => 'ja', 'flag' => $this->URLRoot. '/'. 'images/flag_jp.gif', 'market' => 'JP', 'm_id' => 9, 'tld' => 'jp', 'rcm' => 'rcm-jp.amazon.co.jp', 'site' => 'https://affiliate.amazon.co.jp', 'default_tag' => 'livpaul21-22'),
-                                        'it' => array('name' => __('Italy', 'amazon-link'), 'lang' => 'it', 'flag' => $this->URLRoot. '/'. 'images/flag_it.gif', 'market' => 'IT', 'm_id' => 29, 'tld' => 'it', 'rcm' => 'rcm-it.amazon.it', 'site' => 'https://programma-affiliazione.amazon.it', 'default_tag' => 'livpaul-21'),
-                                        'cn' => array('name' => __('China', 'amazon-link'), 'lang' => 'zh-CHS', 'flag' => $this->URLRoot. '/'. 'images/flag_cn.gif', 'market' => 'CN', 'm_id' => 28, 'rcm' => 'rcm-cn.amazon.cn', 'tld' => 'cn', 'site' => 'https://associates.amazon.cn', 'default_tag' => 'livpaul-23'),
-                                        'ca' => array('name' => __('Canada', 'amazon-link'), 'lang' => 'en', 'flag' => $this->URLRoot. '/'. 'images/flag_ca.gif', 'market' => 'CA', 'm_id' => 15, 'rcm' => 'rcm-ca.amazon.ca', 'tld' => 'ca', 'site' => 'https://associates.amazon.ca', 'default_tag' => 'lipas-20'));
+            $this->country_data = array('uk' => array('name' => __('United Kingdom', 'amazon-link'), 'lang' => 'en', 'flag' => $this->URLRoot. '/'. 'images/flag_uk.gif', 'tld' => 'co.uk', 'site' => 'https://affiliate-program.amazon.co.uk', 'default_tag' => 'livpauls-21'),
+                                        'us' => array('name' => __('United States', 'amazon-link'), 'lang' => 'en', 'flag' => $this->URLRoot. '/'. 'images/flag_us.gif', 'tld' => 'com', 'site' => 'https://affiliate-program.amazon.com', 'default_tag' => 'lipawe-20'),
+                                        'de' => array('name' => __('Germany', 'amazon-link'), 'lang' => 'de', 'flag' => $this->URLRoot. '/'. 'images/flag_de.gif', 'tld' => 'de', 'site' => 'https://partnernet.amazon.de', 'default_tag' => 'lipas03-21'),
+                                        'es' => array('name' => __('Spain', 'amazon-link'), 'lang' => 'es', 'flag' => $this->URLRoot. '/'. 'images/flag_es.gif', 'tld' => 'es', 'site' => 'https://afiliados.amazon.es', 'default_tag' => 'livpauls0b-21'),
+                                        'fr' => array('name' => __('France', 'amazon-link'), 'lang' => 'fr', 'flag' => $this->URLRoot. '/'. 'images/flag_fr.gif', 'tld' => 'fr', 'site' => 'https://partenaires.amazon.fr', 'default_tag' => 'lipas-21'),
+                                        'jp' => array('name' => __('Japan', 'amazon-link'), 'lang' => 'ja', 'flag' => $this->URLRoot. '/'. 'images/flag_jp.gif', 'tld' => 'jp', 'site' => 'https://affiliate.amazon.co.jp', 'default_tag' => 'livpaul21-22'),
+                                        'it' => array('name' => __('Italy', 'amazon-link'), 'lang' => 'it', 'flag' => $this->URLRoot. '/'. 'images/flag_it.gif', 'tld' => 'it', 'site' => 'https://programma-affiliazione.amazon.it', 'default_tag' => 'livpaul-21'),
+                                        'cn' => array('name' => __('China', 'amazon-link'), 'lang' => 'zh-CHS', 'flag' => $this->URLRoot. '/'. 'images/flag_cn.gif', 'tld' => 'cn', 'site' => 'https://associates.amazon.cn', 'default_tag' => 'livpaul-23'),
+                                        'ca' => array('name' => __('Canada', 'amazon-link'), 'lang' => 'en', 'flag' => $this->URLRoot. '/'. 'images/flag_ca.gif', 'tld' => 'ca', 'site' => 'https://associates.amazon.ca', 'default_tag' => 'lipas-20'));
          }
          return $this->country_data;
       }
@@ -498,6 +499,9 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
             'priv_key' => array( 'Name' => __('AWS Private key', 'amazon-link'), 'Description' => __('Secret Access Key ID provided by your AWS Account.', 'amazon-link'), 'Default' => '', 'Type' => 'text', 'Size' => '40', 'Class' => '' ),
             'aws_valid' => array ( 'Type' => 'checkbox', 'Read_Only' => 1, 'Name' => 'AWS Keys Validated', 'Default' => '0', 'Class' => 'al_border'),
             'live' => array ( 'Name' => __('Live Data', 'amazon-link'), 'Description' => __('When creating Amazon links, use live data from the Amazon site, otherwise populate the shortcode with static information. <em>* <a href="#aws_notes" title="AWS Access keys required for full functionality">AWS</a> *</em>', 'amazon-link'), 'Default' => '1', 'Type' => 'checkbox', 'Class' => 'al_border' ),
+            'condition' => array ( 'Name' => __('Condition', 'amazon-link'), 'Description' => __('By default Amazon only returns Offers for \'New\' items, change this to return items of a different condition.', 'amazon-link'), 'Default' => '', 'Type' => 'selection', 
+                                   'Options' => array( '' => array('Name' => 'Use Default'), 'All' => array ('Name' => 'All'), 'New' => array('Name' => 'New'),'Used' => array('Name' => 'Used'),'Collectible' => array('Name' => 'Collectible'),'Refurbished' => array('Name' => 'Refurbished')),
+                                   'Class' => 'al_border' ),
             'prefetch' => array ( 'Name' => __('Prefetch Data', 'amazon-link'), 'Description' => __('For every product link, prefetch the data from the Amazon Site - use of the cache essential for this option! <em>* <a href="#aws_notes" title="AWS Access keys required for full functionality">AWS</a> *</em>', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox', 'Class' => 'al_border' ),
             'hd3e' => array ( 'Type' => 'end'),
 
@@ -728,8 +732,8 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
           *
           * Ensuring all cc arrays are the same length.
           */
-         if (!is_array($this->Settings['asin'])) {
-            $this->Settings['asin'] = array( $this->Settings['default_cc'] => $this->Settings['asin']);
+         if (empty($this->Settings['asin']) || !is_array($this->Settings['asin'])) {
+            $this->Settings['asin'] = array( $this->Settings['default_cc'] => !empty($this->Settings['asin']) ? $this->Settings['asin'] : '');
          }
          $max = 0;
          foreach ($this->Settings['asin'] as $cc => $asins)
@@ -742,8 +746,9 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          $this->Settings['asin'] = array();
          for ($index=0; $index < $max; $index++) {
             foreach ($temp_asins as $cc => $cc_asins)
-               if (!empty($cc_asins[$index])) $this->Settings['asin'][$index][$cc] = $cc_asins[$index];
+               if (isset($cc_asins[$index])) $this->Settings['asin'][$index][$cc] = $cc_asins[$index];
          }
+
          return $this->Settings;
       }
 
@@ -836,9 +841,9 @@ function alx_'.$slug.'_default_templates ($templates) {
          $content .= "  return \$templates;\n}\nadd_filter( 'amazon_link_default_templates', 'alx_${slug}_default_templates');\n?>";
          $result = file_put_contents( $filename, $content);
          if ($result === FALSE) {
-            return array ( 'Success' => 0, Message => "Export Failed could not write to: <em>$filename</em>" );
+            return array ( 'Success' => 0, 'Message' => "Export Failed could not write to: <em>$filename</em>" );
          } else {
-            return array ( 'Success' => 1, Message => "Templates exported to file: <em>$filename</em>, <em>$result</em> bytes written." );
+            return array ( 'Success' => 1, 'Message' => "Templates exported to file: <em>$filename</em>, <em>$result</em> bytes written." );
          }
       }
 
@@ -868,8 +873,8 @@ function alx_'.$slug.'_default_templates ($templates) {
                $this->channels[$channel_id] = $channel_data;
                $this->channels[$channel_id]['ID'] = $channel_id;
                foreach ( $country_data as $cc => $data) {
-                  if ($channel_data['tag_'. $cc] == '') {
-                     $this->channels[$channel_id]['tag_'. $cc] = ($channels['default']['tag_' .$cc] != '') ? 
+                  if (empty($channel_data['tag_'. $cc])) {
+                     $this->channels[$channel_id]['tag_'. $cc] = (!empty($channels['default']['tag_' .$cc])) ? 
                                                                   $channels['default']['tag_' .$cc] : $data['default_tag'];
                   }
                }
@@ -1033,7 +1038,7 @@ function alx_'.$slug.'_default_templates ($templates) {
          if ($settings['cache_enabled']) {
             $sql = "DELETE FROM $cache_table WHERE asin LIKE '$asin' AND cc LIKE '$cc'";
             $wpdb->query($sql);
-            $sql_data = array( 'asin' => $asin, 'cc' => $cc, 'xml' => serialize($data), updated => $updated);
+            $sql_data = array( 'asin' => $asin, 'cc' => $cc, 'xml' => serialize($data), 'updated' => $updated);
             $wpdb->insert($cache_table, $sql_data);
          }
       }
@@ -1106,7 +1111,7 @@ function alx_'.$slug.'_default_templates ($templates) {
          $channel      = $this->get_channel($settings);
          $top_cc       = $this->get_country($settings);
          $country_data = $this->get_country_data();
-         $info         = array( 'flag' => $country_data[$top_cc]['flag'], 'cc' => $top_cc, 'rcm' => $country_data[$top_cc]['rcm'], 'mplace_id' => $country_data[$top_cc]['m_id'], 'mplace' => $country_data[$top_cc]['market'], 'tld' => $country_data[$top_cc]['tld'], 'tag' => $channel['tag_' . $top_cc], 'channel' => $channel['ID']);
+         $info         = array( 'flag' => $country_data[$top_cc]['flag'], 'cc' => $top_cc, 'tld' => $country_data[$top_cc]['tld'], 'tag' => $channel['tag_' . $top_cc], 'channel' => $channel['ID']);
          return $info;
       }
 
@@ -1121,11 +1126,26 @@ function alx_'.$slug.'_default_templates ($templates) {
       function content_filter($content, $doLinks=TRUE, $in_post=TRUE) {
 
          $this->in_post = $in_post;
+         
+         /* 
+          * Default regex needs to match opening and closing brackets '['
+          */
+         $regex = '~
+                   \[amazon\s+                  # "[amazon" with at least one space
+                   (?P<args>                    # capture everything that follows as a named expression "args"
+                    (?:(?>[^\[\]]*)             # argument name excluding any "[" or "]" character
+                     (?:\[(?>[a-z]*)\])?        # optional "[alphaindex]" phrase
+                    )*                          # 0 or more of these arguments
+                   )                            # end of "args" group
+                   \]                           # closing ]
+                   ~sx';
+         $regex = apply_filters('amazon_link_regex', $regex, $this);
 
-         $regex = apply_filters('amazon_link_regex', '/\[amazon +'. '(?P<args>(?:[^\[\]]*(?:\[[a-z]*\]){0,1})*)'. '\]/', $this);
 
          if ($doLinks) {
-            return preg_replace_callback( $regex, array($this,'shortcode_expand'), $content);
+            $text = preg_replace_callback( $regex, array($this,'shortcode_expand'), $content);
+            if ((preg_last_error() != PREG_NO_ERROR)) echo '<!-- amazon-link pattern error: '. var_export(preg_last_error()). '-->';
+            return $text;
          } else {
             return preg_replace_callback( $regex, array($this,'shortcode_extract_asins'), $content);
          }
@@ -1292,7 +1312,8 @@ function alx_'.$slug.'_default_templates ($templates) {
           */
          $text = __('<p>Hover the mouse pointer over the keywords for more information.</p>', 'amazon-link');
          foreach ($this->get_keywords() as $keyword => $details) {
-            $text = $text . '<p><abbr title="'. htmlspecialchars($details['Description']) .'">%' . strtoupper($keyword) . '%</abbr></p>';
+            $title = (!empty($details['Description']) ? 'title="'. htmlspecialchars($details['Description']) .'"' : '');
+            $text = $text . '<p><abbr '.$title.'>%' . strtoupper($keyword) . '%</abbr></p>';
          }
          echo $text;
       }
@@ -1379,21 +1400,21 @@ function alx_'.$slug.'_default_templates ($templates) {
          if ($settings === NULL)
             $settings = $this->getSettings();
 
+         $cc = $this->get_country($settings);
+
          /* If not a request then must be a standard ASIN Lookup */
          if (!is_array($request)) {
             $asin = $request;
-            $this->lookups[$asin]++;
+            @$this->lookups[$asin]++;
          }
          $data = NULL;
          if (!is_array($request)) {
-            $li = $this->get_local_info($settings);
-            $cc = $li['cc'];
             $data[0] = $this->cache_lookup_item($asin, $cc);
             if ($data[0] !== NULL) {
-               $this->cache_hit[$asin]++;
+               @$this->cache_hit[$asin]++;
                return $data;
             }
-            $this->cache_miss[$asin]++;
+            @$this->cache_miss[$asin]++;
          }
 
          // Create query to retrieve the an item
@@ -1403,6 +1424,9 @@ function alx_'.$slug.'_default_templates ($templates) {
             $request['ItemId']        = $asin;
             $request['IdType']        = 'ASIN';
             $request['ResponseGroup'] = $this->get_response_groups();
+/*            if (!empty($settings['condition'])) {
+               $request['Condition'] = $settings['condition'];
+            }*/
          } else { 
             $request['ResponseGroup'] = $this->get_response_groups();
          }
@@ -1415,7 +1439,7 @@ function alx_'.$slug.'_default_templates ($templates) {
             if (array_key_exists('ASIN', $pxml['Items']['Item'])) {
                // Returned a single result (not in an array)
                $items = array($pxml['Items']['Item']);
-               $this->aws_hit[$asin]++;
+               @$this->aws_hit[$asin]++;
             } else {
                // Returned several results
                $items =$pxml['Items']['Item'];
@@ -1423,7 +1447,7 @@ function alx_'.$slug.'_default_templates ($templates) {
 
          } else {
 
-            $this->aws_miss[$asin]++;
+            @$this->aws_miss[$asin]++;
             // Failed to return any results
 
             $data['Error'] = (isset($pxml['Error'])? $pxml['Error'] : 
@@ -1440,7 +1464,7 @@ function alx_'.$slug.'_default_templates ($templates) {
 
             foreach ($keywords as $keyword => $key_info) {
                if (isset($key_info['Live'])) {
-                  $key_data = $this->grab($result, $key_info['Position'], $key_info['Default']);
+                  $key_data = $this->grab($result, $key_info['Position'], (is_array($key_info['Default']) ? $key_info['Default'][$cc] : $key_info['Default']) );
                   $key_info['Keyword'] = $keyword;
                   if (isset($key_info['Callback'])) {
                      $key_data = call_user_func($key_info['Callback'], $key_data, $key_info, $this);
@@ -1482,7 +1506,8 @@ function alx_'.$slug.'_default_templates ($templates) {
           * Generate a localised/multinational link open tag <a ... >
           */
          $attributes = 'rel="nofollow"' . $settings['new_window'] ? ' target="_blank"' : '';
-         $attributes .= !empty($settings['link_title']) ? ' title="'.addslashes(preg_replace( '!%([a-z_]+)%!i', '%\1%S#', $settings['link_title'])).'"' : '';
+//         $attributes .= !empty($settings['link_title']) ? ' title="'.addslashes(preg_replace( '!%([a-z_]+)%!i', '%\1%S#', $settings['link_title'])).'"' : '';
+         $attributes .= !empty($settings['link_title']) ? ' title="'.addslashes($settings['link_title']).'"' : '';
          $url = apply_filters('amazon_link_url', '', $type, $asin, $search[0], $local_info, $settings, $this);
          $text="<a $attributes href=\"$url\">";
          if ($settings['multi_cc']) {
@@ -1625,6 +1650,7 @@ function alx_'.$slug.'_default_templates ($templates) {
             } else {
                $Settings['template_content']= '%LINK_OPEN%%TEXT%%LINK_CLOSE%';
             }
+            $Settings['template_type'] = 'Product';
          }
 
          $details = array();

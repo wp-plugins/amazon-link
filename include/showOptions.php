@@ -111,7 +111,7 @@
     */
    $Update=False;
    foreach ($optionList as $optName => $optDetails) {
-      if(!isset($Opts[$optName]) && isset($optDetails['Default']) && (!$optDetails['Name'])) {
+      if(!isset($Opts[$optName]) && isset($optDetails['Default']) && !empty($optDetails['Name']) ) {
          $Opts[$optName] = $optDetails['Default'];
          $Update = True;
       }

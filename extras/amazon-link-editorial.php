@@ -4,7 +4,7 @@
 Plugin Name: Amazon Link Extra - Editorial Content
 Plugin URI: http://www.houseindorset.co.uk/
 Description: Update the Amazon Link plugin to return 'Editorial Content' (this can be a lot of data and may have a performance impact on your site)
-Version: 1.3
+Version: 1.3.1
 Author: Paul Stuttard
 Author URI: http://www.houseindorset.co.uk
 */
@@ -85,7 +85,7 @@ function alx_add_editorial ($keywords) {
  */
 function alx_add_editorial_templates ($templates) {
 
-   $templates['editorial'] = array( 'Name' => __('Editorial Reviews','amazon-link'),
+   $templates['editorial'] = array( 'Name' => __('Editorial','amazon-link'),
                                     'Description' => __('Editorial Reviews (non-copyrighted only)', 'amazon-link'),
                                     'Content' => htmlspecialchars('<div class="al_found%FOUND%">%EDITORIAL%US#</div>'),
                                     'Version' => '1',

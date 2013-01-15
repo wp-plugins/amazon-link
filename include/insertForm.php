@@ -11,6 +11,8 @@
    $Settings = $this->getOptions();
    if (isset($args['Options'])) $Settings = array_merge($Settings, $args['Options']);
 
+   $post_ID = (isset($post->ID)?$post->ID : NULL);
+
    $results_html = __('Results: ', 'amazon-link'). 
                   '<img style="float:right" alt="" title="" id="amazon-link-status" class="ajax-feedback " src="images/wpspin_light.gif" />'.
                   '<div style="clear:both" id="amazon-link-result-list"></div>';
@@ -44,12 +46,12 @@
        <div style="width:100%">
         <input style="float:left" type="button" title="'. __('Add ASIN to list of ASINs above','amazon-link'). '"onClick="return wpAmazonLinkAd.addASIN(this.form, {asin: \'%ASIN%\'} );" value="'.__('+', 'amazon-link').'" class="button-secondary">
         <input style="float:left" type="button" title="'. __('Insert a link into the post, based on the selected template','amazon-link'). '"onClick="return wpAmazonLinkAd.sendToEditor(this.form, { '. $item_details.' } );" value="'.__('Insert', 'amazon-link').'" class="button-secondary">
-        <input style="float:right" id="upload-button-%ASIN%" type="button" title="'. __('Upload cover image into media library','amazon-link'). '"onClick="return wpAmazonLinkSearch.grabMedia(this.form, {asin: \'%ASIN%\'} );" value="'.__('Upload', 'amazon-link').'" class="al_hide-%DOWNLOADED% button-secondary">
-        <input style="float:right" id="uploaded-button-%ASIN%" type="button" title="'. __('Remove image from media library','amazon-link'). '"onClick="return wpAmazonLinkSearch.removeMedia(this.form, {asin: \'%ASIN%\'} );" value="'.__('Delete', 'amazon-link').'" class="al_show-%DOWNLOADED% button-secondary">
+        <input style="float:right" id="upload-button-%ASIN%" type="button" title="'. __('Upload cover image into media library','amazon-link'). '"onClick="return wpAmazonLinkSearch.grabMedia(this.form, {asin: \'%ASIN%\'} );" value="'.__('Upload', 'amazon-link').'" class="button-secondary al_hide-%DOWNLOADED%">
+        <input style="float:right" id="uploaded-button-%ASIN%" type="button" title="'. __('Remove image from media library','amazon-link'). '"onClick="return wpAmazonLinkSearch.removeMedia(this.form, {asin: \'%ASIN%\'} );" value="'.__('Delete', 'amazon-link').'" class="button-secondary al_show-%DOWNLOADED%">
        </div>
       </div>
    
-     <p>'. __('by %ARTIST% [%MANUFACTURER%]', 'amazon-link') .'<br />
+     <p>'. __('by %ARTIST% [%MANUFACTURER%]', 'amazon-link') .'%DOWNLOADED%<br />
      '. __('Type: %PRODUCT%', 'amazon-link') .'<br />
      '. __('Binding: %BINDING%', 'amazon-link') .'<br />
      '. __('Rank/Rating: %RANK%/%RATING%', 'amazon-link').'<br />
@@ -75,7 +77,7 @@
       $optionList = array_merge($optionList,array(
          'subhd2' => array ( 'Type' => 'title', 'Value' => __('Search Amazon for Products', 'amazon-link'), 'Title_Class' => 'sub-head'),
          'template_content' => array( 'Id' => 'amazon-link-search', 'Default' => $results_template, 'Type' => 'hidden'),
-         'post' => array( 'Id' => 'amazon-link-search', 'Default' => $post->ID, 'Type' => 'hidden'),
+         'post' => array( 'Id' => 'amazon-link-search', 'Default' => $post_ID, 'Type' => 'hidden'),
          's_index' => array( 'Id' => 'amazon-link-search', 'Name' => __('Product Index', 'amazon-link'), 'Hint' => __('Which Amazon Product Index to Search through', 'amazon-link'), 'Default' => 'Books', 'Type' => 'selection', 
                            'Options' => $search_indexes ),
          's_author' => array('Id' => 'amazon-link-search', 'Name' => __('Author', 'amazon-link'), 'Hint' => __('Author or Artist to search for', 'amazon-link'), 'Type' => 'text', 'Default' => ''),
@@ -142,7 +144,7 @@
 
    // **********************************************************
    // Now display the options editing screen
-   $Settings['asin'] = (isset($Settings['asin']) && is_array($Settings['asin'])) ? implode(',', $Settings['asin']): $Settings['asin'];
+//   $Settings['asin'] = (isset($Settings['asin']) && is_array($Settings['asin'])) ? implode(',', $Settings['asin']): $Settings['asin'];
    $this->form->displayForm($optionList, $Settings, True, True);
 
 ?>

@@ -4,7 +4,7 @@
 Plugin Name: Amazon Link Extra - Import / Export
 Plugin URI: http://www.houseindorset.co.uk/plugins/amazon-link/
 Description: !!!BETA!!! This plugin adds the ability to search for Amazon Link shortcodes and replace with static content or links of a different format and vice versa.
-Version: 1.3
+Version: 1.3.2
 Author: Paul Stuttard
 Author URI: http://www.houseindorset.co.uk
 */
@@ -36,7 +36,7 @@ function alx_impexp_show_panel () {
    /*
     * Possible Search and Replace Patterns
     */
-   $expressions = array( 'standard'    => array ( 'Regex'       => '/\[amazon +(?P<args>(?:[^\[\]]*(?:\[[a-z]*\]){0,1})*)\]/',
+   $expressions = array( 'standard'    => array ( 'Regex'       => '~\[amazon\s+(?P<args>(?:(?>[^\[\]]*)(?:\[(?>[a-z]*)\])?)*)\]~sx',
                                                   'Name'        => __('Standard Shortcode', 'amazon-link'),
                                                   'Description' => 'The original Amazon Link shortcode of the form [amazon arg=xxx].',
                                                   'Template'    => '[amazon %ARGS%]'),
@@ -46,7 +46,7 @@ function alx_impexp_show_panel () {
                          'remove'      => array ( 'Name'        => __('Remove Shortcodes', 'amazon-link'),
                                                   'Description' => 'Remove all shortcodes',
                                                   'Template'    => ''),
-                         'hide'        => array ( 'Regex'       => '/<!--amazon-link-open (?P<args>(?:[^\[\]]*(?:\[[a-z]*\]){0,1})*)-->(?U:.*)<!--amazon-link-close-->/',
+                         'hide'        => array ( 'Regex'       => '/<!--amazon-link-open (?P<args>(?:(?>[^\[\]]*)(?:\[(?>[a-z]*)\])?)*)-->(?U:.*)<!--amazon-link-close-->/',
                                                   'Name'        => __('Hidden Shortcodes', 'amazon-link'),
                                                   'Description' => 'Links are represented by hidden html elements of the form <!--amazon-link-open: %ARGS%-->...<!--amazon-link-close-->',
                                                   'Template'    => '<!--amazon-link-open: %ARGS%--><!--amazon-link-close-->'),
@@ -101,8 +101,9 @@ function alx_impexp_show_panel () {
    foreach ($options as $id => $details) {
       if (isset($details['Name'])) {
          // Read their posted value or if no action set to defaults
-         $opts[$id] = stripslashes($_POST[$id]);
-         if (!isset($_POST[$id]) && ($Action == 'No Action')) {
+         if (isset($_POST[$id])) {
+            $opts[$id] = stripslashes($_POST[$id]);
+         } else if (($Action == 'No Action') && isset($details['Default'])) {
             $opts[$id] = $details['Default'];
          }
       }
@@ -134,7 +135,7 @@ function alx_impexp_show_panel () {
          $regex = $Filter['Regex'];
          $count = preg_match_all( $regex, $post->post_content, $matches, PREG_SET_ORDER);
          foreach ($matches as $index => $match) {
-            echo "<TR><TD>".$post->ID."</TD><TD>$index</TD><TD>".htmlspecialchars($match[0])."</TD><TD>".htmlspecialchars($match['args'])."</TD><TD>".htmlspecialchars($match['text'])."</TD><TD>".htmlspecialchars($match['asin'])."</TD></TR>";
+            echo "<TR><TD>".$post->ID."</TD><TD>$index</TD><TD>".htmlspecialchars($match[0])."</TD><TD>".htmlspecialchars(isset($match['args'])?$match['args']:'')."</TD><TD>".htmlspecialchars(isset($match['text'])?$match['text']:'')."</TD><TD>".htmlspecialchars(isset($match['asin'])?$match['asin']:'')."</TD></TR>";
          }
       }
       echo "</TBODY></TABLE>";      
@@ -148,18 +149,19 @@ function alx_impexp_show_panel () {
       $Filter  = isset($expressions[$opts['Filter']]) ? $expressions[$opts['Filter']] : $expressions['standard'];
       $Replace = isset($expressions[$opts['Replace']]) ? $expressions[$opts['Replace']] : $expressions['standard'];
       $awlfw->get_keywords();
-      $awlfw->keywords['unused_args'] = array( 'User' => 1 );
-      $awlfw->keywords['args'] = array( 'User' => 1 );
-      $awlfw->keywords['static'] = array( 'User' => 1 );
+      $awlfw->keywords['unused_args'] = array( 'Calculated' => 1 );
+      $awlfw->keywords['args'] = array( 'Calculated' => 1 );
+      $awlfw->keywords['static'] = array( 'Calculated' => 1 );
       $alx_impexp['Template'] = $Replace['Template'];
 
       $lastposts = get_posts("posts_per_page=-1&");
       echo '<TABLE class="widefat">';
       echo '<THEAD><TR><TH>Post</TH><TH>Count</TH><TH>Matching Text</TH><TH>Replacement</TH></TR></THEAD><TBODY>';
       foreach ($lastposts as $id => $post) {
-         $regex = $Filter['Regex']; 
+         $regex = $Filter['Regex'];
          $count = preg_match_all( $regex, $post->post_content, $matches, PREG_SET_ORDER);
          foreach ($matches as $index => $match) {
+            $alx_impexp['Count'] = 0;
             $output = alx_impexp_do_shortcode($match);
             if ($opts['Raw']) $output = htmlspecialchars($output);
             echo "<TR><TD>".$post->ID."</TD><TD>$index</TD><TD>".htmlspecialchars($match[0])."</TD><TD>".($output)."</TD></TR>";
@@ -175,8 +177,9 @@ function alx_impexp_show_panel () {
       $Filter  = isset($expressions[$opts['Filter']]) ? $expressions[$opts['Filter']] : $expressions['standard'];
       $Replace = isset($expressions[$opts['Replace']]) ? $expressions[$opts['Replace']] : $expressions['standard'];
       $awlfw->get_keywords();
-      $awlfw->keywords['args'] = array( 'User' => 1 );
-      $awlfw->keywords['static'] = array( 'User' => 1 );
+      $awlfw->keywords['unused_args'] = array( 'Calculated' => 1 );
+      $awlfw->keywords['args'] = array( 'Calculated' => 1 );
+      $awlfw->keywords['static'] = array( 'Calculated' => 1 );
       $alx_impexp['Template'] = $Replace['Template'];
 
       $lastposts = get_posts("posts_per_page=1&");
@@ -204,7 +207,7 @@ function alx_impexp_show_panel () {
 function alx_impexp_do_shortcode($match) {
    global $awlfw, $alx_impexp;
 
-   $extra_args  = !empty($match['args']) ? '&' . $match['args'] : '';
+   $extra_args  = !empty($match['args']) ? $match['args'] : '';
    unset ($match['args']);
    $args = $sep ='';
    foreach ($match as $arg => $data) {

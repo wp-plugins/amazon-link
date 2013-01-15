@@ -4,7 +4,7 @@
 Plugin Name: Amazon Link Extra - References
 Plugin URI: http://www.houseindorset.co.uk/plugins/amazon-link/
 Description: !!!BETA!!! This plugin adds the ability to pre-define shortcodes and save them in the database with a unique reference that can be re-used many times across your site from within multiple shortcodes, updating the single item in the database will change all the links that use that reference. Create the named reference on the 'Reference' settings page and then in the shortcode simply add the argument 'ref=XXX'
-Version: 1.3
+Version: 1.3.3
 Author: Paul Stuttard
 Author URI: http://www.houseindorset.co.uk
 */
@@ -47,7 +47,6 @@ function alx_reference_show_panel ($post, $args) {
       <div style="float:right">
        <div style="width:100%">
         <input style="float:left" type="button" title="'. __('Add ASIN to country specific list of ASINs below.','amazon-link'). '"onClick="return wpAmazonLinkAd.addASIN(this.form, {asin: \'%ASIN%\', cc: \'%CC%\'} );" value="'.__('+', 'amazon-link').'" class="button-secondary">
-        <input style="float:left" type="button" title="'. __('Add Static Product details to shortcode field.','amazon-link'). '"onClick="return wpAmazonLinkAd.addShortcode(this.form, { '. $item_details.' } );" value="'.__('Shortcode', 'amazon-link').'" class="button-secondary">
         <input style="float:right" id="upload-button-%ASIN%" type="button" title="'. __('Upload cover image into media library','amazon-link'). '"onClick="return wpAmazonLinkSearch.grabMedia(this.form, {asin: \'%ASIN%\'} );" value="'.__('Upload', 'amazon-link').'" class="al_hide-%DOWNLOADED% button-secondary">
         <input style="float:right" id="uploaded-button-%ASIN%" type="button" title="'. __('Remove image from media library','amazon-link'). '"onClick="return wpAmazonLinkSearch.removeMedia(this.form, {asin: \'%ASIN%\'} );" value="'.__('Delete', 'amazon-link').'" class="al_show-%DOWNLOADED% button-secondary">
        </div>
@@ -75,8 +74,9 @@ function alx_reference_show_panel ($post, $args) {
    foreach ($options as $id => $details) {
       if (isset($details['Name'])) {
          // Read their posted value or if no action set to defaults
-         $opts[$id] = stripslashes($_POST[$id]);
-         if (!isset($_POST[$id]) && ($Action == 'No Action')) {
+         if (isset($_POST[$id])) {
+            $opts[$id] = stripslashes($_POST[$id]);
+         } else if (($Action == 'No Action') && isset($details['Default'])) {
             $opts[$id] = $details['Default'];
          }
       }
@@ -106,7 +106,7 @@ function alx_reference_show_panel ($post, $args) {
             $sep='&';
          }
       }
-      $opts['shortcode'] = $shortcode . (!empty($opts['args']) ? '&' . $opts['args'] : '');
+      $opts['shortcode'] = $shortcode . (!empty($opts['args']) ? $sep . $opts['args'] : '');
       $Action = __('Update','amazon-link');
    }
 
@@ -326,8 +326,9 @@ function alx_reference_menus ($menu, $al) {
 }
 
 function alx_reference_install() {
-   global $wpdb,$awlfw;
+   global $wpdb;
 
+   $awlfw = new AmazonWishlist_For_WordPress();
    $country_data = $awlfw->get_country_data();
 
    $refs_table = $wpdb->prefix . $awlfw->refs_table;
@@ -338,9 +339,11 @@ function alx_reference_install() {
            shortcode blob NOT NULL,
            argsblob NOT NULL,
            template varchar(30) NOT NULL,
-           chan varchar(30) NOT NULL,";
+           chan varchar(30) NOT NULL,
+";
    foreach($country_data as $cc => $data) {
-      $sql .= "asin$cc varchar(10) NOT NULL,";
+      $sql .= "asin$cc varchar(10) NOT NULL,
+";
    }
    $sql .= "PRIMARY KEY  (ref)
            );";
@@ -351,11 +354,17 @@ function alx_reference_install() {
    return True;
 }
 
+/*
+ * Needs to be in keywords for search / replace to work & for it to be part of search javascript???
+ */
 function alx_reference_keywords ($options) {
-   $options['ref'] = array ( 'User' => 1 );
+   $options['ref'] = array ( 'User' => 1, 'Description' => __('Unique Shortcode reference','amazon-link'));
    return $options;
 }
 
+/*
+ * Add to options so that by default does not exist
+ */
 function alx_reference_options ($options) {
    $options['ref'] = array ( 'Type' => 'hidden', 'Default' =>'' );
    return $options;

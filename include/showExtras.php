@@ -76,7 +76,8 @@
          }
          $installed_plugins[$plugin_ID]['Activated'] = True;
       } else {
-         $error = $result->get_error_message();
+         $error = $plugin_ID . "---" .$result->get_error_message();
+         $installed_plugins[$plugin_ID]['Activated'] = False;
       }
 
    // **********************************************************
@@ -104,7 +105,7 @@
          } else {
             $update = __('Plugin ' . $installed_plugins[$plugin_ID]['Name']. ' - has been Deactivated', 'amazon-link');
          }
-         $installed_plugins[$plugin_ID]['Activated'] = False;
+         if (isset($installed_plugins[$plugin_ID])) $installed_plugins[$plugin_ID]['Activated'] = False;
       } else {
          $error = $result->get_error_message();
       }

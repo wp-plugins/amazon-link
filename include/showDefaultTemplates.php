@@ -36,7 +36,7 @@
    foreach ($default_templates as $templateID => $templateDetails) {
       $templateOpts['ID']['Default'] = $templateID;
       $templateOpts['title']['Section_Class'] = 'al_subhead';
-      if (isset($Templates[$templateID]) && ($Templates[$templateID]['Version'] < $templateDetails['Version'])) {
+      if (isset($Templates[$templateID]) && (empty($Templates[$templateID]['Version']) || ($Templates[$templateID]['Version'] < $templateDetails['Version'])) ) {
          $templateOpts['title']['Section_Class'] .= ' al_highlight';
          $templateOpts['Buttons1']['Buttons'][__('Upgrade', 'amazon-link')] = array( 'Action' => 'ALDefTemplateAction', 'Hint' => __( 'Overwrite the existing template with this version', 'amazon-link'), 'Class' => 'button-secondary');
       } else {
@@ -47,7 +47,7 @@
       unset($options['template']);
       $options['template_type'] = $templateDetails['Type'];
       $options['template_content'] = $templateDetails['Content'];
-      $options['template_keywords'] = $this->search->keywords;
+
       $asins = explode(',',$options['template_asins']);
       if ( $templateDetails['Type'] == 'Multi' ) {
          $options['live'] = 0;

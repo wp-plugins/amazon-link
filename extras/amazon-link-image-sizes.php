@@ -43,7 +43,7 @@ function alx_images_process_image_url ($url, $keyword_info, $al) {
    }
 
    // URL of the form: 'http://ecx.images-amazon.com/images/I/518FFDVWNQL._SL160_.jpg
-   $url = preg_replace('!(http://(?:[^/]*/)+(?:[^.]*))!', '\1._SL' .$size. '_.jpg', $url);
+   $url = preg_replace('!(http://(?:[^/]*/)+(?:[^.]*)).*$!', '\1._SL' .$size. '_.jpg', $url);
    return $url;
 }
 

@@ -155,7 +155,7 @@
       unset($templateOpts['Buttons1']['Buttons'][__('Upgrade', 'amazon-link')]);
       unset($templateOpts['Buttons1']['Buttons'][__('Reset', 'amazon-link')]);
       if (array_key_exists($templateID,$default_templates)) {
-         if ($default_templates[$templateID]['Version'] > $templateDetails['Version']) {
+         if (empty($templateDetails['Version']) || ($default_templates[$templateID]['Version'] > $templateDetails['Version'])) {
             $templateOpts['Buttons1']['Buttons'][__('Upgrade', 'amazon-link')] = array( 'Action' => 'ALTemplateAction', 'Hint' => __( 'Upgrade this template to the new default version', 'amazon-link'), 'Class' => 'button-secondary');
          } else {
             $templateOpts['Buttons1']['Buttons'][__('Reset', 'amazon-link')] = array( 'Action' => 'ALTemplateAction', 'Hint' => __( 'Reset this template back to the default version', 'amazon-link'), 'Class' => 'button-secondary');
@@ -171,7 +171,7 @@
 
       $options['template_type'] = $templateDetails['Type'];
       $options['template_content'] = $templateDetails['Content'];
-      $options['template_keywords'] = $templateDetails['Keywords'];
+
       $asins = explode(',',$options['template_asins']);
       if ( $templateDetails['Type'] == 'Multi' ) {
          $options['live'] = 0;

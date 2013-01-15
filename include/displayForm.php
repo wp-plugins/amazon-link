@@ -286,9 +286,9 @@ if (!class_exists('AmazonWishlist_Options')) {
                   $class  = isset($optDetails['Class']) ? 'class="'.$optDetails['Class'].' al_opt_container"' : 'class="al_opt_container"';
 
                   if (isset($optDetails['Title_Class'])) {
-                     $Title = '<div '.$id.' class="' . $optDetails['Title_Class'] . '">'. $icon. $optDetails['Value'] . '</div>';
+                     $Title = '<div '.$id.' class="' . $optDetails['Title_Class'] . '">'. $optDetails['Value'] . '</div>';
                   } else {
-                     $Title = '<h3 '.$id.'>'. $icon. $optDetails['Value'] . '</h3>';
+                     $Title = '<h3 '.$id.'>'. $optDetails['Value'] . '</h3>';
                   }
 ?>
     <div <?php echo $class ?>>
@@ -305,9 +305,9 @@ if (!class_exists('AmazonWishlist_Options')) {
                   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
                   if (isset($optDetails['Title_Class'])) {
-                     $Title = '<div '.$id.' class="' . $optDetails['Title_Class'] . '">'. $icon. $optDetails['Value'] . '</div>';
+                     $Title = '<div '.$id.' class="' . $optDetails['Title_Class'] . '">'. $optDetails['Value'] . '</div>';
                   } else {
-                     $Title = '<h4 '.$id.'>'. $icon. $optDetails['Value'] . '</h4>';
+                     $Title = '<h4 '.$id.'>'. $optDetails['Value'] . '</h4>';
                   }
                   $class  = isset($optDetails['Class']) ? 'class="'.$optDetails['Class'].' al_options"' : 'class="al_options"';
 
