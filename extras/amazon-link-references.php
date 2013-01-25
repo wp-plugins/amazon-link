@@ -4,7 +4,7 @@
 Plugin Name: Amazon Link Extra - References
 Plugin URI: http://www.houseindorset.co.uk/plugins/amazon-link/
 Description: !!!BETA!!! This plugin adds the ability to pre-define shortcodes and save them in the database with a unique reference that can be re-used many times across your site from within multiple shortcodes, updating the single item in the database will change all the links that use that reference. Create the named reference on the 'Reference' settings page and then in the shortcode simply add the argument 'ref=XXX'
-Version: 1.3.3
+Version: 1.3.4
 Author: Paul Stuttard
 Author URI: http://www.houseindorset.co.uk
 */
@@ -45,7 +45,7 @@ function alx_reference_show_panel ($post, $args) {
 
    <div class="amazon_details">
       <div style="float:right">
-       <div style="width:100%">
+       <div style="width:100%" id="al_buttons">
         <input style="float:left" type="button" title="'. __('Add ASIN to country specific list of ASINs below.','amazon-link'). '"onClick="return wpAmazonLinkAd.addASIN(this.form, {asin: \'%ASIN%\', cc: \'%CC%\'} );" value="'.__('+', 'amazon-link').'" class="button-secondary">
         <input style="float:right" id="upload-button-%ASIN%" type="button" title="'. __('Upload cover image into media library','amazon-link'). '"onClick="return wpAmazonLinkSearch.grabMedia(this.form, {asin: \'%ASIN%\'} );" value="'.__('Upload', 'amazon-link').'" class="al_hide-%DOWNLOADED% button-secondary">
         <input style="float:right" id="uploaded-button-%ASIN%" type="button" title="'. __('Remove image from media library','amazon-link'). '"onClick="return wpAmazonLinkSearch.removeMedia(this.form, {asin: \'%ASIN%\'} );" value="'.__('Delete', 'amazon-link').'" class="al_show-%DOWNLOADED% button-secondary">

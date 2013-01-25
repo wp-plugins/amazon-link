@@ -43,7 +43,7 @@
 
    <div class="amazon_details">
       <div style="float:right">
-       <div style="width:100%">
+       <div style="width:100%" id="al_buttons">
         <input style="float:left" type="button" title="'. __('Add ASIN to list of ASINs above','amazon-link'). '"onClick="return wpAmazonLinkAd.addASIN(this.form, {asin: \'%ASIN%\'} );" value="'.__('+', 'amazon-link').'" class="button-secondary">
         <input style="float:left" type="button" title="'. __('Insert a link into the post, based on the selected template','amazon-link'). '"onClick="return wpAmazonLinkAd.sendToEditor(this.form, { '. $item_details.' } );" value="'.__('Insert', 'amazon-link').'" class="button-secondary">
         <input style="float:right" id="upload-button-%ASIN%" type="button" title="'. __('Upload cover image into media library','amazon-link'). '"onClick="return wpAmazonLinkSearch.grabMedia(this.form, {asin: \'%ASIN%\'} );" value="'.__('Upload', 'amazon-link').'" class="button-secondary al_hide-%DOWNLOADED%">
@@ -51,7 +51,7 @@
        </div>
       </div>
    
-     <p>'. __('by %ARTIST% [%MANUFACTURER%]', 'amazon-link') .'%DOWNLOADED%<br />
+     <p>'. __('by %ARTIST% [%MANUFACTURER%]', 'amazon-link') .'<br />
      '. __('Type: %PRODUCT%', 'amazon-link') .'<br />
      '. __('Binding: %BINDING%', 'amazon-link') .'<br />
      '. __('Rank/Rating: %RANK%/%RATING%', 'amazon-link').'<br />

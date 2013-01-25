@@ -52,10 +52,10 @@
     margin:2px;  
 } 
 
-.al_hide-1 {
+input.al_hide-1,.al_hide-1,#al_buttons input.al_hide-1 {
  display:none;
 }
-.al_show-0 {
+input.al_show-0,.al_show-0,#al_buttons input.al_show-0 {
  display:none;
 }
 
