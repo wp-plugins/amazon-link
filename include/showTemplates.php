@@ -6,31 +6,40 @@
  *
  */
    $Templates = $this->getTemplates();
+   $default_templates = $this->get_default_templates();
 
    $templateOpts = array( 
-         'nonce'       => array ( 'Type' => 'nonce', 'Name' => 'update-AmazonLink-templates' ),
-         'nonce1'       => array ( 'Type' => 'nonce', 'Action' => 'closedpostboxes', 'Name' => 'closedpostboxesnonce', 'Referer' => false),
-         'nonce2'       => array ( 'Type' => 'nonce', 'Action' => 'meta-box-order', 'Name' => 'meta-box-order-nonce', 'Referer' => false),
+         'nonce'       => array ( 'Type' => 'nonce', 'Value' => 'update-AmazonLink-templates' ),
 
          'ID'          => array ( 'Default' => '', 'Type' => 'hidden'),
          'title'       => array ( 'Type' => 'section', 'Value' => '', 'Class' => 'hidden', 'Section_Class' => 'al_subhead'),
          'Name'        => array ( 'Type' => 'text', 'Name' => __('Template Name', 'amazon-link'), 'Default' => 'Template', 'Size' => '40'),
          'Description' => array ( 'Type' => 'text', 'Name' => __('Template Description', 'amazon-link'), 'Default' => 'Template Description', 'Size' => '80'),
+         'Type'        => array ( 'Type' => 'selection', 'Name' => __('Template Type', 'amazon-link'), 'Hint' => __('Type of Template, \'Multi\' templates are for multi-product ones that contain the %ASINS% keyword, \'No ASIN\' templates are for non-product specific ones, e.g. Banners and Scripts', 'amazon-link'), 'Default' => 'Product', 'Options' => array('Product', 'No ASIN', 'Multi') ),
+         'Preview_Off' => array ( 'Type' => 'checkbox', 'Name' => __('Disable Preview', 'amazon-link'), 'Hint' => __('Disable the preview if it contains a script that might conflict with the options pages.', 'amazon-link'), 'Default' => '0'),
          'Content'     => array ( 'Type' => 'textbox', 'Name' => __('The Template', 'amazon-link'), 'Rows' => 5, 'Description' => __('Template Content', 'amazon-link'), 'Default' => '' ),
          'Buttons1'    => array ( 'Type' => 'buttons', 'Buttons' => 
-                                           array ( __('Copy', 'amazon-link') => array( 'Action' => 'ALTemplateAction', 'Class' => 'button-secondary'),
-                                                   __('Update', 'amazon-link') => array( 'Action' => 'ALTemplateAction', 'Class' => 'button-secondary'),
-                                                   __('New', 'amazon-link') => array( 'Action' => 'ALTemplateAction', 'Class' => 'button-secondary'),
-                                                   __('Delete', 'amazon-link') => array( 'Action' => 'ALTemplateAction', 'Class' => 'button-secondary') )),
+                                           array ( __('Copy', 'amazon-link') => array( 'Action' => 'ALTemplateAction', 'Hint' => __( 'Make a Copy of this template', 'amazon-link'), 'Class' => 'button-secondary'),
+                                                   __('Update', 'amazon-link') => array( 'Action' => 'ALTemplateAction', 'Hint' => __( 'Save changes made to this template', 'amazon-link'), 'Class' => 'button-secondary'),
+                                                   __('New', 'amazon-link') => array( 'Action' => 'ALTemplateAction', 'Hint' => __( 'Create a New blank template', 'amazon-link'), 'Class' => 'button-secondary'),
+                                                   __('Delete', 'amazon-link') => array( 'Action' => 'ALTemplateAction', 'Hint' => __( 'Delete this template', 'amazon-link'), 'Class' => 'button-secondary') )),
          'preview'     => array ( 'Type' => 'title', 'Value' => '', 'Title_Class' => ''),
          'end'         => array ( 'Type' => 'end')
          );
 
+   $global_opts = array( 
+         'nonce'       => array ( 'Type' => 'nonce', 'Value' => 'update-AmazonLink-templates' ),
+         'Buttons1'    => array ( 'Type' => 'buttons', 'Buttons' => 
+                                           array ( __('Export', 'amazon-link') => array( 'Action' => 'ALTemplateAction', 'Hint' => __( 'Export Templates to a Amazon Link Extra Plugin', 'amazon-link'), 'Class' => 'button-secondary'),
+                                                   __('New', 'amazon-link') => array( 'Action' => 'ALTemplateAction', 'Hint' => __( 'Create a New blank template', 'amazon-link'), 'Class' => 'button-secondary') )),
+         );
+
 /*****************************************************************************************/
 
-
    $Action = (isset($_POST[ 'ALTemplateAction' ]) && check_admin_referer( 'update-AmazonLink-templates')) ?
-                      $_POST[ 'ALTemplateAction' ] : 'No Action';
+                      $_POST[ 'ALTemplateAction' ] : (
+                      (isset($_POST[ 'ALDefTemplateAction' ]) && check_admin_referer( 'update-AmazonLink-def-templates')) ?
+                                  $_POST[ 'ALDefTemplateAction' ] : 'No Action');
 
    // Get the Template ID if selected.
    if (isset($_POST['ID'])) {
@@ -84,8 +93,23 @@
       $Templates[__('template', 'amazon-link') . $NewID] = array('Name' => __('Template', 'amazon-link') . $NewID, 'Content' => '', 'Description' => __('Template Description', 'amazon-link'));
       $NotifyUpdate = True;
       $UpdateMessage = sprintf (__('Template "%s" created.','amazon-link'), __('template', 'amazon-link') . $NewID);
+   } else if ($Action == __('Install', 'amazon-link') ) {
+      $NewID = '';
+      while (isset($Templates[ $templateID . $NewID ]))
+         $NewID++;
+      $Templates[$templateID. $NewID] = $default_templates[$templateID];
+      $Templates[$templateID. $NewID]['Name'] = $templateID. $NewID;
+      $NotifyUpdate = True;
+      $UpdateMessage = sprintf (__('Template "%s" created from "%s".','amazon-link'), $templateID. $NewID, $templateID);
+   } else if (($Action == __('Upgrade', 'amazon-link') ) || ($Action == __('Reset', 'amazon-link') )) {
+      $Templates[$templateID] = $default_templates[$templateID];
+      $NotifyUpdate = True;
+      $UpdateMessage = sprintf (__('Template "%s" overwritten with default version.','amazon-link'), $templateID);
+   } else if (($Action == __('Export', 'amazon-link') )) {
+      $result= $this->export_templates($this->extras_dir . 'amazon-link-exported-templates.php');
+      $NotifyUpdate = True;
+      $UpdateMessage = $result['Message'];
    }
-
 
 /*****************************************************************************************/
 
@@ -93,7 +117,6 @@
     * If first run need to create a default templates
     */
    if(!isset($Templates['wishlist'])) {
-      $default_templates = $this->get_default_templates();
       foreach ($default_templates as $templateName => $templateDetails) {
          if(!isset($Templates[$templateName])) {
             $Templates[$templateName] = $templateDetails;
@@ -108,7 +131,7 @@
 
    if ($NotifyUpdate && current_user_can('manage_options')) {
       $this->saveTemplates($Templates);
-
+      $Templates = $this->getTemplates();
       // **********************************************************
       // Put an options updated message on the screen
 ?>
@@ -124,22 +147,51 @@
 
    // **********************************************************
    // Now display the options editing screen
+
    unset($templateOpts['Template']);
    foreach ($Templates as $templateID => $templateDetails) {
       $templateOpts['ID']['Default'] = $templateID;
       $templateOpts['title']['Value'] = sprintf(__('<b>%s</b> - %s','amazon-link'), $templateID, $templateDetails['Description']);
-      if (preg_match('/%ASINS%/i', $Templates[$templateID]['Content'])) {
-         $asins = 'asin=B001L4GBXY,B001L2EZNY,B001LR3576,B001KSJNWC,B001LWZCKY,B001GTPI7O,B001GTAGS0';
-         $live='';
-      } else {
-         $asins = 'asin=0340993766';
-         $live='&live=1';
+      unset($templateOpts['Buttons1']['Buttons'][__('Upgrade', 'amazon-link')]);
+      unset($templateOpts['Buttons1']['Buttons'][__('Reset', 'amazon-link')]);
+      if (array_key_exists($templateID,$default_templates)) {
+         if (empty($templateDetails['Version']) || ($default_templates[$templateID]['Version'] > $templateDetails['Version'])) {
+            $templateOpts['Buttons1']['Buttons'][__('Upgrade', 'amazon-link')] = array( 'Action' => 'ALTemplateAction', 'Hint' => __( 'Upgrade this template to the new default version', 'amazon-link'), 'Class' => 'button-secondary');
+         } else {
+            $templateOpts['Buttons1']['Buttons'][__('Reset', 'amazon-link')] = array( 'Action' => 'ALTemplateAction', 'Hint' => __( 'Reset this template back to the default version', 'amazon-link'), 'Class' => 'button-secondary');
+         }
       }
-      $templateOpts['preview']['Value'] = amazon_make_links( $asins.'&text=Text Item&text1=Text1&text2=Text 2&text3=Text 3&text4=Text 4&template='.$templateID.$live). '<br style="clear:both"\>';
+
+      $options = $this->getSettings();
+      unset($options['template']);
+      $options['text1'] = 'User Text 1';
+      $options['text2'] = 'User Text 2';
+      $options['text3'] = 'User Text 3';
+      $options['text4'] = 'User Text 4';
+
+      $options['template_type'] = $templateDetails['Type'];
+      $options['template_content'] = $templateDetails['Content'];
+
+      $asins = explode(',',$options['template_asins']);
+      if ( $templateDetails['Type'] == 'Multi' ) {
+         $options['live'] = 0;
+      } else if ( $templateDetails['Type'] == 'Product' ) {
+         $asins = array($asins[0]);
+         $options['live'] = 1;
+      } else {
+         $options['live'] = 0;
+         $asins = array();
+      }
+      if (!$templateDetails['Preview_Off']) {
+         $templateOpts['preview']['Value'] = $this->make_links( $asins,'Text Item', $options). '<br style="clear:both"\>';
+      } else {
+         $templateOpts['preview']['Value'] = '';
+      }
+
       $this->form->displayForm($templateOpts, $Templates[$templateID]);
-      unset($templateOpts['nonce1']);
-      unset($templateOpts['nonce2']);
    }
+
+   $this->form->displayForm($global_opts, array());
 
 
 ?>
