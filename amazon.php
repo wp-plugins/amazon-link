@@ -4,7 +4,7 @@
 Plugin Name: Amazon Link
 Plugin URI: http://www.houseindorset.co.uk/plugins/amazon-link
 Description: A plugin that provides a facility to insert Amazon product links directly into your site's Pages, Posts, Widgets and Templates.
-Version: 3.1.0-rc2
+Version: 3.1.0-rc3
 Text Domain: amazon-link
 Author: Paul Stuttard
 Author URI: http://www.houseindorset.co.uk
@@ -98,7 +98,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
       var $cache_table   = 'amazon_link_cache';
       var $refs_table    = 'amazon_link_refs';
       var $option_version= 6;
-      var $plugin_version= '3.1.0-rc2';
+      var $plugin_version= '3.1.0-rc3';
       var $optionName    = 'AmazonLinkOptions';
       var $user_options  = 'amazonlinkoptions';
       var $templatesName = 'AmazonLinkTemplates';
@@ -135,7 +135,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
 
          // Frontend & Backend Related
          register_activation_hook(__FILE__, array($this, 'install'));                // To perform options installation
-//         register_uninstall_hook(__FILE__, array($this, 'uninstall'));               // To perform options removal
+         register_uninstall_hook(__FILE__, array('AmazonWishlist_For_WordPress', 'uninstall'));               // To perform options removal
          add_action('init', array($this, 'init'));                                   // Load i18n and initialise translatable vars
          add_filter('the_content', array($this, 'content_filter'),15,1);             // Process the content
          add_filter('widget_text', array($this, 'widget_filter'), 16);               // Filter widget text (after the content?)
@@ -201,6 +201,13 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          // Add default url generator - low priority
          add_filter('amazon_link_url', array($this, 'get_url'), 20, 6);
          add_filter('amazon_link_format_list', array($this, 'format_list'), 10, 2);
+
+         add_filter('amazon_link_save_channel_rule', array($this, 'create_channel_rules'), 10,4);
+
+         /* Set up the default channel filters - priority determines order */
+         add_filter('amazon_link_get_channel' , array($this, 'get_channel_by_rules'), 10,5);
+         add_filter('amazon_link_get_channel' , array($this, 'get_channel_by_setting'), 12,5);
+         add_filter('amazon_link_get_channel' , array($this, 'get_channel_by_user'), 14,5);
 
          // Call any user hooks - passing the current plugin Settings and the Amazon Link Instance.
          do_action('amazon_link_init', $this->getSettings(), $this);
@@ -274,6 +281,11 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
 
          add_meta_box( 'alInfo', __( 'About', 'amazon-link' ), array (&$this, 'show_info' ), $screen->id, 'side', 'core' );
 
+         /* Help TABS only supported after version 3.3 */
+         if (!method_exists( $screen, 'add_help_tab' )) {
+            return;
+         }
+
          // Add Contextual Help
          if (isset($page['Help'])) {
             $tabs = include( $page['Help']);
@@ -286,6 +298,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
                                    '<p><a target="_blank" title= "Guide on how to sign up for the various Amazon Programs" href="'. $this->plugin_home . 'getting-started">' . __('Getting Started','amazon-link') . '</a></p>' .
                                    '<p><a target="_blank" href="'. $this->plugin_home . 'faq/#channels">' . __('Channels Help','amazon-link') . '</a></p>' .
                                    '<p><a target="_blank" href="'. $this->plugin_home . 'faq/#templates">' . __('Template Help','amazon-link') . '</a></p>');
+
       }
 
       function admin_columns($columns, $id) {
@@ -483,26 +496,26 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
              /* Options that control localisation */
             'hd2s' => array ( 'Type' => 'section', 'Value' => __('Localisation Options', 'amazon-link'), 'Title_Class' => 'al_section_head', 'Description' => __('Control the localisation of data displayed and links created.','amazon-link'), 'Section_Class' => 'al_subhead1'),
             'ip2n_message' => array( 'Type' => 'title', 'Title_Class' => 'al_para', 'Class' => 'al_pad al_border'),
-            'default_cc' => array( 'Name' => __('Default Country', 'amazon-link'), 'Hint' => __('The Amazon Affiliate Tags should be entered in the \'Channels\' section below', 'amazon-link'),'Description' => __('Which country\'s Amazon site to use by default', 'amazon-link'), 'Default' => 'uk', 'Type' => 'selection', 'Class' => 'al_border' ),
+            'default_cc' => array( 'Name' => __('Default Country', 'amazon-link'), 'Hint' => __('The Amazon Affiliate Tags should be entered in the \'Channels\' section below', 'amazon-link'),'Description' => __('Which country\'s Amazon site to use by default', 'amazon-link'), 'Default' => 'uk', 'Type' => 'selection', 'Class' => 'alternate al_border' ),
             'localise' => array('Name' => __('Localise Amazon Link', 'amazon-link'), 'Description' => __('Make the link point to the user\'s local Amazon website, (you must have ip2nation installed for this to work).', 'amazon-link'), 'Default' => '1', 'Type' => 'checkbox', 'Class' => 'al_border' ),
             'global_over' => array('Name' => __('Global Defaults', 'amazon-link'), 'Description' => __('Default values in the shortcode "title=xxxx" affect all locales, if not set only override the default locale.', 'amazon-link'), 'Default' => '1', 'Type' => 'checkbox', 'Class' => 'alternate al_border' ),
             'search_link' => array('Name' => __('Create Search Links', 'amazon-link'), 'Description' => __('Generate links to search for the items by "Artist Title" for non local links, rather than direct links to the product by ASIN.', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox', 'Class' => 'al_border' ),
             'search_text' => array( 'Name' => __('Default Search String', 'amazon-link'), 'Description' => __('Default items to search for with "Search Links", uses the same system as the Templates below.', 'amazon-link'), 'Default' => '%ARTIST% | %TITLE%', 'Type' => 'text', 'Size' => '40', 'Class' => 'alternate al_border' ),
-            'multi_cc' => array('Name' => __('Multinational Link', 'amazon-link'), 'Description' => __('Insert links to all other Amazon sites after primary link.', 'amazon-link'), 'Default' => '1', 'Type' => 'checkbox', 'Class' => 'alternate al_border'),
+            'multi_cc' => array('Name' => __('Multinational Link', 'amazon-link'), 'Description' => __('Insert links to all other Amazon sites after primary link.', 'amazon-link'), 'Default' => '1', 'Type' => 'checkbox', 'Class' => 'al_border'),
 
             'hd2e' => array ( 'Type' => 'end'),
 
             /* Options related to the Amazon backend */
             'hd3s' => array ( 'Type' => 'section', 'Id' => 'aws_notes', 'Value' => __('Amazon Associate Information','amazon-link'), 'Title_Class' => 'al_section_head', 'Description' => __('The AWS Keys are required for some of the features of the plugin to work (The ones marked with AWS above), visit <a href="http://aws.amazon.com/">Amazon Web Services</a> to sign up to get your own keys.', 'amazon-link'), 'Section_Class' => 'al_subhead1'),
 
-            'pub_key' => array( 'Name' => __('AWS Public Key', 'amazon-link'), 'Description' => __('Access Key ID provided by your AWS Account, found under Security Credentials/Access Keys of your AWS account', 'amazon-link'), 'Default' => '', 'Type' => 'text', 'Size' => '40', 'Class' => 'alternate' ),
-            'priv_key' => array( 'Name' => __('AWS Private key', 'amazon-link'), 'Description' => __('Secret Access Key ID provided by your AWS Account.', 'amazon-link'), 'Default' => '', 'Type' => 'text', 'Size' => '40', 'Class' => '' ),
+            'pub_key' => array( 'Name' => __('AWS Public Key', 'amazon-link'), 'Description' => __('Access Key ID provided by your AWS Account, found under Security Credentials/Access Keys of your AWS account', 'amazon-link'), 'Default' => '', 'Type' => 'text', 'Size' => '40', 'Class' => '' ),
+            'priv_key' => array( 'Name' => __('AWS Private key', 'amazon-link'), 'Description' => __('Secret Access Key ID provided by your AWS Account.', 'amazon-link'), 'Default' => '', 'Type' => 'text', 'Size' => '40', 'Class' => 'alternate' ),
             'aws_valid' => array ( 'Type' => 'checkbox', 'Read_Only' => 1, 'Name' => 'AWS Keys Validated', 'Default' => '0', 'Class' => 'al_border'),
             'live' => array ( 'Name' => __('Live Data', 'amazon-link'), 'Description' => __('When creating Amazon links, use live data from the Amazon site, otherwise populate the shortcode with static information. <em>* <a href="#aws_notes" title="AWS Access keys required for full functionality">AWS</a> *</em>', 'amazon-link'), 'Default' => '1', 'Type' => 'checkbox', 'Class' => 'al_border' ),
             'condition' => array ( 'Name' => __('Condition', 'amazon-link'), 'Description' => __('By default Amazon only returns Offers for \'New\' items, change this to return items of a different condition.', 'amazon-link'), 'Default' => '', 'Type' => 'selection', 
                                    'Options' => array( '' => array('Name' => 'Use Default'), 'All' => array ('Name' => 'All'), 'New' => array('Name' => 'New'),'Used' => array('Name' => 'Used'),'Collectible' => array('Name' => 'Collectible'),'Refurbished' => array('Name' => 'Refurbished')),
-                                   'Class' => 'al_border' ),
-            'prefetch' => array ( 'Name' => __('Prefetch Data', 'amazon-link'), 'Description' => __('For every product link, prefetch the data from the Amazon Site - use of the cache essential for this option! <em>* <a href="#aws_notes" title="AWS Access keys required for full functionality">AWS</a> *</em>', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox', 'Class' => 'al_border' ),
+                                   'Class' => 'alternate al_border' ),
+            'prefetch' => array ( 'Name' => __('Prefetch Data', 'amazon-link'), 'Description' => __('For every product link, prefetch the data from the Amazon Site - use of the cache essential for this option! <em>* <a href="#aws_notes" title="AWS Access keys required for full functionality">AWS</a> *</em>', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox', 'Class' => '' ),
             'hd3e' => array ( 'Type' => 'end'),
 
             'hd4s' => array ( 'Type' => 'section', 'Value' => __('Amazon Data Cache','amazon-link'), 'Title_Class' => 'al_section_head', 'Description' => __('Improve page performance by caching Amazon product data.','amazon-link'), 'Section_Class' => 'al_subhead1'),
@@ -516,8 +529,8 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
 
             'hd5s' => array ( 'Type' => 'section', 'Value' => __('Advanced Options','amazon-link'), 'Title_Class' => 'al_section_head', 'Description' => __('Further options for debugging and Amazon Extras.','amazon-link'), 'Section_Class' => 'al_subhead1'),
             'template_asins' => array( 'Name' => __('Template ASINs', 'amazon-link'), 'Description' => __('ASIN values to use when previewing the templates in the templates manager.', 'amazon-link'), 'Default' => '0893817449,0500410607,050054199X,0500286426,0893818755,050054333X,0500543178,0945506562', 'Type' => 'text', 'Size' => '40', 'Class' => 'al_border' ),
-            'debug' => array( 'Name' => __('Debug Output', 'amazon-link'), 'Description' => __('Adds hidden debug output to the page source to aid debugging. <b>Do not enable on live sites</b>.', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox', 'Size' => '40', 'Class' => 'al_border' ),
-            'full_uninstall' => array( 'Name' => __('Purge on Uninstall', 'amazon-link'), 'Description' => __('On uninstalling the plugin remove all Settings, Templates, Associate Tracking IDs, Cache Data & ip2nation Data <b>Use when removing the plugin for good</b>.', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox', 'Size' => '40', 'Class' => 'al_border' ),
+            'debug' => array( 'Name' => __('Debug Output', 'amazon-link'), 'Description' => __('Adds hidden debug output to the page source to aid debugging. <b>Do not enable on live sites</b>.', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox', 'Size' => '40', 'Class' => 'alternate al_border' ),
+            'full_uninstall' => array( 'Name' => __('Purge on Uninstall', 'amazon-link'), 'Description' => __('On uninstalling the plugin remove all Settings, Templates, Associate Tracking IDs, Cache Data & ip2nation Data <b>Use when removing the plugin for good</b>.', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox', 'Size' => '40', 'Class' => '' ),
             'hd5e' => array ( 'Type' => 'end')
              );
 
@@ -884,6 +897,37 @@ function alx_'.$slug.'_default_templates ($templates) {
          return $this->channels;         
       }
 
+      function create_channel_rules($al, $rules, $channel, $data) // 888
+      {
+         // Extract rules 'rand = xx <CR> cat = aa,bb,cc <CR> tag = dd,ee,ff <CR> author = ID <CR> type = TYPE'
+
+         if (empty($data['Filter'])) return $rules;
+
+         preg_match('~rand\s*=\s*(?P<rand>\d*)~i', $data['Filter'], $matches);
+         if (!empty($matches['rand']))
+            $rules['rand'] = $matches['rand'];
+
+         $author = preg_match('~author\s*=\s*(?P<author>\w*)~i', $data['Filter'], $matches);
+         if (!empty($matches['author']))
+            $rules['author'] = $matches['author'];
+
+         $type   = preg_match('~type\s*=\s*(?P<type>\w*)~i', $data['Filter'], $matches);
+         if (!empty($matches['type']))
+            $rules['type'] = $matches['type'];
+
+         $cat    = preg_match('~cat\s*=\s*(?P<cat>(\w*)(\s*,\s*(\w*))*)~i', $data['Filter'], $matches);
+         if (!empty($matches['cat']))
+            $rules['cat'] = array_map('trim',explode(",",$matches['cat']));
+
+         $tag    = preg_match('~tag\s*=\s*(?P<tag>(\w*)(\s*,\s*(\w*))*)~i', $data['Filter'], $matches);
+         if (!empty($matches['tag']))
+            $rules['tag'] = array_map('trim',explode(",",$matches['tag']));
+
+         return $rules;
+
+
+      }
+
       function save_channels($channels) {
          if (!is_array($channels)) {
             return;
@@ -892,6 +936,9 @@ function alx_'.$slug.'_default_templates ($templates) {
          unset($channels['default']);
          ksort($channels);
          $channels = array('default' => $defaults) + $channels;
+         foreach ($channels as $channel => $data) {
+            $channels[$channel]['Rule'] = apply_filters('amazon_link_save_channel_rule', $this, array(), $channel, $data);
+         }
          update_option($this->channels_name, $channels);
          $this->channels = $channels;
       }
@@ -900,15 +947,6 @@ function alx_'.$slug.'_default_templates ($templates) {
       /*
        * Check the channels in order until we get a match
        *
-       * Filter rules:
-       *    cat = [category slug|category id]
-       *    parent_cat = [category slug| category id]
-       *    author = [author name|author id]
-       *    tag = [tag name|tag id]
-       *    type = [page|post|other = widget|template, etc]
-       *    parent = [page/post id]
-       *    random = 1-99
-       *    empty filter = always use.
        */
       function get_channel($settings = NULL) {
          
@@ -918,60 +956,102 @@ function alx_'.$slug.'_default_templates ($templates) {
             $settings = $this->getSettings();
 
          $channels = $this->get_channels(True, True);
+
          if (isset($settings['in_post']) && $settings['in_post']) {
             $post = $GLOBALS['post'];
          } else {
-            $post = '';
+            $post = NULL;
          }
 
-         // If manually set always respect.
-         if (isset($settings['chan']) && isset($channels[strtolower($settings['chan'])]))
-         {
+         $channel_data = apply_filters ('amazon_link_get_channel', array(), $channels, $post, $settings, $this);
+      
+         // No match found return default channel.
+         if (empty($channel_data)) $channel_data = $channels['default'];
+
+         return $channel_data;
+
+      }
+
+      /*   
+       * Filter rules:
+       *    cat = [category slug|category id]
+       *    parent_cat = [category slug| category id]
+       *    author = [author name|author id]
+       *    tag = [tag name|tag id]
+       *    type = [page|post|other = widget|template, etc]
+       *    parent = [page/post id]
+       *    random = 1-99
+       *    empty rule = won't be used by this filter
+       */
+      function get_channel_by_rules ($channel_data, $channels, $post, $settings, $al) {
+
+         if (!empty($channel_data)) return $channel_data;
+
+         foreach ($channels as $channel => $data) {
+
+            // Process the rules if they are defined
+            if (!empty($data['Rule'])) {
+               
+               if (isset($data['Rule']['rand']) && ($data['Rule']['rand'] > rand(0,99)))
+                  return $data;
+
+               // If manually set always respect.
+               if (isset($settings['chan']) && isset($channels[strtolower($settings['chan'])])) {
+                  continue;
+               }
+
+               if (isset($post)) {
+
+                  if (isset($data['Rule']['cat']) && has_category($data['Rule']['cat'], $post))
+                     return $data;
+
+                  if (isset($data['Rule']['tag']) && has_tag($data['Rule']['tag'], $post))
+                     return $data;
+
+                  if (isset($data['Rule']['type']) && ($post->post_type == $data['Rule']['type']))
+                     return $data;
+
+                  if (isset($data['Rule']['author']) && ($post->post_author == $data['Rule']['author']))
+                     return $data;
+               }
+            }
+         }
+
+         return $channel_data;
+
+      }
+
+      /*
+       * If channel is manually set in the link then always apply here
+       */
+      function get_channel_by_setting ($channel_data, $channels, $post, $settings, $al) {
+
+         /* This filter will override the 'rule' filter above if it is set. */
+
+         if (isset($settings['chan']) && isset($channels[strtolower($settings['chan'])])) {
             return $channels[strtolower($settings['chan'])];
          }
 
-         // If post or page, check $this->channel_ids[ID] to see if already processed
+         return $channel_data;
 
-         // For each channel (excluding default)
+      }
 
-         // For each filter check for match
+      /*
+       * If all previous filters have failed then look for User channel
+       */
+      function get_channel_by_user ($channel_data, $channels, $post, $settings, $al) {
 
-         // Switch on rule type [cat|parent_cat|author|tag|type]
+         if (!empty($channel_data)) return $channel_data;
 
-         // cat
-         // if !isset($cats) grab array(cat_id => cat_slug)
-         // check cat in array or array_keys
-
-         // parent_cat = recursive list of all category parents
-         // if !isset($cats) grab array(cat_id => cat_slug)
-         // if !isset($parent_cats) grab array(cat_id => cat_slug)
-         // check cat in either cats/parent_cats array or array_keys
-
-         // author
-         // if !isset($author) grab array(author_id => author_name)
-         // check author in array or array_keys
-
-         // tag
-         // if !isset($tags) grab array(tag_id => tag_name)
-         // check tag in array or array_keys
-
-         // type
-         // if !isset($type) post_type / other
-         // check type == type
-
-         // If any rule fails drop to next channel
-         // If all rules pass use this channel, save in $this->channel_ids[ID]
-         
          // If no specific channel detected then check for author specific IDs via get_the_author_meta
          if (isset($post->post_author) && isset($channels['al_user_'.$post->post_author])) {
             return $channels['al_user_'.$post->post_author];
          }
 
-         // No match found return default channel.
-         return $channels['default'];
+         return $channel_data;
 
       }
-      
+
 /*****************************************************************************************/
       // Cache Facility
 /*****************************************************************************************/

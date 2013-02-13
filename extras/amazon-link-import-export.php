@@ -4,7 +4,7 @@
 Plugin Name: Amazon Link Extra - Import / Export
 Plugin URI: http://www.houseindorset.co.uk/plugins/amazon-link/
 Description: !!!BETA!!! This plugin adds the ability to search for Amazon Link shortcodes and replace with static content or links of a different format and vice versa.
-Version: 1.3.2
+Version: 1.3.3
 Author: Paul Stuttard
 Author URI: http://www.houseindorset.co.uk
 */
@@ -71,6 +71,7 @@ function alx_impexp_show_panel () {
          'Filter'      => array ( 'Type' => 'selection', 'Name' => __('Search Filter', 'amazon-link'), 'Description' => __('The items to search for in the Post / Page content', 'amazon-link')),
          'Replace'     => array ( 'Type' => 'selection', 'Name' => __('Replacement Template', 'amazon-link'), 'Description' => __('What to replace the items with in the Post / Page content', 'amazon-link')),
          'Raw'         => array ( 'Type' => 'checkbox', 'Name' => __('Show raw HTML', 'amazon-link'), 'Description' => __('When testing the replacement, output the raw HTML code.', 'amazon-link'), 'Default' => '1'),
+         'Query'       => array ( 'Type' => 'text', 'Name' => __('Post Query', 'amazon-link'), 'Description' => __('What arguments to use when searching for posts/pages to apply the filter to, as per <a href="http://codex.wordpress.org/Class_Reference/WP_Query#Parameters">WP_Query</a>', 'amazon-link'), 'Default' => 'post_type=any&posts_per_page=-1'),
          'Buttons'     => array ( 'Type' => 'buttons', 'Buttons' => 
                                            array ( __('Find', 'amazon-link') => array( 'Action' => 'AmazonLinkAction', 'Hint' => __( 'Search for the Input Filter items in all posts and pages.', 'amazon-link'), 'Class' => 'button-secondary'),
                                                    __('Test', 'amazon-link') => array( 'Action' => 'AmazonLinkAction', 'Hint' => __( 'Perform a dry run Search and Replace and Preview the results.', 'amazon-link'), 'Class' => 'button-secondary'),
@@ -128,14 +129,14 @@ function alx_impexp_show_panel () {
 
       $Filter = isset($expressions[$opts['Filter']]) ? $expressions[$opts['Filter']] : $expressions['standard'];
 
-      $lastposts = get_posts("posts_per_page=-1");
+      $lastposts = get_posts($opts['Query']);
       echo '<TABLE class="widefat">';
       echo '<THEAD><TR><TH>Post</TH><TH>Count</TH><TH>Matching Text</TH><TH>Shortcode Arguments</TH><TH>Text</TH><TH>ASIN</TH></TR></THEAD><TBODY>';
       foreach ($lastposts as $id => $post) {
          $regex = $Filter['Regex'];
          $count = preg_match_all( $regex, $post->post_content, $matches, PREG_SET_ORDER);
          foreach ($matches as $index => $match) {
-            echo "<TR><TD>".$post->ID."</TD><TD>$index</TD><TD>".htmlspecialchars($match[0])."</TD><TD>".htmlspecialchars(isset($match['args'])?$match['args']:'')."</TD><TD>".htmlspecialchars(isset($match['text'])?$match['text']:'')."</TD><TD>".htmlspecialchars(isset($match['asin'])?$match['asin']:'')."</TD></TR>";
+            echo "<TR><TD><a href='". get_edit_post_link( $post->ID)."'>".$post->ID."</a></TD><TD>$index</TD><TD>".htmlspecialchars($match[0])."</TD><TD>".htmlspecialchars(isset($match['args'])?$match['args']:'')."</TD><TD>".htmlspecialchars(isset($match['text'])?$match['text']:'')."</TD><TD>".htmlspecialchars(isset($match['asin'])?$match['asin']:'')."</TD></TR>";
          }
       }
       echo "</TBODY></TABLE>";      
@@ -154,7 +155,7 @@ function alx_impexp_show_panel () {
       $awlfw->keywords['static'] = array( 'Calculated' => 1 );
       $alx_impexp['Template'] = $Replace['Template'];
 
-      $lastposts = get_posts("posts_per_page=-1&");
+      $lastposts = get_posts($opts['Query']);
       echo '<TABLE class="widefat">';
       echo '<THEAD><TR><TH>Post</TH><TH>Count</TH><TH>Matching Text</TH><TH>Replacement</TH></TR></THEAD><TBODY>';
       foreach ($lastposts as $id => $post) {
@@ -164,7 +165,7 @@ function alx_impexp_show_panel () {
             $alx_impexp['Count'] = 0;
             $output = alx_impexp_do_shortcode($match);
             if ($opts['Raw']) $output = htmlspecialchars($output);
-            echo "<TR><TD>".$post->ID."</TD><TD>$index</TD><TD>".htmlspecialchars($match[0])."</TD><TD>".($output)."</TD></TR>";
+            echo "<TR><TD><a href='". get_edit_post_link( $post->ID)."'>".$post->ID."</a></TD><TD>$index</TD><TD>".htmlspecialchars($match[0])."</TD><TD>".($output)."</TD></TR>";
          }
       }
       echo "</TBODY></TABLE>";      
@@ -182,7 +183,7 @@ function alx_impexp_show_panel () {
       $awlfw->keywords['static'] = array( 'Calculated' => 1 );
       $alx_impexp['Template'] = $Replace['Template'];
 
-      $lastposts = get_posts("posts_per_page=1&");
+      $lastposts = get_posts($opts['Query']);
       echo '<TABLE class="widefat">';
       echo '<THEAD><TR><TH>Post</TH><TH>Count</TH></TR></THEAD><TBODY>';
       foreach ($lastposts as $id => $post) {
@@ -195,7 +196,7 @@ function alx_impexp_show_panel () {
             $my_post['post_content'] = $content;
             wp_update_post( $my_post );
          }
-         echo "<TR><TD>".$post->ID."</TD><TD>".$alx_impexp['Count']."</TD></TR>";
+         echo "<TR><TD><a href='". get_edit_post_link( $post->ID)."'>".$post->ID."</a></TD><TD>".$alx_impexp['Count']."</TD></TR>";
       }
       echo "</TBODY></TABLE>";      
    }
@@ -241,7 +242,8 @@ function alx_impexp_menus ($menu, $al) {
    $menu['amazon-link-impexp'] = array( 'Slug' => 'amazon-link-impexp',
 //                                        'Help' => 'help/impexp.php',
                                         'Icon' => 'tools',
-                                        'Description' => __('On this page you can search and replace the existing shortcodes with shortcodes of a different format or replace with static content.', 'amazon-link'),
+                                        'Description' => __('On this page you can search and replace the existing shortcodes with shortcodes of a different format or replace with static content. <br>
+                                                             <div class="updated">WARNING: I have not fully tested this plugin, it may destroy <em>ALL</em> your posts, please backup your database before using!!!</div>', 'amazon-link'),
                                         'Title' => __('Manage Amazon Link Shortcodes', 'amazon-link'), 
                                         'Label' => __('Import/Export', 'amazon-link'), 
                                         'Capability' => 'manage_options',
