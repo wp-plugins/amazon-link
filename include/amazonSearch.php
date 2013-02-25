@@ -417,7 +417,7 @@ if (!class_exists('AmazonLinkSearch')) {
 
             if (!empty($key_data['Template_Callback'])) {
                $this->settings['repeat'] = True;
-               $this->data[$country][$keyword] = call_user_func($key_data['Template_Callback'], $keyword, $country, $this->data, $this);
+               $this->data[$country][$keyword] = call_user_func($key_data['Template_Callback'], $keyword, $country, $this->data, $this->alink);
             } else if (!empty($key_data['Link'])) {
                $this->settings['repeat'] = True;
                $this->get_links($asins, $local_settings, $local_info, $this->data);
