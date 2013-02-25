@@ -80,11 +80,14 @@ This is created by either putting the line `amazon_recommends(<Category>,<Number
 * New Feature - Ability to Export existing templates to a plugin file
 * New Feature - Add new keywords PUB_KEY, BUY_BUTTON
 * New Feature - Add new Amazon Link type 'URL' so can manually specify the link destination
+* New Feature - Add simple Rules to Channels
 * New Template - Add To Cart Template added
 * Bug Fix - Change the way templates are processed, to improve page performance
 * Bug Fix - Update settings page to correctly handle 1 or 2 column mode
 * Bug Fix - Update multinational 'popup' to reposition itself if not in correct screen location.
 * Bug Fix - Remove various warnings when DEBUG enabled, and some CSS errors
+* Bug Fix - Conditionally add contextual help based on WordPress version
+
 
 
 
@@ -283,11 +286,26 @@ The plugin adds a helper tool to the Post and Page administrative pages of your 
 
 If you already know the ASIN then simply enter it into the ASIN input and click on 'Send To Editor', this can be used to generate simple text links to products. 
 
-If not then there is a facility to search Amazon, by ASIN, Index, Product Title and or Product Author/Artist. Use this to find the product you wish to link to on your site, then select the appropriate template and other settings and press the 'Insert' button. This will insert the shortcode into your post, with all the settings required for the selected template pre-filled. This feature is only available if you have entered your Amazon Web Services access keys in the plugin settings.
+If you do not know the ASIN then there is a facility to search Amazon, by ASIN, Index, Product Title and or Product Author/Artist. Use this to find the product you wish to link to on your site. Once found select the appropriate template and other settings and press the 'Insert' button. This will insert the shortcode into your post, with all the settings required for the selected template pre-filled. This feature is only available if you have entered your Amazon Web Services access keys in the plugin settings.
 
-If you are using 'live' data then it will only include keywords that must be provided by the author 'text', 'text1', etc. If you are using static data then it will also prefill the keywords with the product information retrieved from the Amazon site.
+If you are using 'live' data then it will only include keywords that must be provided by the author 'text', 'text1', etc. If you are using static data then it will also pre-fill the keywords with the product information retrieved from the Amazon site.
 
 There is also a facility to add cover images from the Amazon items into the local media library as attachments to the post (Press the 'Upload' button). The plugin will always use these local images in preference to ones fetched from the Amazon site. These images or the remote ones hosted on Amazon can be used to insert image or thumbnail links into your posts.
+
+**How do I align thumbnails, images or iframes horizontally and make the text wrap around?**
+
+If you want images to be displayed side by side and the text to wrap around the Amazon items, then you simply need to take advantage of the built in 'align' classes provided by WordPress.
+
+On the Amazon-Link / Templates Settings page:
+
+
+* Find the template you wish to use (e.g. thumbnail),
+* Create a copy of that template and rename it appropriately (e.g. thumbnail left)
+* In the template content find the first element e.g. inside the `<div>` or `<iframe>`, either add or update the existing `style="..."` section to include either '`alignleft`', '`alignright`' or '`aligncenter`' (e.g. `<div style="alignleft">`).
+* Save the new template and use it for your Amazon Links.
+
+
+
 
 **How do I add the 'Amazon Product Previews' to my posts/templates?**
 The Amazon Product Preview popups are powered by javascript hosted on the Amazon servers, and works in all locales except for Italy and Spain.

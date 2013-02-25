@@ -64,6 +64,7 @@
 <p>Most of these templates were created by using the Amazon Affiliate site, generating the widget or link required then copying the generated output into the \'Template Content\' box. Then quickly replacing any of the static data with template keywords, e.g. the product ASIN, Title, etc.</p>
 <p>Currently the plugin has default templates for:</p>
 <ul>
+<li>Add To Cart Button</li>
 <li>Thumbnail link</li>
 <li>Image link</li>
 <li>Multinational Template</li>
