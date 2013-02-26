@@ -4,8 +4,8 @@ position: absolute;
 display: none;
 z-index: 50;
 width: 25px;
-left: -100;
-top: 100;
+left: 0;
+top: 0;
 }
 
 .al_found0 
@@ -17,7 +17,7 @@ display: none;
 width:100%;
 float:left;
 border: none;
-padding: none;
+padding: 0;
 margin: 1px;
 }
 
@@ -53,9 +53,9 @@ margin: 1px;
 }
 
 .amazon_img_container img {
- margin: none;
+ margin: 0;
  border: none;
- padding:none;
+ padding: 0;
  margin-left:auto;
  margin-right:auto;
  display: block;
@@ -73,13 +73,22 @@ margin: 1px;
 }
 
 .amazon_details {
- margin-top:35px;
+ margin-top:15px;
 }
 
 .amazon_text_container p:first-child:first-letter {
  line-height: 1em;
  font-size: 1em;
- padding: none;
+ padding: 0;
+}
+
+.al_editorial_source {
+ margin-top: 1em;
+ font-size: 120%;
+}
+
+.al_editorial_content {
+ margin-top: 1em;
 }
 
 .amazon_price {
