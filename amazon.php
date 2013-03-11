@@ -158,11 +158,18 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
 
       // On removal of plugin - used to delete all related database entries
       function uninstall() {
-         $opts = $this->getOptions();
+         global $wpdb;
+         $opts = get_option(self::optionName, array());
          if ($opts['full_uninstall']) {
-            $this->cache_remove();
-            $this->ip2nation->uninstall();
-            $this->delete_options();
+
+            /* $this->cache_remove(); */
+            if ($opts['cache_enabled']) {
+               $cache_table = $wpdb->prefix . self::cache_table;
+               $sql = "DROP TABLE $cache_table;";
+               $wpdb->query($sql);
+            }
+            /* $this->ip2nation->uninstall(); */
+            self::delete_options();
          }
       }
 
@@ -1700,20 +1707,26 @@ function alx_'.$slug.'_default_templates ($templates) {
          } else {
             if (!empty($asin[$cc])) {
                $term = $asin[$cc];
-            } else if (($type == 'product') && !empty($settings['url'][$cc]) ) {
+            } else if ( ($type == 'product') && 
+                        !empty($settings['url']) &&
+                        ( (is_array($settings['url']) && array_key_exists($settings['url'],$cc)) ||
+                          ($cc == $home_cc) )) {
                $type = 'url';
-               $term = $settings['url'][$cc];
+               $term = is_array($settings['url']) ? $settings['url'][$cc] : $settings['url'];
             } else if ($settings['search_link'] && !empty($asin[$home_cc])) {
                $type = 'search';
                $term = $search;
-            } else if (empty($asin[$home_cc]) && !empty($settings['url'][$cc])){
+            } else if (empty($asin[$home_cc]) && 
+                        !empty($settings['url']) &&
+                        ( (is_array($settings['url']) && array_key_exists($settings['url'],$cc)) ||
+                          ($cc == $home_cc) )) {
                $type = 'url';
-               $term = $settings['url'][$cc];
+               $term = is_array($settings['url']) ? $settings['url'][$cc] : $settings['url'];
             } else if (!empty($asin[$home_cc])) {
                $term = $asin[$home_cc];
             } else {
                $type = 'nolink';
-               $term = isset($settings['url'][$home_cc]) ? $settings['url'][$home_cc] :'';
+               $term = is_array($settings['url']) ? $settings['url'][$cc] : (isset($settings['url']) ? $settings['url'] : '');
             }
          }
          return array('type' => $type, 'term' => $term);
