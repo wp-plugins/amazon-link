@@ -84,9 +84,9 @@ if (!class_exists('AmazonLinkSearch')) {
          add_filter('amazon_link_template_get_thumb', array($this, 'get_images_filter'), 12, 6);
 
          // Standard Link Filter
-         add_filter('amazon_link_template_process_link_open', array($this, 'get_links_filter'), 12, 6);
-         add_filter('amazon_link_template_process_rlink_open', array($this, 'get_links_filter'), 12, 6);
-         add_filter('amazon_link_template_process_slink_open', array($this, 'get_links_filter'), 12, 6);
+         add_filter('amazon_link_template_get_link_open', array($this, 'get_links_filter'), 12, 6);
+         add_filter('amazon_link_template_get_rlink_open', array($this, 'get_links_filter'), 12, 6);
+         add_filter('amazon_link_template_get_slink_open', array($this, 'get_links_filter'), 12, 6);
 
          $this->alink    = $parent;
       }
@@ -345,12 +345,13 @@ if (!class_exists('AmazonLinkSearch')) {
 
       function get_links_filter ($link, $keyword, $country, $data, $settings, $al) {
 
-         if (empty($al->search->settings['multi_cc']) && isset($data[$country][$keyword])) return $link;
+
+         if (empty($al->search->settings['multi_cc']) && !empty($link)) return $link;
 
          $map = array( 'link_open' => 'product', 'rlink_open' => 'review', 'slink_open' => 'search');
          $type = $map[$keyword];
 
-         return $al->make_link($settings, $data[$country], $type, array($data[$settings['home_cc']]['search_text'],$data[$settings['home_cc']]['search_text_s']));
+         return $al->make_link($settings, $data[$country], $type, array($data[$settings['local_cc']]['search_text'],$data[$settings['local_cc']]['search_text_s']));
       }
 
       function get_images_filter ($images, $keyword, $country, $l_data, $settings, $al) {
@@ -492,19 +493,18 @@ if (!class_exists('AmazonLinkSearch')) {
          $keyword_index  = (!empty($args['index']) ? $args['index'] : 0);
          $local_info = $this->data[$country];
 
-
          if (empty($this->data[$country]['asin'])) {
             $this->data[$country]['asin'] = $this->data[$default_country]['asin'];
          }
          $asin = $this->data[$country]['asin'];
+
+         $phrase = apply_filters( 'amazon_link_template_get_'. $keyword, isset($this->data[$country][$keyword])?$this->data[$country][$keyword]:NULL, $keyword, $country, $this->data, $settings, $this->alink);
+         if ($phrase !== NULL) $this->data[$country][$keyword] = $phrase;
    
          /*
           * If the keyword is not yet set then we need to populate it
           */
          if (!isset($this->data[$country][$keyword])) {
-
-            $phrase = apply_filters( 'amazon_link_template_get_'. $keyword, NULL, $keyword, $country, $this->data, $settings, $this->alink);
-            if ($phrase !== NULL) $this->data[$country][$keyword] = $phrase;
 
             if ($settings['live'] && $settings['prefetch']) {
                $item_data = array_shift($this->alink->cached_query($asin, $settings));
@@ -545,11 +545,11 @@ if (!class_exists('AmazonLinkSearch')) {
                } else {
 
                   // Live keyword, but live data not enabled and item not provided by the user
-                  $this->data[$country][$keyword] = isset($key_data['Default']) ? ( is_array($key_data['Default']) ? $key_data['Default'][$country] : $key_data['Default'] ) : '-';
+                  $this->data[$country][$keyword] = isset($key_data['Default']) ? ( is_array($key_data['Default']) ? $key_data['Default'][$country] : $key_data['Default'] ) : 'LIVE';
                   $this->data[$country]['found']  = 1;
                }
              } else {
-                $this->data[$country][$keyword] = isset($key_data['Default']) ? ( is_array($key_data['Default']) ? $key_data['Default'][$country] : $key_data['Default'] ) : '-';
+                $this->data[$country][$keyword] = isset($key_data['Default']) ? ( is_array($key_data['Default']) ? $key_data['Default'][$country] : $key_data['Default'] ) : 'NLIVE';
              }
            }
 

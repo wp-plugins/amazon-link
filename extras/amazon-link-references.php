@@ -339,7 +339,7 @@ function alx_reference_install() {
            name varchar(30) NOT NULL,
            description varchar(50) NOT NULL,
            shortcode blob NOT NULL,
-           argsblob NOT NULL,
+           args blob NOT NULL,
            template varchar(30) NOT NULL,
            chan varchar(30) NOT NULL,
 ";
