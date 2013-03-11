@@ -22,9 +22,9 @@
    // Populate Country related options
    foreach ($country_data as $cc => $data) {
       $channel_opts['tag_' . $cc] = array('Type' => 'text', 'Default' => '',
-                                          'Name' => '<img style="height:14px;" src="'. $data['flag'] . '"> ' . $data['name'],
-                                          'Hint' => sprintf(__('Enter your affiliate tag for %1$s.', 'amazon-link'), $data['name'] ));
-      $channel_opts['ids']['Description'] .= '<a href="' . $data['site']. '">'. $data['name']. '</a>, ';
+                                          'Name' => '<img style="height:14px;" src="'. $data['flag'] . '"> ' . $data['country_name'],
+                                          'Hint' => sprintf(__('Enter your affiliate tag for %1$s.', 'amazon-link'), $data['country_name'] ));
+      $channel_opts['ids']['Description'] .= '<a href="' . $data['site']. '">'. $data['country_name']. '</a>, ';
    }
 
    $channel_opts['Buttons1'] = array ( 'Type' => 'buttons', 'Buttons' => 

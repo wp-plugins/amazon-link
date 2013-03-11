@@ -33,6 +33,8 @@
 <h5>Wishlist Length</h5>
 <p>This is the maximum number of items to display in a wishlist. This option can be overridden in the shortcode by specifying the \'wishlist_items\' argument.</p>
 <p>Note: Amazon only returns a maximum of 5, for the \'Similar\' type of list.</p>
+<h5>Link Title Text</h5>
+<p>This is the text that will appear in the link \'title\' attribute for the Amazon links, it may contain any of the usual template keywords e.g. %TITLE% or %TEXT%. Leave blank to not have a title attribute.</p>
 <h5>Wishlist Type</h5>
 <p>This sets the default type of wishlist to generate.  A wishlist of type \'Similar\' will show items similar to the ones found in the content. A wishlist of type \'Random\' will show a random selection of the ones found. A wishlist of type \'Multi\' simply lists the items in the order they were found. This option can be overridden in the shortcode by specifying the \'wishlist_type\' argument.</p>
 <h5>New Window Link</h5>
@@ -82,6 +84,12 @@
 <h5>Live Data</h5>
 <p>If this option is enabled then the plugin will attempt to retrieve up to date (and localised) information on the product when generating the product link. For this to work the AWS Access keys in the global settings must be configured with valid keys. If not enabled then the plugin will only use the information included in the shortcode. This option can be overridden in the shortcode by specifying the \'live=1\' or \'live=0\' argument.</p>
 <p>Note this option also changes the behaviour of the Amazon Search Tool. When the tool is used to insert shortcodes into the post it will automatically prefill the keywords needed for the selected template. It will only do this if live data is not enabled.</p>
+<h5>Condition</h5>
+<p>Change the condition of the items returned when making Amazon Web Service requests, this affects the items returned on the search box as well as the pricing and offers returned when getting details about a specific item. The Amazon website notes on the \'Condition\' parameter:</p>
+<blockquote><p>
+ Use the Condition parameter to filter the offers returned in the product list by condition type. By default, Condition equals "New". If you do not get results, consider changing the value to "All...</p>
+<p>ItemSearch returns up to ten search results at a time. When condition equals "All," ItemSearch returns up to three offers per condition (if they exist), for example, three new, three used, three refurbished, and three collectible items. Or, for example, if there are no collectible or refurbished offers, ItemSearch returns three new and three used offers.
+</p></blockquote>
 ',
   ),
   'amazon data cache' => 

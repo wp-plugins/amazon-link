@@ -613,6 +613,9 @@ This is the maximum number of items to display in a wishlist. This option can be
 
 Note: Amazon only returns a maximum of 5, for the 'Similar' type of list.
 
+**Link Title Text**
+This is the text that will appear in the link 'title' attribute for the Amazon links, it may contain any of the usual template keywords e.g. %TITLE% or %TEXT%. Leave blank to not have a title attribute.
+
 **Wishlist Type**
 This sets the default type of wishlist to generate.  A wishlist of type 'Similar' will show items similar to the ones found in the content. A wishlist of type 'Random' will show a random selection of the ones found. A wishlist of type 'Multi' simply lists the items in the order they were found. This option can be overridden in the shortcode by specifying the 'wishlist_type' argument.
 
@@ -676,6 +679,17 @@ Once you have entered your AWS Access keys and updated the options the **AWS Key
 If this option is enabled then the plugin will attempt to retrieve up to date (and localised) information on the product when generating the product link. For this to work the AWS Access keys in the global settings must be configured with valid keys. If not enabled then the plugin will only use the information included in the shortcode. This option can be overridden in the shortcode by specifying the 'live=1' or 'live=0' argument.
 
 Note this option also changes the behaviour of the Amazon Search Tool. When the tool is used to insert shortcodes into the post it will automatically prefill the keywords needed for the selected template. It will only do this if live data is not enabled.
+
+**Condition**
+Change the condition of the items returned when making Amazon Web Service requests, this affects the items returned on the search box as well as the pricing and offers returned when getting details about a specific item. The Amazon website notes on the 'Condition' parameter:
+
+
+ Use the Condition parameter to filter the offers returned in the product list by condition type. By default, Condition equals "New". If you do not get results, consider changing the value to "All...
+
+ItemSearch returns up to ten search results at a time. When condition equals "All," ItemSearch returns up to three offers per condition (if they exist), for example, three new, three used, three refurbished, and three collectible items. Or, for example, if there are no collectible or refurbished offers, ItemSearch returns three new and three used offers. 
+
+
+
 
 = Amazon Data Cache =
 
@@ -775,7 +789,34 @@ Features I will be adding to the plugin in the future:
 * Kindle items not showing list price, add format?
 * Add redirection facility base on 'args' or 'reference' or 'ASIN'
 
-== Upgrade Notice ==
+= Channel Rules =
+
+
+In the Channel settings, there is a text box called 'Channel Filter', this supports the following strings:
+
+
+
+* `rand=20%` - 20% of 'shortcodes' will use this Channel/set of Associate IDs
+* `author=ID` - Posts with Author ID 'ID' will use this Channel
+* `cat=X,Y,Z` - Posts in these Categories (X,Y,Z) will use this Channel
+* `type=` - Posts of this type will use this Channel
+* `tag=A,B,C` - Posts with these tags will use this Channel
+
+
+Notes:
+
+You can put multiple rules in the text box (as long as they are different types), and if the post meets any of the rules it will use that channel. For example:
+
+cat=food,20,drink
+tag=booze
+
+Will match all posts in categories with slug 'food', 'drink' or ID 20, as well as posts with the tag 'booze'.
+
+The manual shortcode setting 'chan=MyChannel' will still override these Rules, see ID Priority below.
+
+The category matching is done by the WordPress function [has_category](http://codex.wordpress.org/Function_Reference/has_category) and the tag matching is done by the WordPress function [has_tag](http://codex.wordpress.org/Function_Reference/has_tag). So the items can be the Name, Slug or ID.
+
+== Upgrade Notice ==
 
 **3.0.3**
 Upgrade to fix some bugs, improve error reporting and have access to hooks to modify the plugin behaviour.

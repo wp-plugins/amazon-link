@@ -79,6 +79,15 @@ if (!class_exists('AmazonLinkSearch')) {
          add_action('wp_ajax_amazon-link-get-image', array($this, 'grabImage'));       // Handle ajax image download
          add_action('wp_ajax_amazon-link-remove-image', array($this, 'removeImage'));  // Handle ajax image removal
 
+         // Standard Image Filter
+         add_filter('amazon_link_template_get_image', array($this, 'get_images_filter'), 12, 6);
+         add_filter('amazon_link_template_get_thumb', array($this, 'get_images_filter'), 12, 6);
+
+         // Standard Link Filter
+         add_filter('amazon_link_template_process_link_open', array($this, 'get_links_filter'), 12, 6);
+         add_filter('amazon_link_template_process_rlink_open', array($this, 'get_links_filter'), 12, 6);
+         add_filter('amazon_link_template_process_slink_open', array($this, 'get_links_filter'), 12, 6);
+
          $this->alink    = $parent;
       }
 
@@ -270,219 +279,6 @@ if (!class_exists('AmazonLinkSearch')) {
          return $items;
       }
 
-/*****************************************************************************************/
-
-      function get_links ($asin, $settings, $local_info, &$data) {
-
-         if (!isset($data['search_text_s'])) {
-            $data['search_text_s'] = $settings['search_text'];
-            foreach ($this->alink->get_keywords() as $keyword => $key_data) {
-               $data['search_text_s'] = str_ireplace( '%' . $keyword . '%', '%' . $keyword . '%S#', $data['search_text_s']);
-
-            }
-         }
-         $search_s = $data['search_text_s'];
-         $search = $settings['search_text'];
-
-         if (!isset($data[$local_info['cc']]['link_open'])) $data[$local_info['cc']]['link_open'] = $this->alink->make_link($asin,$settings, $local_info, array($search, $search_s), 'product');
-         if (!isset($data[$local_info['cc']]['rlink_open'])) $data[$local_info['cc']]['rlink_open'] = $this->alink->make_link($asin,$settings, $local_info, array($search, $search_s), 'review');
-         if (!isset($data[$local_info['cc']]['slink_open'])) $data[$local_info['cc']]['slink_open'] = $this->alink->make_link($asin,$settings, $local_info, array($search, $search_s), 'search');
-         if (!isset($data[$local_info['cc']]['link_close'])) $data[$local_info['cc']]['link_close'] = '</a>';
-
-      }
-
-      function get_images ($asin, &$data) {
-         /*
-          * Check for image in uploads 
-          */
-         $media_ids = $this->find_attachments( $asin );
-         if (!is_wp_error($media_ids)) {
-            // Only do one country, as other countries may have a different ASIN specified.
-            $data['media_id'] = $media_ids[0]->ID;
-            $data['downloaded'] = '1';
-            $data['thumb'] = wp_get_attachment_thumb_url($data['media_id']);
-            $data['image'] = wp_get_attachment_url($data['media_id']);
-         } else {
-            $data['media_id'] = 0;
-            $data['downloaded'] = '0';
-         }
-      }
-
-      function remap_data ($data, $indexes, &$output) {
-         foreach ($data as $key => $info) {
-            if (is_array($info)) {
-               /* Transpose data */
-               foreach ($info as $cc => $item) $output[$cc][$key] = $item;
-            } else {
-               /* Apply to all 'indexes' */
-               foreach($indexes as $cc) $output[$cc][$key] = $info;
-            }
-         }
-      }
-
-      /*
-       * This will perform differently to the usual parser as it does the keywords in the order
-       * found in the template - e.g. 'FOUND' will be done first!
-       * We need to run the regex twice to catch new template tags replacing old ones (LINK_OPEN)
-       */
-      function parse_template ($item) {
-         $countries        = array_keys($this->alink->get_country_data());
-
-         $local_info       = $this->alink->get_local_info($item);
-         $local_country    = $local_info['cc'];
-         $default_country  = $item['default_cc'];
-         $item['home_cc']  = $default_country;
-         $item['local_cc'] = $local_country;
-         
-         // 'channel' used may be different for each shortcode or post so need to refresh every template
-         $data = array( $local_country => $local_info);
-
-         if (empty($item['asin']) || !is_array($item['asin'])) $item['asin'] = array($default_country => !empty($item['asin']) ? $item['asin'] : '');
-
-         if ($item['global_over']) {
-            $this->remap_data($item, $countries, $data);
-         } else {
-            $this->remap_data($item, array($local_country), $data);
-         }
-
-         $input = htmlspecialchars_decode (stripslashes($item['template_content']));
-
-         $this->settings = $item;
-         $this->data     = $data;
-         $countries       = implode('|',$countries);
-         $this->settings['skip_calculated'] = True;
-         $this->settings['repeat'] = True;
-         while ($this->settings['repeat']) {
-            $this->settings['repeat'] = $this->settings['skip_calculated'] = False;
-            $this->settings['skip_calculated'] = False;
-            $input = preg_replace_callback("!(?>%(?<keyword>[A-Z0-9_]+))%(?:(?<cc>$countries)?(?<escape>S)?(?<index>[0-9]+)?#)?!i", array($this, 'parse_template_callback'), $input);
-         }
-         $this->alink->Settings['default_cc'] = $item['default_cc'];
-         $this->alink->Settings['multi_cc'] = $item['multi_cc'];
-         $this->alink->Settings['localise'] = $item['localise'];
-
-         return $input;
-      }
-
-      function parse_template_callback ($args) {
-
-         $keyword  = strtolower($args['keyword']);
-         $keywords = $this->alink->get_keywords();
-         $settings = $this->settings;
-         $keyword_index = (!empty($args['index']) ? $args['index'] : 0);
-
-         if (!array_key_exists($keyword, $keywords) || (!empty($keywords[$keyword]['Calculated']) && $settings['skip_calculated'])) return $args[0]; // or '';
-          
-         $asins            = $settings['asin'];
-         $default_country  = $settings['home_cc'];
-
-         $key_data  = $keywords[$keyword];
-
-         // Process Modifiers
-         $escaped   = !empty($args['escape']);
-         $local_settings = $settings;
-         if (empty($args['cc'])) {
-            $localised = true;
-            $country   = $settings['local_cc'];
-         } else {
-            $country = strtolower($args['cc']);
-            $local_settings['multi_cc'] = 0;
-            $local_settings['localise'] = 0;
-            $local_settings['default_cc'] = $country;
-            $localised = false;
-         }
-   
-         if (!isset($this->data[$country][$keyword])) {
-            $local_info = $this->alink->get_local_info($local_settings);
-            if (!isset($this->data[$country]['asin'])) {
-               $this->data[$country]['asin'] = $this->data[$default_country]['asin'];
-            }
-            $asin = $this->data[$country]['asin'];
-
-            if ($local_settings['live'] && $local_settings['prefetch']) {
-               $item_data = array_shift($this->alink->cached_query($asin, $local_settings));
-//echo "<PRE>item: "; print_r($item_data); echo " isset: "; var_export(isset($item_data[$keyword])); echo " </prE>";
-               if ($item_data['found'] && empty($asins[$country])) {
-                  $asins[$country] = $asin;
-                  $this->settings['asin'][$country] = $asin;
-               } else if ($localised && $settings['localise'] && ($country != $settings['default_cc'])) {
-                  $local_settings['default_cc'] = $settings['default_cc'];
-                  $local_settings['localise']   = 0;
-                  $item_data = array_shift($this->alink->cached_query($asin, $local_settings));
-               }
-               $this->data[$country] = array_merge($item_data, (array)$this->data[$country]);
-//echo "<PRE>data: "; print_r($this->data); echo " </prE>";
-            }
-
-
-            if (!empty($key_data['Template_Callback'])) {
-               $this->settings['repeat'] = True;
-               $this->data[$country][$keyword] = call_user_func($key_data['Template_Callback'], $keyword, $country, $this->data, $this->alink);
-            } else if (!empty($key_data['Link'])) {
-               $this->settings['repeat'] = True;
-               $this->get_links($asins, $local_settings, $local_info, $this->data);
-            } else if (!empty($key_data['Image'])) {
-               /* First try and get uploaded image info */
-               $this->get_images($asin, $this->data[$country]);
-            }
-
-            if (!array_key_exists($keyword, $this->data[$country]) ) {
-             if (!empty($key_data['Live'])) {
-               if ($local_settings['live']) {
-                  $item_data = array_shift($this->alink->cached_query($asin, $local_settings));
-                  if ($item_data['found'] && empty($asins[$country])) {
-//                    $asins[$country] = $asin;
-//                    $this->settings['asin'][$country] = $asin;
-//echo "<PRE>ASINS: $country:"; print_r($asins); echo "</pRE>";
-                  } else if ($localised && $settings['localise'] && ($country != $settings['default_cc'])) {
-                     $local_settings['default_cc'] = $settings['default_cc'];
-                     $local_settings['localise']   = 0;
-                     $item_data = array_shift($this->alink->cached_query($asin, $local_settings));
-
-                  }
-                  if ($settings['debug'] && isset($item_data['Error'])) {
-                     echo "<!-- amazon-link ERROR: "; print_r($item_data); echo "-->";
-                  }
-
-                  $this->data[$country] = array_merge($item_data, (array)$this->data[$country]);
-
-               } else {
-
-                  // Live keyword, but live data not enabled and item not provided by the user
-                  $this->data[$country][$keyword] = (is_array($key_data['Default']) ? $key_data['Default'][$country] : $key_data['Default']);
-                  $this->data[$country]['found']  = 1;
-               }
-             } else {
-                $this->data[$country] = array_merge($local_info, $this->data[$country]);
-                if (!isset($this->data[$country][$keyword])) $this->data[$country][$keyword] = (is_array($key_data['Default']) ? $key_data['Default'][$country] : $key_data['Default']);
-             }
-           }
-         }
-
-         $phrase = $this->data[$country][$keyword];
-         if ($settings['multi_cc'] && !empty($key_data['Link'])) unset ($this->data[$country][$keyword]); // Only use links once
-         if (is_array($phrase)) {
-            $phrase = $phrase[$keyword_index];
-         }
-
-         /*
-          * This just needs to get the data through to the javascript, typical HTML looks like:
-          * <a onmouseover="Function( {'arg': '%KEYWORD%'} )">
-          * Need to ensure there are no unescaped ' or " characters or new lines
-          *
-          * It is up to the receiving javascript to ensure that the data is present correctly for the next stage
-          *  - in postedit -> strip out " and & and [ to ensure the shortcode is parsed correctly
-          *  - in popup (do nothing?).
-          */
-//         if ($escaped) $phrase = addslashes(htmlspecialchars (str_ireplace(array( '&', "'", "\r", "\n"), array('%26', '&#39;','%0D','%0A'), $phrase),ENT_COMPAT | ENT_HTML401,'UTF-8')); //urlencode
-//         if ($escaped) $phrase = str_ireplace(array( '&', '"', "'", "\r", "\n"), array('%26', '%22', '%27','%0D','%0A'), $phrase);
-         if ($escaped) $phrase = str_ireplace(array( "'"), array("\'"), $phrase);
-         if (empty($key_data['Link']) && empty($key_data['Calculated'])) $phrase = str_ireplace(array( '"', "'", "\r", "\n"), array('&#34;', '&#39;','&#13;','&#10;'), $phrase);
-
-
-         if (!empty($this->data[$default_country]['unused_args'])) $this->data[$default_country]['unused_args'] = preg_replace('!(&?)'.$keyword.'=[^&]*(\1?)&?!','\2', $this->data[$default_country]['unused_args']);
-         return $phrase;
-      }
 
 /*****************************************************************************************/
 
@@ -543,6 +339,245 @@ if (!class_exists('AmazonLinkSearch')) {
             return new WP_Error(__('Could not read downloaded image','amazon-link'));
          }
          return $attach_id;
+      }
+
+/*****************************************************************************************/
+
+      function get_links_filter ($link, $keyword, $country, $data, $settings, $al) {
+
+         if (empty($al->search->settings['multi_cc']) && isset($data[$country][$keyword])) return $link;
+
+         $map = array( 'link_open' => 'product', 'rlink_open' => 'review', 'slink_open' => 'search');
+         $type = $map[$keyword];
+
+         return $al->make_link($settings, $data[$country], $type, array($data[$settings['home_cc']]['search_text'],$data[$settings['home_cc']]['search_text_s']));
+      }
+
+      function get_images_filter ($images, $keyword, $country, $l_data, $settings, $al) {
+
+         $data = &$al->search->data;
+
+         if (isset($data['get_images_run'][$country][$keyword])) return $images;
+         $data['get_images_run'][$country][$keyword] = 1;
+
+         /*
+          * Check for image in uploads 
+          */
+         if (empty($data[$country]['media_id'])) {
+            $asin = isset($data[$country]['asin']) ? $data[$country]['asin'] : $data[$settings['home_cc']]['asin'];
+            $media_ids = $this->find_attachments( $asin );
+
+            if (!is_wp_error($media_ids)) {
+
+               // Only do one country, as other countries may have a different ASIN specified.
+               $data[$country]['media_id'] = $media_ids[0]->ID;
+               $data[$country]['downloaded'] = '1';
+            } else {
+               $data[$country]['media_id'] = 0;
+               $data[$country]['downloaded'] = '0';
+               return $images;
+            }
+         }
+
+         if ($data[$country]['downloaded']) {
+            if ($keyword == 'image') {
+               return (array) wp_get_attachment_url($data[$country]['media_id']);
+            } else if ($keyword == 'thumb') {
+               return (array) wp_get_attachment_thumb_url($data[$country]['media_id']);
+            }
+         }
+         return $images;
+      }
+
+      function remap_data ($data, $indexes, &$output) {
+         foreach ($data as $key => $info) {
+            if (is_array($info)) {
+               /* Transpose data */
+               foreach ($info as $cc => $item) $output[$cc][$key] = $item;
+            } else {
+               /* Apply to all 'indexes' */
+               foreach($indexes as $cc) $output[$cc][$key] = $info;
+            }
+         }
+      }
+
+      /*
+       * This will perform differently to the usual parser as it does the keywords in the order
+       * found in the template - e.g. 'FOUND' will be done first!
+       * We need to run the regex twice to catch new template tags replacing old ones (LINK_OPEN)
+       */
+      function parse_template ($item) {
+
+         $start_time = microtime(true);
+
+         $countries_a        = array_keys($this->alink->get_country_data());
+
+         $keywords_data    = $this->alink->get_keywords();
+         $sep = $sepc = $keywords = $keywords_c = '';
+         foreach ($keywords_data as $keyword => $key_data) {
+            if (empty($key_data['Calculated'])) {
+               $keywords .= $sep.$keyword;
+               $sep = '|';
+            } else {
+               $keywords_c .= $sepc.$keyword;
+               $sepc= '|';
+            }
+         }
+
+         $local_info       = $this->alink->get_local_info($item);
+         $local_country    = $local_info['cc'];
+         $default_country  = $item['default_cc'];
+         $item['home_cc']  = $default_country;
+         $item['local_cc'] = $local_country;
+         
+         // 'channel' used may be different for each shortcode or post so need to refresh every template
+         $data = $this->alink->get_full_local_info();
+
+         if (empty($item['asin']) || !is_array($item['asin'])) $item['asin'] = array($default_country => !empty($item['asin']) ? $item['asin'] : '');
+
+         if ($item['global_over']) {
+            $this->remap_data($item, $countries_a, $data);
+         } else {
+            $this->remap_data($item, array($local_country), $data);
+         }
+
+         $input = htmlspecialchars_decode (stripslashes($item['template_content']));
+
+         $this->settings = $item;
+         $this->data     = $data;
+         $countries      = implode('|',$countries_a);
+         do {
+            $input = preg_replace_callback( "!%(?<keyword>$keywords)%(?:(?<cc>$countries)?(?<escape>S)?(?<index>[0-9]+)?#)?!i", array($this, 'parse_template_callback'), $input, -1, $count);
+
+         } while ($count);
+
+         $input = preg_replace_callback( "!%(?<keyword>$keywords_c)%(?:(?<cc>$countries)?(?<escape>S)?(?<index>[0-9]+)?#)?!i", array($this, 'parse_template_callback'), $input);
+
+         $this->alink->Settings['default_cc'] = $item['default_cc'];
+         $this->alink->Settings['multi_cc'] = $item['multi_cc'];
+         $this->alink->Settings['localise'] = $item['localise'];
+
+         $time = microtime(true) - $start_time;
+
+         $input .="<!-- Time Taken: $time. -->";
+         return $input;
+      }
+
+
+      function parse_template_callback ($args) {
+
+         $keyword  = strtolower($args['keyword']);
+
+         $keywords = $this->alink->get_keywords();
+         $settings = $this->settings;
+
+         $default_country  = $settings['home_cc'];
+
+         $key_data  = $keywords[$keyword];
+
+         /* 
+          * Process Modifiers
+          *
+          */
+         if (empty($args['cc'])) {
+            $country     = $settings['local_cc'];
+         } else {
+            // Manually set country, hard code to not localised
+            $country = strtolower($args['cc']);
+            $settings['multi_cc']  = 0;
+            $settings['localise']  = 0;
+            $settings['default_cc'] = $country;
+         }
+         $escaped        = !empty($args['escape']);
+         $keyword_index  = (!empty($args['index']) ? $args['index'] : 0);
+         $local_info = $this->data[$country];
+
+
+         if (empty($this->data[$country]['asin'])) {
+            $this->data[$country]['asin'] = $this->data[$default_country]['asin'];
+         }
+         $asin = $this->data[$country]['asin'];
+   
+         /*
+          * If the keyword is not yet set then we need to populate it
+          */
+         if (!isset($this->data[$country][$keyword])) {
+
+            $phrase = apply_filters( 'amazon_link_template_get_'. $keyword, NULL, $keyword, $country, $this->data, $settings, $this->alink);
+            if ($phrase !== NULL) $this->data[$country][$keyword] = $phrase;
+
+            if ($settings['live'] && $settings['prefetch']) {
+               $item_data = array_shift($this->alink->cached_query($asin, $settings));
+
+               if ($item_data['found'] && empty($settings['asin'][$country])) {
+                  $settings['asin'][$country] = $asin;
+                  $this->settings['asin'][$country] = $asin;
+               } else if ($settings['localise'] && ($country != $settings['default_cc'])) {
+                  $settings['default_cc'] = $settings['default_cc'];
+                  $settings['localise']   = 0;
+                  $item_data = array_shift($this->alink->cached_query($asin, $settings));
+               }
+               $this->data[$country] = array_merge($item_data, (array)$this->data[$country]);
+
+            }
+
+            if (!array_key_exists($keyword, $this->data[$country]) ) {
+             if (!empty($key_data['Live'])) {
+               if ($settings['live']) {
+                  $item_data = array_shift($this->alink->cached_query($asin, $settings));
+                  if ($item_data['found'] && empty($settings['asin'][$country])) {
+//echo "<PRE> FOUND:"; print_r($item_data); echo "</pRE>";
+//                    $settings['asin'][$country] = $asin;
+//                    $this->settings['asin'][$country] = $asin;
+
+                  } else if (!$item_data['found'] && $settings['localise'] && ($country != $settings['default_cc'])) {
+
+                     $settings['localise']   = 0;
+                     $item_data = array_shift($this->alink->cached_query($asin, $settings));
+                  }
+//echo "<PRE> FOUND:"; print_r($item_data); echo "</pRE>";
+                  if ($settings['debug'] && isset($item_data['Error'])) {
+                     echo "<!-- amazon-link ERROR: "; print_r($item_data); echo "-->";
+                  }
+
+                  $this->data[$country] = array_merge($item_data, (array)$this->data[$country]);
+
+               } else {
+
+                  // Live keyword, but live data not enabled and item not provided by the user
+                  $this->data[$country][$keyword] = isset($key_data['Default']) ? ( is_array($key_data['Default']) ? $key_data['Default'][$country] : $key_data['Default'] ) : '-';
+                  $this->data[$country]['found']  = 1;
+               }
+             } else {
+                $this->data[$country][$keyword] = isset($key_data['Default']) ? ( is_array($key_data['Default']) ? $key_data['Default'][$country] : $key_data['Default'] ) : '-';
+             }
+           }
+
+         }
+
+         $this->data[$country][$keyword] = apply_filters( 'amazon_link_template_process_'. $keyword, $this->data[$country][$keyword], $keyword, $country, &$this->data, $settings, $this->alink);
+
+         $phrase = $this->data[$country][$keyword];
+         if (is_array($phrase)) {
+            $phrase = $phrase[$keyword_index];
+         }
+
+         /*
+          * This just needs to get the data through to the javascript, typical HTML looks like:
+          * <a onmouseover="Function( {'arg': '%KEYWORD%'} )">
+          * Need to ensure there are no unescaped ' or " characters or new lines
+          *
+          * It is up to the receiving javascript to ensure that the data is present correctly for the next stage
+          *  - in postedit -> strip out " and & and [ to ensure the shortcode is parsed correctly
+          *  - in popup (do nothing?).
+          */
+         if ($escaped) $phrase = str_ireplace(array( "'"), array("\'"), $phrase);
+         if (empty($key_data['Link']) && empty($key_data['Calculated'])) $phrase = str_ireplace(array( '"', "'", "\r", "\n"), array('&#34;', '&#39;','&#13;','&#10;'), $phrase);
+
+         // Update unused_args to remove used keyword.
+         if (!empty($this->data[$default_country]['unused_args'])) $this->data[$default_country]['unused_args'] = preg_replace('!(&?)'.$keyword.'=[^&]*(\1?)&?!','\2', $this->data[$default_country]['unused_args']);
+
+         return $phrase;
       }
 
    }

@@ -25,31 +25,6 @@
 <p>If the user wants a particular set of Associate IDs to be used for posts of a particular type, category or tag then they can enter rules into the \'Channel Filter\' settings to do this.</p>
 ',
   ),
-  'channel rules' => 
-  array (
-    'id' => 'amazon-link-channels-channel-rules',
-    'page' => 'channels',
-    'title' => 'Channel Rules',
-    'content' => '
-<p>In the Channel settings, there is a text box called \'Channel Filter\', this supports the following strings:</p>
-<ul>
-<li><code>rand=20%</code> - 20% of \'shortcodes\' will use this Channel/set of Associate IDs</li>
-<li><code>author=ID</code> - Posts with Author ID \'ID\' will use this Channel</li>
-<li><code>cat=X,Y,Z</code> - Posts in these Categories (X,Y,Z) will use this Channel</li>
-<li><code>type=[post|page]</code> - Posts of this type will use this Channel</li>
-<li><code>tag=A,B,C</code> - Posts with these tags will use this Channel</li>
-</ul>
-<p>Notes:</p>
-<p>You can put multiple rules in the text box (as long as they are different types), and if the post meets any of the rules it will use that channel. For example:</p>
-<p><code><br />
-cat=food,20,drink<br />
-tag=booze<br />
-</code><br />
-Will match all posts in categories with slug \'food\', \'drink\' or ID 20, as well as posts with the tag \'booze\'.</p>
-<p>The manual shortcode setting \'chan=MyChannel\' will still override these Rules, see ID Priority below.</p>
-<p>The category matching is done by the WordPress function <a href="http://codex.wordpress.org/Function_Reference/has_category">has_category</a> and the tag matching is done by the WordPress function <a href="http://codex.wordpress.org/Function_Reference/has_tag">has_tag</a>. So the items can be the Name, Slug or ID.</p>
-',
-  ),
   'associate id priority' => 
   array (
     'id' => 'amazon-link-channels-associate-id-priority',

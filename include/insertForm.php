@@ -19,7 +19,7 @@
 
    $item_details = '';
    foreach ($this->get_keywords() as $keyword => $details) {
-      if (isset($details['Live'])) {
+      if (isset($details['Live']) && isset($details['Position'])) {
          if ($item_details == '') {
             $item_details = $keyword. ': \'%' . $keyword . '%S#\'';
          } else {

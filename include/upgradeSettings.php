@@ -107,4 +107,15 @@ if ($Opts['version'] == 5) {
    $this->saveOptions($Opts);
 }
 
+
+/* 
+ * Upgrade from 6 to 7:
+ * Save options to cause creation of 'search_text_s' option
+ */
+if ($Opts['version'] == 6) {
+
+   $Opts['version'] = 7;
+   $this->saveOptions($Opts);
+}
+
 ?>
