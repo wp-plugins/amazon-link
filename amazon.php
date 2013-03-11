@@ -95,14 +95,16 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
       /// Settings:
 /*****************************************************************************************/
       // String to insert into Posts to indicate where to insert the amazon items
-      var $cache_table   = 'amazon_link_cache';
-      var $refs_table    = 'amazon_link_refs';
+      const cache_table   = 'amazon_link_cache';
+      const refs_table    = 'amazon_link_refs';
+      const ip2n_table    = 'ip2nation';
+      const optionName    = 'AmazonLinkOptions';
+      const user_options  = 'amazonlinkoptions';
+      const templatesName = 'AmazonLinkTemplates';
+      const channels_name = 'AmazonLinkChannels';
+
       var $option_version= 7;
       var $plugin_version= '3.1.0-rc5';
-      var $optionName    = 'AmazonLinkOptions';
-      var $user_options  = 'amazonlinkoptions';
-      var $templatesName = 'AmazonLinkTemplates';
-      var $channels_name = 'AmazonLinkChannels';
       var $menu_slug     = 'amazon-link-settings';
       var $plugin_home   = 'http://www.houseindorset.co.uk/plugins/amazon-link/';
 
@@ -650,11 +652,11 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
 
       function getOptions() {
          if (!isset($this->Opts)) {
-            $this->Opts = get_option($this->optionName, array());
+            $this->Opts = get_option(self::optionName, array());
             if (!isset($this->Opts['version']) || ($this->Opts['version'] < $this->option_version))
             {
                $this->upgrade_settings($this->Opts);
-               $this->Opts = get_option($this->optionName, array());
+               $this->Opts = get_option(self::optionName, array());
             }
          }
          return $this->Opts;
@@ -681,14 +683,14 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          $options['search_text_s'] = $search_text_s;
       }
 
-         update_option($this->optionName, $options);
+         update_option(self::optionName, $options);
          $this->Opts = $options;
       }
 
       function delete_options() {
-         delete_option($this->optionName);
-         delete_option($this->channels_name);
-         delete_option($this->templatesName);
+         delete_option(self::optionName);
+         delete_option(self::channels_name);
+         delete_option(self::templatesName);
       }
 
       /*
@@ -809,12 +811,12 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
       // User Options
 
       function get_user_options($ID) {
-         $options = get_the_author_meta( $this->user_options, $ID );
+         $options = get_the_author_meta( self::user_options, $ID );
          return $options;
       }
 
       function save_user_options($ID, $options ) {
-	 update_usermeta( $ID, $this->user_options,  $options );
+	 update_usermeta( $ID, self::user_options,  $options );
       }
 
 /*****************************************************************************************/
@@ -823,7 +825,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
 
       function getTemplates() {
          if (!isset($this->Templates)) {
-            $this->Templates = get_option($this->templatesName, array());
+            $this->Templates = get_option(self::templatesName, array());
          }
          return $this->Templates;
       }
@@ -833,7 +835,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
             return;
          }
          ksort($Templates);
-         update_option($this->templatesName, $Templates);
+         update_option(self::templatesName, $Templates);
          $this->Templates = $Templates;
       }
 
@@ -881,7 +883,7 @@ function alx_'.$slug.'_default_templates ($templates) {
 
       function get_channels($override = False, $user_channels = False) {
          if (!$override || !isset($this->channels)) {
-            $channels = get_option($this->channels_name, array());
+            $channels = get_option(self::channels_name, array());
             if ($user_channels) {
                $users = get_users();
                foreach ($users as $user => $data) {
@@ -954,7 +956,7 @@ function alx_'.$slug.'_default_templates ($templates) {
          foreach ($channels as $channel => $data) {
             $channels[$channel]['Rule'] = apply_filters('amazon_link_save_channel_rule', $this, array(), $channel, $data);
          }
-         update_option($this->channels_name, $channels);
+         update_option(self::channels_name, $channels);
          $this->channels = $channels;
       }
 
@@ -1075,7 +1077,7 @@ function alx_'.$slug.'_default_templates ($templates) {
          global $wpdb;
          $settings = $this->getOptions();
          if ($settings['cache_enabled']) return False;
-         $cache_table = $wpdb->prefix . $this->cache_table;
+         $cache_table = $wpdb->prefix . self::cache_table;
          $sql = "CREATE TABLE $cache_table (
                  asin varchar(10) NOT NULL,
                  cc varchar(5) NOT NULL,
@@ -1098,7 +1100,7 @@ function alx_'.$slug.'_default_templates ($templates) {
          $settings['cache_enabled'] = 0;
          $this->saveOptions($settings);
 
-         $cache_table = $wpdb->prefix . $this->cache_table;
+         $cache_table = $wpdb->prefix . self::cache_table;
          $sql = "DROP TABLE $cache_table;";
          $wpdb->query($sql);
          return True;
@@ -1110,7 +1112,7 @@ function alx_'.$slug.'_default_templates ($templates) {
          $settings = $this->getOptions();
          if (!$settings['cache_enabled']) return False;
 
-         $cache_table = $wpdb->prefix . $this->cache_table;
+         $cache_table = $wpdb->prefix . self::cache_table;
          $sql = "TRUNCATE TABLE $cache_table;";
          $wpdb->query($sql);
          return True;
@@ -1119,7 +1121,7 @@ function alx_'.$slug.'_default_templates ($templates) {
       function cache_flush() {
          global $wpdb;
          $settings = $this->getOptions();
-         $cache_table = $wpdb->prefix . $this->cache_table;
+         $cache_table = $wpdb->prefix . self::cache_table;
          $sql = "DELETE FROM $cache_table WHERE updated < DATE_SUB(NOW(),INTERVAL " . $settings['cache_age']. " HOUR);";
          $wpdb->query($sql);
       }
@@ -1129,7 +1131,7 @@ function alx_'.$slug.'_default_templates ($templates) {
          $settings = $this->getOptions();
          $updated  = current_time('mysql');
          $data['timestamp'] = $updated;
-         $cache_table = $wpdb->prefix . $this->cache_table;
+         $cache_table = $wpdb->prefix . self::cache_table;
          if ($settings['cache_enabled']) {
             $sql = "DELETE FROM $cache_table WHERE asin LIKE '$asin' AND cc LIKE '$cc'";
             $wpdb->query($sql);
@@ -1144,7 +1146,7 @@ function alx_'.$slug.'_default_templates ($templates) {
 
          if (!empty($settings['cache_enabled'])) {
             // Check if asin is already in the cache
-            $cache_table = $wpdb->prefix . $this->cache_table;
+            $cache_table = $wpdb->prefix . self::cache_table;
             $sql = "SELECT xml FROM $cache_table WHERE asin LIKE '$asin' AND cc LIKE '$cc' AND  updated >= DATE_SUB(NOW(),INTERVAL " . $settings['cache_age']. " HOUR)";
             $result = $wpdb->get_row($sql, ARRAY_A);
             if ($result !== NULL) {

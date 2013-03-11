@@ -4,7 +4,7 @@
 Plugin Name: Amazon Link Extra - References
 Plugin URI: http://www.houseindorset.co.uk/plugins/amazon-link/
 Description: !!!BETA!!! This plugin adds the ability to pre-define shortcodes and save them in the database with a unique reference that can be re-used many times across your site from within multiple shortcodes, updating the single item in the database will change all the links that use that reference. Create the named reference on the 'Reference' settings page and then in the shortcode simply add the argument 'ref=XXX'
-Version: 1.3.4
+Version: 1.3.5
 Author: Paul Stuttard
 Author URI: http://www.houseindorset.co.uk
 */
@@ -27,13 +27,15 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+define("refs_table", "amazon_link_refs");
+
 function alx_reference_show_panel ($post, $args) {
    global $wpdb;
 
    $ths = $args['args'];
 
    $options    = alx_reference_get_options ($ths);
-   $refs_table = $wpdb->prefix . $ths->refs_table;
+   $refs_table = $wpdb->prefix . refs_table;
 
    $results_template = htmlspecialchars ('
 <div class="al_found%FOUND%">
@@ -204,7 +206,7 @@ function alx_reference_show_panel ($post, $args) {
 function alx_reference_get_options ($al) {
    global $wpdb;   
    $settings = $al->getSettings();
-   $refs_table = $wpdb->prefix . $al->refs_table;
+   $refs_table = $wpdb->prefix . refs_table;
 
    $options = array( 
          'nonce'       => array ( 'Type' => 'nonce', 'Value' => 'reference-AmazonLink-filter' ),
@@ -331,7 +333,7 @@ function alx_reference_install() {
    $awlfw = new AmazonWishlist_For_WordPress();
    $country_data = $awlfw->get_country_data();
 
-   $refs_table = $wpdb->prefix . $awlfw->refs_table;
+   $refs_table = $wpdb->prefix . refs_table;
    $sql = "CREATE TABLE $refs_table (
            ref varchar(30) NOT NULL,
            name varchar(30) NOT NULL,
@@ -372,7 +374,7 @@ function alx_reference_options ($options) {
 
 function alx_reference_lookup ($args, $al) {
    global $wpdb;
-   $refs_table = $wpdb->prefix . $al->refs_table;
+   $refs_table = $wpdb->prefix . refs_table;
    if (isset($args['ref'])) {
       $sql = "SELECT * FROM $refs_table WHERE `ref` LIKE '".$args['ref']."';";
       $data = $wpdb->get_row($sql, ARRAY_A);

@@ -14,12 +14,12 @@ if (!function_exists('unserialize_xml')) {
    {
        // Get input, loading an xml string with simplexml if its the top level of recursion
        $data = ((!$recurse) && is_string($input))? simplexml_load_string($input, 'SimpleXMLElement', LIBXML_NOWARNING | LIBXML_NOERROR): $input;
+
        // Convert SimpleXMLElements to array
        if ($data instanceof SimpleXMLElement) $data = (array) $data;
-       // Recurse into arrays
-       if (is_array($data)) foreach ($data as &$item) $item = unserialize_xml($item, true);
 
-       return $data;
+       // Remove local recursion and use encode/decode method
+       return json_decode(json_encode($data), 1);
    }
 }
     /*
