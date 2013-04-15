@@ -300,7 +300,7 @@ if (!class_exists('AmazonLinkSearch')) {
 
          $ASIN = strtoupper($ASIN);
 
-         $data = array_shift($this->alink->cached_query($ASIN));
+         $data = $this->alink->cached_query($ASIN,NULL,True);
 
          if ( ! ( ( $uploads = wp_upload_dir() ) && false === $uploads['error'] ) )
             return new WP_Error($uploads['error']);
@@ -507,7 +507,7 @@ if (!class_exists('AmazonLinkSearch')) {
          if (!isset($this->data[$country][$keyword])) {
 
             if ($settings['live'] && $settings['prefetch']) {
-               $item_data = array_shift($this->alink->cached_query($asin, $settings));
+               $item_data = $this->alink->cached_query($asin, $settings, True);
 
                if ($item_data['found'] && empty($settings['asin'][$country])) {
                   $settings['asin'][$country] = $asin;
@@ -515,7 +515,7 @@ if (!class_exists('AmazonLinkSearch')) {
                } else if ($settings['localise'] && ($country != $settings['default_cc'])) {
                   $settings['default_cc'] = $settings['default_cc'];
                   $settings['localise']   = 0;
-                  $item_data = array_shift($this->alink->cached_query($asin, $settings));
+                  $item_data = $this->alink->cached_query($asin, $settings, True);
                }
                $this->data[$country] = array_merge($item_data, (array)$this->data[$country]);
 
@@ -524,7 +524,7 @@ if (!class_exists('AmazonLinkSearch')) {
             if (!array_key_exists($keyword, $this->data[$country]) ) {
              if (!empty($key_data['Live'])) {
                if ($settings['live']) {
-                  $item_data = array_shift($this->alink->cached_query($asin, $settings));
+                  $item_data = $this->alink->cached_query($asin, $settings, True);
                   if ($item_data['found'] && empty($settings['asin'][$country])) {
 //echo "<PRE> FOUND:"; print_r($item_data); echo "</pRE>";
 //                    $settings['asin'][$country] = $asin;
@@ -533,7 +533,7 @@ if (!class_exists('AmazonLinkSearch')) {
                   } else if (!$item_data['found'] && $settings['localise'] && ($country != $settings['default_cc'])) {
 
                      $settings['localise']   = 0;
-                     $item_data = array_shift($this->alink->cached_query($asin, $settings));
+                     $item_data = $this->alink->cached_query($asin, $settings, True);
                   }
 //echo "<PRE> FOUND:"; print_r($item_data); echo "</pRE>";
                   if ($settings['debug'] && isset($item_data['Error'])) {
@@ -545,17 +545,17 @@ if (!class_exists('AmazonLinkSearch')) {
                } else {
 
                   // Live keyword, but live data not enabled and item not provided by the user
-                  $this->data[$country][$keyword] = isset($key_data['Default']) ? ( is_array($key_data['Default']) ? $key_data['Default'][$country] : $key_data['Default'] ) : 'LIVE';
+                  $this->data[$country][$keyword] = isset($key_data['Default']) ? ( is_array($key_data['Default']) ? $key_data['Default'][$country] : $key_data['Default'] ) : '-';
                   $this->data[$country]['found']  = 1;
                }
              } else {
-                $this->data[$country][$keyword] = isset($key_data['Default']) ? ( is_array($key_data['Default']) ? $key_data['Default'][$country] : $key_data['Default'] ) : 'NLIVE';
+                $this->data[$country][$keyword] = isset($key_data['Default']) ? ( is_array($key_data['Default']) ? $key_data['Default'][$country] : $key_data['Default'] ) : '-';
              }
            }
 
          }
 
-         $this->data[$country][$keyword] = apply_filters( 'amazon_link_template_process_'. $keyword, $this->data[$country][$keyword], $keyword, $country, &$this->data, $settings, $this->alink);
+         $this->data[$country][$keyword] = apply_filters( 'amazon_link_template_process_'. $keyword, $this->data[$country][$keyword], $keyword, $country, $this->data, $settings, $this->alink);
 
          $phrase = $this->data[$country][$keyword];
          if (is_array($phrase)) {

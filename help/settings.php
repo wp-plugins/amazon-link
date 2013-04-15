@@ -90,6 +90,8 @@
  Use the Condition parameter to filter the offers returned in the product list by condition type. By default, Condition equals "New". If you do not get results, consider changing the value to "All...</p>
 <p>ItemSearch returns up to ten search results at a time. When condition equals "All," ItemSearch returns up to three offers per condition (if they exist), for example, three new, three used, three refurbished, and three collectible items. Or, for example, if there are no collectible or refurbished offers, ItemSearch returns three new and three used offers.
 </p></blockquote>
+<h5>User Affiliate IDs</h5>
+<p>This options enables all users of the WordPress site to have their own set of Affiliate IDs. This allows each post author to collect Amazon commission on posts for which they are the Author. The IDs (one for each locale) are accessible on the User\'s profile page.</p>
 ',
   ),
   'amazon data cache' => 

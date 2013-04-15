@@ -18,7 +18,13 @@
 
    foreach ((array)$files as $file) {
       $plugin = basename($file);
-      $avail_plugins[$plugin] = get_plugin_data($file);
+      $avail_plugins[$plugin] = get_file_data($file, array( 'Name' => 'Plugin Name',
+ 'PluginURI' => 'Plugin URI',
+ 'Version' => 'Version',
+ 'Description' => 'Description',
+ 'Author' => 'Author',
+ 'AuthorURI' => 'Author URI',
+ 'TextDomain' => 'Text Domain'));
    }
 
    // Create Array of Installed amazon-link-extra Plugins from 'plugin' directory
@@ -29,7 +35,13 @@
    $files = glob(WP_PLUGIN_DIR .'/amazon-link-*');
    foreach ((array)$files as $file) {
       $plugin = basename($file);
-      $installed_plugins[$plugin] = get_plugin_data($file);
+      $installed_plugins[$plugin] = get_file_data($file, array( 'Name' => 'Plugin Name',
+ 'PluginURI' => 'Plugin URI',
+ 'Version' => 'Version',
+ 'Description' => 'Description',
+ 'Author' => 'Author',
+ 'AuthorURI' => 'Author URI',
+ 'TextDomain' => 'Text Domain'));
       $installed_plugins[$plugin]['Activated'] = is_plugin_active($plugin);
    }
 

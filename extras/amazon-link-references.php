@@ -4,7 +4,7 @@
 Plugin Name: Amazon Link Extra - References
 Plugin URI: http://www.houseindorset.co.uk/plugins/amazon-link/
 Description: !!!BETA!!! This plugin adds the ability to pre-define shortcodes and save them in the database with a unique reference that can be re-used many times across your site from within multiple shortcodes, updating the single item in the database will change all the links that use that reference. Create the named reference on the 'Reference' settings page and then in the shortcode simply add the argument 'ref=XXX'
-Version: 1.3.5
+Version: 1.3.6
 Author: Paul Stuttard
 Author URI: http://www.houseindorset.co.uk
 */
@@ -243,8 +243,8 @@ function alx_reference_get_options ($al) {
    $country_data = $al->get_country_data();
    foreach($country_data as $cc => $data) {
       $options['asin' . $cc] = array('Type' => 'text', 'Default' => '',
-                                     'Name' => '<img style="height:14px;" src="'. $data['flag'] . '"> ' . $data['name'],
-                                     'Hint' => sprintf(__('ASIN(s) specific to %1$s.', 'amazon-link'), $data['name'] ));
+                                     'Name' => '<img style="height:14px;" src="'. $data['flag'] . '"> ' . $data['country_name'],
+                                     'Hint' => sprintf(__('ASIN(s) specific to %1$s.', 'amazon-link'), $data['country_name'] ));
    }
    return $options;
 }
@@ -283,7 +283,7 @@ function alx_reference_form($options, $al) {
 
    $country_data = $al->get_country_data();
    foreach($country_data as $cc => $data) {
-      $new_options['default_cc']['Options'][$cc]['Name'] = $data['name'];
+      $new_options['default_cc']['Options'][$cc]['Name'] = $data['country_name'];
    }
    $new_options += array_slice( $options, array_search('s_page', $keys), 3, true);
    return $new_options;

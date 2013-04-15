@@ -85,7 +85,7 @@ if ($Opts['version'] == 3) {
 if ($Opts['version'] == 4) {
    $result = $this->validate_keys($Opts);
    $Opts['aws_valid'] = $result['Valid'];
-   if (!empty($Opts['search_text'])) $Opts['search_text'] = preg_replace( '!%AUTHOR%!', '%ARTIST%', $Opts['search_text']);
+//   if (!empty($Opts['search_text'])) $Opts['search_text'] = preg_replace( '!%AUTHOR%!', '%ARTIST%', $Opts['search_text']);
    $Opts['version'] = 5;
    $this->saveOptions($Opts);
 }
@@ -111,8 +111,21 @@ if ($Opts['version'] == 5) {
 /* 
  * Upgrade from 6 to 7:
  * Save options to cause creation of 'search_text_s' option
+ * Add the default Templates if they do not exist
  */
 if ($Opts['version'] == 6) {
+
+   /*
+    * If first run need to create a default templates
+    */
+   $templates = $this->getTemplates();
+   if(!isset($templates['wishlist'])) {
+      foreach ($default_templates as $template_name => $template_details) {
+         if(!isset($templates[$template_name])) {
+            $templates[$template_name] = $template_details;
+         }
+      }
+   }
 
    $Opts['version'] = 7;
    $this->saveOptions($Opts);

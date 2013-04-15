@@ -25,6 +25,29 @@
 <p>If the user wants a particular set of Associate IDs to be used for posts of a particular type, category or tag then they can enter rules into the \'Channel Filter\' settings to do this.</p>
 ',
   ),
+  'channel rules' => 
+  array (
+    'id' => 'amazon-link-channels-channel-rules',
+    'page' => 'channels',
+    'title' => 'Channel Rules',
+    'content' => '
+<p>In the Channel settings, there is a text box called \'Channel Filter\', this supports the following strings:</p>
+<ul>
+<li><code>rand=x%</code> - x% of \'shortcodes\' will use this Channel/set of Associate IDs</li>
+<li><code>author=ID</code> - Posts with Author ID \'ID\' will use this Channel</li>
+<li><code>cat=X,Y,Z</code> - Posts in these Categories (X,Y,Z) will use this Channel</li>
+<li><code>type=[post|page]</code> - Posts of this type will use this Channel</li>
+<li><code>tag=A,B,C</code> - Posts with these tags will use this Channel</li>
+</ul>
+<p>Notes:</p>
+<p>You can put multiple rules in the text box (as long as they are different types), and if the post meets any of the rules it will use that channel. For example:</p>
+<p><code>cat=food,20,drink<br />
+tag=booze</code></p>
+<p>Will match all posts in categories with slug \'food\', \'drink\' or ID 20, as well as posts with the tag \'booze\'.</p>
+<p>The manual shortcode setting \'chan=MyChannel\' will still override these Rules, see ID Priority below.</p>
+<p>The category matching is done by the WordPress function <a href="http://codex.wordpress.org/Function_Reference/has_category">has_category</a> and the tag matching is done by the WordPress function <a href="http://codex.wordpress.org/Function_Reference/has_tag">has_tag</a>. So the items can be the Name, Slug or ID.</p>
+',
+  ),
   'associate id priority' => 
   array (
     'id' => 'amazon-link-channels-associate-id-priority',
@@ -38,27 +61,5 @@
 <p>If the Channel selected does not contain affiliate IDs for all locales then ones from the \'default\' Channel will be automatically inserted. If the \'default\' Channel does not have affiliate IDs for that particular locale then the IDs hardcoded into the plugin will be used.</p>
 
 ',
-  ),
-  'amazon associate account' => 
-  array (
-    'id' => 'amazon-link-channels-amazon-associate-account',
-    'page' => 'channels',
-    'title' => 'Amazon Associate Account',
-    'content' => '
-<p>To actually earn commission from sales made through Amazon Links on your site you must sign up to the Amazon Associate program for your targeted locales. I recommend you at least sign up for your home locale and the United States. Sign up for an Associate Account at the following sites: </p>
-<ul>
-<li><a href="https://affiliate-program.amazon.co.uk/" title="UK Associate Program" target="_blank">Amazon.co.uk Associates</a></li>
-<li><a href="https://affiliate-program.amazon.com/" title="US Associate Program" target="_blank">Amazon.com Associates</a></li>
-<li><a href="https://associates.amazon.ca/" title="Canadian Associate Program" target="_blank">Amazon.ca Associates</a></li>
-<li><a href="https://associates.amazon.cn/" title="Chinese Associate Program" target="_blank">Amazon.cn Associates</a></li>
-<li><a href="https://partnernet.amazon.de/" title="German Associate Program" target="_blank">Amazon.de Associates</a></li>
-<li><a href="https://afiliados.amazon.es/" title="Spanish Associate Program" target="_blank">Amazon.es Associates</a></li>
-<li><a href="https://partenaires.amazon.fr/" title="French Associate Program" target="_blank">Amazon.fr Associates</a></li>
-<li><a href="https://programma-affiliazione.amazon.it/" title="Italian Associate Program" target="_blank">Amazon.it Associates</a></li>
-<li><a href="https://affiliate.amazon.co.jp/" title="UK Associate Program" target="_blank">Amazon.jp Associates</a></li>
-</ul>
-<p>Once you have signed up for your home locale, Amazon may allow you to quickly sign up for associated accounts - e.g. Signing up for Amazon.co.uk will then prompt you to sign up for Germany, France, Spain and Italy. At the end of this process you should have a set of \'Associates ID\'s that you need to enter into the Amazon Link Settings Page under \'Amazon Tracking ID Channels\' -> Default Affiliate IDs.</p>
-<p>You may want to set up your payment method now, as prompted by the Amazon Affiliate Site. Once you have done this or have selected \'Specify Payment Method later\' you will be taken to the \'Associates Central Home\' Page. At the top of this page is a tab for the \'Product Advertising API\' click on this to sign up for the API.</p>
-',
   ),
 );?>

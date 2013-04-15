@@ -10,8 +10,12 @@
 <p>It is recommended that if you wish to modify the behaviour of Amazon Link plugin then create your own plugins (using the provided ones as a template). They are independent of the main plugin and so will survive any upgrades to the main plugin.</p>
 <p>Currently there are two Amazon Link Extra plugins:</p>
 <ul>
-<li>Editorial Content</li>
-<li>Spoof Locale</li>
+<li><strong>Convert Links</strong> - A BETA release of a utility to convert all amazon-link shortcodes into another format, e.g. static content or hidden html.</li>
+<li><strong>Editorial Content</strong> - Grab the Editorial content from Amazon and use it to populate the %EDITORIAL% keyword, can be a large amount of data to download and store in the cache.</li>
+<li><strong>Images</strong> - Grab all available images from Amazon, enable dynamic sizing of Thumbnails and Images and provide a method of displaying all the images in a template using the keywords %IMAGES% and %THUMBS%.</li>
+<li><strong>Redirect Links</strong> - A BETA release of a plugin that creates links of the form http://www.example.com/al/0123456789 that will redirect to the appropriate Amazon web page.</li>
+<li><strong>References</strong> - A BETA release of a plugin that allows you to create predefined shortcodes (e.g. for links that located on multiple pages) and add them to pages using a \'reference\' keyword.</li>
+<li><strong>Spoof Locale</strong> - Allows you to view the site as if visiting from another locale to check localisation is working for your site.</li>
 </ul>
 ',
   ),
@@ -25,8 +29,11 @@
 <ul>
 <li>amazon_link_keywords</li>
 <li>amazon_link_option_list</li>
+<li>amazon_link_user_option_list</li>
 <li>amazon_link_default_templates</li>
 <li>amazon_link_admin_menus</li>
+<li>amazon_link_process_args</li>
+<li>amazon_link_save_channel_rule</li>
 <li>amazon_link_regex</li>
 <li>amazon_link_url</li>
 </ul>
@@ -53,13 +60,13 @@ This is the textual description that is displayed in the Template Help section.<
 This indicates that this is a text field that the user can populate.</p>
 <p><em>Live</em><br />
 This is set if the keyword is retrieved from the Amazon Web Service API.</p>
+<p><em>Default</em><br />
+This is the default value if no data is entered by the user or populated by the AWS query.</p>
 <p>The following elements are only required for \'Live\' items.</p>
 <p><em>Position</em><br />
 This is an array of arrays (in order of preference) determining how to traverse the AWS Item to get the the AWS information.</p>
 <p><em>Group</em><br />
 This is a comma separated list of the AWS Response Group(s) needed to return this item\'s details in the AWS data.</p>
-<p><em>Default</em><br />
-This is the default value if no data is returned from the AWS query.</p>
 <p><em>Filter</em><br />
 This is any filter that should be applied to the returned AWS data before storing in the cache and being used in the template. See the \'amazon_link_editorial\' example below.</p>
 <p>Example:</p>
@@ -82,13 +89,14 @@ add_filter(\'amazon_link_keywords\', \'my_keywords_filter\', 1);
 <p>If you add any filters of your own you must flush the Plugin\'s Product Cache to remove stale data.</p>
 ',
   ),
-  'options filter' => 
+  'options filters' => 
   array (
-    'id' => 'amazon-link-extras-options-filter',
+    'id' => 'amazon-link-extras-options-filters',
     'page' => 'extras',
-    'title' => 'Options Filter',
+    'title' => 'Options Filters',
     'content' => '
 <p><strong>amazon_link_option_list</strong> - This filter allows developers the ability to change the options used by the plugin, it passes an array with a entry for each option. This allows developers to add new options (or even change existing ones or remove unwanted options - not recommended!).</p>
+<p><strong>amazon_link_user_option_list</strong> - This filter allows the developer to change the options displayed on the User\'s profile page.</p>
 <p>Each option has the following elements:</p>
 <p><em>Name</em><br />
 Name of the Option.<br />
@@ -176,13 +184,17 @@ If this template should not be previewed on the Options page, e.g. it is javascr
 <p><strong>amazon_link_admin_menus</strong> - Use this filter to add a new Administrative Settings Sub-Menu to the Amazon Link Menu.</p>
 <p>The filter is passed the default Sub-Menu structure in the form of an array one entry per sub-menu:</p>
 <pre lang=\'php\'>
-   \'amazon-link-channels\'   => array( \'Slug\' => \'amazon-link-channels\', 
-                                      \'Help\' => \'help/channels.php\',
-                                      \'Description\' => \'Short Description of Settings Page.\',
-                                      \'Title\' => __(\'Manage Amazon Associate IDs\', \'amazon-link\'), 
-                                      \'Label\' =>__(\'Associate IDs\', \'amazon-link\'), 
-                                      \'Icon\' => \'plugins\',
-                                      \'Capability\' => \'manage_options\')
+ \'amazon-link-channels\' => array( \'Slug\' => \'amazon-link-channels\', 
+                                  \'Help\' => \'help/channels.php\',
+                                  \'Description\' => \'Short Description of Settings Page.\',
+                                  \'Title\' => __(\'Manage Amazon Associate IDs\', \'amazon-link\'), 
+                                  \'Label\' =>__(\'Associate IDs\', \'amazon-link\'), 
+                                  \'Icon\' => \'plugins\',
+                                  \'Capability\' => \'manage_options\',
+                                  \'Metaboxes\' => array( \'alBox1\' => array( \'Title\' => __( \'Title\', \'amazon-link\' ),
+                                                                           \'Callback\' => array (&$this, \'show_box1\' ), 
+                                                                           \'Context\' => \'normal\', 
+                                                                           \'Priority\' => \'core\')))
 </pre>
 ',
   ),
@@ -208,12 +220,29 @@ If this template should not be previewed on the Options page, e.g. it is javascr
     'content' => '
 <p><strong>amazon_link_url</strong> - Use this filter to change the way in which the actual Links to the Amazon pages are created.</p>
 <p>This filter is passed 6 arguments to help create the Links:</p>
-<p><strong>URL</strong> - The current URL to be used.<br />
-<strong>Type</strong> - The type of link required - \'product\', \'search\' or \'review\'.<br />
-<strong>ASIN</strong> - The product ASIN in the form of a country specific array e.g. (\'us\' => \'ASIN\', \'uk\' => \'ASIN2\', ...).<br />
-<strong>search</strong> - Search string to use if this is a search link.<br />
-<strong>Local Info</strong> - The Local Info Data Array containing localised data such as \'tld\', \'tag\', etc.<br />
-<strong>settings</strong> - The Amazon Link settings incorporating any shortcode arguments.</p>
+<p><strong>URL</strong> - The current URL to be used.</p>
+<p><strong>Type</strong> - The type of link required - \'product\', \'search\' or \'review\'.</p>
+<p><strong>ASIN</strong> - The product ASIN in the form of a country specific array e.g. (\'us\' => \'ASIN\', \'uk\' => \'ASIN2\', ...).</p>
+<p><strong>search</strong> - Search string to use if this is a search link.</p>
+<p><strong>Local Info</strong> - The Local Info Data Array containing localised data such as \'tld\', \'tag\', etc.</p>
+<p><strong>settings</strong> - The Amazon Link settings incorporating any shortcode arguments.</p>
+',
+  ),
+  'advanced filters' => 
+  array (
+    'id' => 'amazon-link-extras-advanced-filters',
+    'page' => 'extras',
+    'title' => 'Advanced Filters',
+    'content' => '
+<p><strong>amazon_link_process_args</strong> - Use this filter to arguments passed in via the shortcode, is passed two arguments: $arguments and $amazon_link.</p>
+<p>The $arguments is an associative array reflecting the parsed shortcode arguments, e.g. [amazon asin=0123456789&title=Title] will create an array ( \'asin\' => \'0123456789\', \'title\' => \'Title\' ).</p>
+<p>The $amazon_link is the amazon link class instance, to allow access to internal functions.</p>
+<p><strong>amazon_link_save_channel_rule</strong> - This filter provides access to the processing of the Channel \'Rules\', where the content of the \'Filter\' textbox entered by the user is converted into \'Rules\'. The filter is passed 4 arguments: $rules, $channel, $channel_data, $amazon_link.</p>
+<p>$rules is an array of rules to be tested in the amazon_link_get_channel filters.</p>
+<p>$channel is the name of the channel being processed.</p>
+<p>$channel_data is the options associated with the channel, one of which is the Filter ($channel_data[\'Filter\']).</p>
+<p>$amazon_link is the amazon link class instance, to allow access to internal functions.</p>
+<p><strong>amazon_link_get_channel</strong> - Is the filter used to help select which channel should be used for a particular shortcode. Is passed 4 arguments: $selected_channel_data, $channels, $post, $settings, $amazon_link.</p>
 ',
   ),
 );?>

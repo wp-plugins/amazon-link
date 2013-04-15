@@ -31,10 +31,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 /*
 Usage:
-	Add one of the following lines into an entry:
+  Add one of the following lines into an entry:
 
-	[amazon asin=<ASIN Number>&text=<link text>]           --> inserts link to amazon item
-	[amazon cat=<Category List>&last=<Number of Posts>]    --> inserts table of random items
+  [amazon asin=<ASIN Number>&text=<link text>]           --> inserts link to amazon item
+  [amazon cat=<Category List>&last=<Number of Posts>]    --> inserts table of random items
 
 Layout:
 
@@ -109,13 +109,9 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
       var $plugin_home   = 'http://www.houseindorset.co.uk/plugins/amazon-link/';
 
       var $multi_id      = 0;
-      var $shortcodes    = 0;
-      var $lookups       = array();
-      var $cache_hit     = array();
-      var $cache_miss    = array();
-      var $aws_hit       = array();
-      var $aws_miss      = array();
- 
+
+      var $stats         = array();
+
       var $scripts_done  = False;
       var $tags          = array();
 
@@ -163,7 +159,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          if ($opts['full_uninstall']) {
 
             /* $this->cache_remove(); */
-            if ($opts['cache_enabled']) {
+            if (!empty($opts['cache_enabled'])) {
                $cache_table = $wpdb->prefix . self::cache_table;
                $sql = "DROP TABLE $cache_table;";
                $wpdb->query($sql);
@@ -259,10 +255,14 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          add_action( "admin_print_styles-post.php", array($this,'amazon_admin_styles') );
 
          add_filter('plugin_row_meta', array($this, 'register_plugin_links'),10,2);  // Add extra links to plugins page
-         add_action('show_user_profile', array($this, 'show_user_options') );        // Display User Options
-         add_action('edit_user_profile', array($this, 'show_user_options') );        // Display User Options
-         add_action('personal_options_update', array($this, 'update_user_options')); // Update User Options
-         add_action('edit_user_profile_update', array($this, 'update_user_options'));// Update User Options
+
+         $options = $this->getOptions();
+         if (!empty($options['user_ids'])) {
+            add_action('show_user_profile', array($this, 'show_user_options') );        // Display User Options
+            add_action('edit_user_profile', array($this, 'show_user_options') );        // Display User Options
+            add_action('personal_options_update', array($this, 'update_user_options')); // Update User Options
+            add_action('edit_user_profile_update', array($this, 'update_user_options'));// Update User Options
+         }
 
       }
 
@@ -312,7 +312,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
 
       function admin_columns($columns, $id) {
          if (isset($this->pages[$id])) {
-	    $columns[$id] = 2;
+      $columns[$id] = 2;
          }
          return $columns;
       }
@@ -342,7 +342,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          echo '<span id="al_popup" onmouseover="al_div_in()" onmouseout="al_div_out()"></span>';
          wp_localize_script('amazon-link-multi-script', 
                             'AmazonLinkMulti',
-                            array('country_data' => $this->get_country_data(), 'channels' => $this->get_channels(True, True), 'target' => ($settings['new_window'] ? 'target="_blank"' : ''))
+                            array('country_data' => $this->get_country_data(), 'channels' => $this->get_channels(True, $settings['user_ids']), 'target' => ($settings['new_window'] ? 'target="_blank"' : ''))
                            );
          wp_print_scripts('amazon-link-multi-script');
          remove_action('wp_print_footer_scripts', array($this, 'footer_scripts'));
@@ -428,7 +428,8 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
              'mplace_id'    => array( 'Description' => __('Localised Numeric Amazon Marketplace Code (2=uk, 8=fr, etc.)', 'amazon-link'), 'Default' => array('uk' => '2', 'us' => '1', 'de' => '3', 'es' => '30', 'fr' => '8', 'jp' => '9', 'it' => '29', 'cn' => '28', 'ca' => '15')),
              'rcm'          => array( 'Description' => __('Localised RCM site host domain (rcm.amazon.com, rcm-uk.amazon.co.uk, etc.)', 'amazon-link'), 'Default' => array('uk' => 'rcm-uk.amazon.co.uk', 'us' => 'rcm.amazon.com', 'de' => 'rcm-de.amazon.de', 'es' => 'rcm-es.amazon.es', 'fr' => 'rcm-fr.amazon.fr', 'jp' => 'rcm-jp.amazon.co.jp', 'it' => 'rcm-it.amazon.it', 'cn' => 'rcm-cn.amazon.cn', 'ca' => 'rcm-ca.amazon.ca')),
              'buy_button'   => array( 'Description' => __('Localised Buy from Amazon Button URL', 'amazon-link'), 'Default' => array('uk' => 'https://images-na.ssl-images-amazon.com/images/G/02/buttons/buy-from-tan.gif', 'us' => 'https://images-na.ssl-images-amazon.com/images/G/01/buttons/buy-from-tan.gif', 'de' => 'https://images-na.ssl-images-amazon.com/images/G/03/buttons/buy-from-tan.gif', 'es' => 'https://images-na.ssl-images-amazon.com/images/G/30/buttons/buy-from-tan.gif', 'fr' => 'https://images-na.ssl-images-amazon.com/images/G/08/buttons/buy-from-tan.gif', 'jp' => 'https://images-na.ssl-images-amazon.com/images/G/09/buttons/buy-from-tan.gif', 'it' => 'https://images-na.ssl-images-amazon.com/images/G/29/buttons/buy-from-tan.gif', 'cn' => 'https://images-na.ssl-images-amazon.com/images/G/28/buttons/buy-from-tan.gif', 'ca' => 'https://images-na.ssl-images-amazon.com/images/G/15/buttons/buy-from-tan.gif')),
-
+             'language'     => array( 'Description' => __('Localised language (English,  etc.)', 'amazon-link'), 'Default' => array('uk' => 'English', 'es' => 'Español', 'us' => 'English', 'fr' => 'Français', 'de' => 'Deutsch', 'it' => 'Italiano', 'ca' =>'English', 'cn' => '简体中文',  'jp' => '日本語')),
+                                                                               
              'tag'          => array( 'Description' => __('Localised Amazon Associate Tag', 'amazon-link')),
              'cc'           => array( 'Description' => __('Localised Country Code (us, uk, etc.)', 'amazon-link')),
              'flag'         => array( 'Description' => __('Localised Country Flag Image URL', 'amazon-link')),
@@ -529,6 +530,8 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
                                    'Options' => array( '' => array('Name' => 'Use Default'), 'All' => array ('Name' => 'All'), 'New' => array('Name' => 'New'),'Used' => array('Name' => 'Used'),'Collectible' => array('Name' => 'Collectible'),'Refurbished' => array('Name' => 'Refurbished')),
                                    'Class' => 'alternate al_border' ),
             'prefetch' => array ( 'Name' => __('Prefetch Data', 'amazon-link'), 'Description' => __('For every product link, prefetch the data from the Amazon Site - use of the cache essential for this option! <em>* <a href="#aws_notes" title="AWS Access keys required for full functionality">AWS</a> *</em>', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox', 'Class' => '' ),
+            'user_ids' => array ( 'Name' => __('User Affiliate IDs', 'amazon-link'), 'Description' => __('Allow all users to have their own Affiliate IDs accessible from their profile page', 'amazon-link'), 'Default' => '1', 'Type' => 'checkbox', 'Class' => 'alternate' ),
+
             'hd3e' => array ( 'Type' => 'end'),
 
             'hd4s' => array ( 'Type' => 'section', 'Value' => __('Amazon Data Cache','amazon-link'), 'Title_Class' => 'al_section_head', 'Description' => __('Improve page performance by caching Amazon product data.','amazon-link'), 'Section_Class' => 'al_subhead1'),
@@ -728,7 +731,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
 
          $args = array();
          // Convert html encoded string back into raw characters (else parse_str does not see the '&'s).
-         $arg_str = html_entity_decode($arguments, ENT_QUOTES, 'UTF-8'); // ensure '&#8217; => '�' characters are decoded
+         $arg_str = html_entity_decode($arguments, ENT_QUOTES, 'UTF-8'); // ensure '&#8217; => '�' characters are decoded
 
          parse_str($arg_str, $args);
          $args = apply_filters('amazon_link_process_args', $args, $this);
@@ -823,7 +826,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
       }
 
       function save_user_options($ID, $options ) {
-	 update_usermeta( $ID, self::user_options,  $options );
+   update_usermeta( $ID, self::user_options,  $options );
       }
 
 /*****************************************************************************************/
@@ -979,7 +982,7 @@ function alx_'.$slug.'_default_templates ($templates) {
          if ($settings === NULL)
             $settings = $this->getSettings();
 
-         $channels = $this->get_channels(True, True);
+         $channels = $this->get_channels(True, $settings['user_ids']);
 
          if (isset($settings['in_post']) && $settings['in_post']) {
             $post = $GLOBALS['post'];
@@ -1083,7 +1086,7 @@ function alx_'.$slug.'_default_templates ($templates) {
       function cache_install() {
          global $wpdb;
          $settings = $this->getOptions();
-         if ($settings['cache_enabled']) return False;
+         if (!empty($settings['cache_enabled'])) return False;
          $cache_table = $wpdb->prefix . self::cache_table;
          $sql = "CREATE TABLE $cache_table (
                  asin varchar(10) NOT NULL,
@@ -1103,7 +1106,7 @@ function alx_'.$slug.'_default_templates ($templates) {
          global $wpdb;
 
          $settings = $this->getOptions();
-         if (!$settings['cache_enabled']) return False;
+         if (empty($settings['cache_enabled'])) return False;
          $settings['cache_enabled'] = 0;
          $this->saveOptions($settings);
 
@@ -1117,7 +1120,7 @@ function alx_'.$slug.'_default_templates ($templates) {
          global $wpdb;
 
          $settings = $this->getOptions();
-         if (!$settings['cache_enabled']) return False;
+         if (empty($settings['cache_enabled'])) return False;
 
          $cache_table = $wpdb->prefix . self::cache_table;
          $sql = "TRUNCATE TABLE $cache_table;";
@@ -1128,6 +1131,7 @@ function alx_'.$slug.'_default_templates ($templates) {
       function cache_flush() {
          global $wpdb;
          $settings = $this->getOptions();
+         if (empty($settings['cache_enabled'])) return False;
          $cache_table = $wpdb->prefix . self::cache_table;
          $sql = "DELETE FROM $cache_table WHERE updated < DATE_SUB(NOW(),INTERVAL " . $settings['cache_age']. " HOUR);";
          $wpdb->query($sql);
@@ -1139,7 +1143,7 @@ function alx_'.$slug.'_default_templates ($templates) {
          $updated  = current_time('mysql');
          $data['timestamp'] = $updated;
          $cache_table = $wpdb->prefix . self::cache_table;
-         if ($settings['cache_enabled']) {
+         if (!empty($settings['cache_enabled'])) {
             $sql = "DELETE FROM $cache_table WHERE asin LIKE '$asin' AND cc LIKE '$cc'";
             $wpdb->query($sql);
             $sql_data = array( 'asin' => $asin, 'cc' => $cc, 'xml' => serialize($data), 'updated' => $updated);
@@ -1291,7 +1295,7 @@ function alx_'.$slug.'_default_templates ($templates) {
          if (!empty($extra_args)) $args .= $sep . $extra_args;
 
          $this->parseArgs($args);
-         $this->shortcodes++;
+         $this->inc_stats('shortcodes',0);
 
          $output='';     
          if (empty($this->Settings['cat'])) {
@@ -1448,6 +1452,10 @@ function alx_'.$slug.'_default_templates ($templates) {
       /// Helper Functions
 /*****************************************************************************************/
 
+      function inc_stats($array, $element) {
+         $this->stats[$array][$element] = isset($this->stats[$array][$element]) ? $this->stats[$array][$element]+1 : 1;
+      }
+
       function aws_signed_request($region, $params, $public_key, $private_key)
       {
          return include('include/awsRequest.php');
@@ -1514,7 +1522,7 @@ function alx_'.$slug.'_default_templates ($templates) {
           return $default;
       }
 
-      function cached_query($request, $settings = NULL) {
+      function cached_query($request, $settings = NULL, $first_only = False) {
 
          if ($settings === NULL)
             $settings = $this->getSettings();
@@ -1524,16 +1532,16 @@ function alx_'.$slug.'_default_templates ($templates) {
          /* If not a request then must be a standard ASIN Lookup */
          if (!is_array($request)) {
             $asin = $request;
-            @$this->lookups[$asin]++;
+            $this->inc_stats('lookups',$asin);
          }
          $data = NULL;
          if (!is_array($request)) {
             $data[0] = $this->cache_lookup_item($asin, $cc);
             if ($data[0] !== NULL) {
-               @$this->cache_hit[$asin]++;
-               return $data;
+               $this->inc_stats('cache_hit',$asin);
+               return $first_only ? $data[0] : $data;
             }
-            @$this->cache_miss[$asin]++;
+            $this->inc_stats('cache_miss',$asin);
          }
 
          // Create query to retrieve the an item
@@ -1559,7 +1567,7 @@ function alx_'.$slug.'_default_templates ($templates) {
             if (array_key_exists('ASIN', $pxml['Items']['Item'])) {
                // Returned a single result (not in an array)
                $items = array($pxml['Items']['Item']);
-               @$this->aws_hit[$asin]++;
+               $this->inc_stats('aws_hit',$asin);
             } else {
                // Returned several results
                $items =$pxml['Items']['Item'];
@@ -1567,7 +1575,7 @@ function alx_'.$slug.'_default_templates ($templates) {
 
          } else {
 
-            @$this->aws_miss[$asin]++;
+            $this->inc_stats('aws_miss',$asin);
             // Failed to return any results
 
             $data['Error'] = (isset($pxml['Error'])? $pxml['Error'] : 
@@ -1603,7 +1611,7 @@ function alx_'.$slug.'_default_templates ($templates) {
                $this->cache_update_item($data[$index]['asin'], $cc, $data[$index]);
          }
 
-         return $data;
+         return $first_only ? $data[0] : $data;
       }
 
       function doQuery($request, $settings = NULL)
@@ -1647,11 +1655,50 @@ function alx_'.$slug.'_default_templates ($templates) {
        * Customer Reviews: http://www.amazon.fr/review/product/2020479893%3FSubscriptionId%3DAKIAJ47GXTAGH4BSN3PQ%26tag%3Dhindorset-fr-21%26linkCode%3Dxm2%26camp%3D2025%26creative%3D12742%26creativeASIN%3D2020479893
        *                   http://www.amazon.<TLD>/review/product/<ASIN>SubscriptionId=<PUBLIC ID>&tag=<TAG>&linkCode=xm2&camp=2025&creative=12742&creativeASIN=<ASIN>
        * Offers:           http://www.amazon.fr/gp/offer-listing/2020479893%3FSubscriptionId%3DAKIAJ47GXTAGH4BSN3PQ%26tag%3Dhindorset-fr-21%26linkCode%3Dxm2%26camp%3D2025%26creative%3D12742%26creativeASIN%3D2020479893
-       * Offers:           http://www.amazon.<TLD>/gp/offer-listing/2020479893%3FSubscriptionId%3DAKIAJ47GXTAGH4BSN3PQ%26tag%3Dhindorset-fr-21%26linkCode%3Dxm2%26camp%3D2025%26creative%3D12742%26creativeASIN%3D2020479893
+       * Offers:           http://www.amazon.<TLD>/gp/offer-listing/<ASIN>?SubscriptionId=<PUBLIC_ID>&tag=<TAG>&linkCode=xm2&camp=2025&creative=12742&creativeASIN=<ASIN>
        * Search:           http://www.amazon.com/gp/redirect.html?camp=2025&creative=386001&location=http%3A%2F%2Fwww.amazon.com%2Fgp%2Fsearch%3Fkeywords%3Dkeyword%26url%3Dsearch-alias%253Daws-amazon-aps&linkCode=xm2&tag=andilike-21&SubscriptionId=AKIAJ47GXTAGH4BSN3PQ
        *                   http://www.amazon.<TLD>/gp/redirect.html?camp=2025&creative=386001&location=http://www.amazon.<TLD>&gp=search&keywords=<KEYWORD>&url=search-alias%3Daws-amazon-aps&linkCode=xm2&tag=<TAG>&SubscriptionId=<PUBLIC_ID>
+
+       * Common Elements:  http://www.amazon.<TLD>/[search type]?SubscriptionId=<PUBLIC_ID>&tag=<TAG>&camp=2025&linkCode=xm2
+       * Product Related:  creativeASIN=<ASIN>
+       * Search Related:   keywords=<KEYWORD>&url=search-alias&aws-amazon-aps
+    
        * examples from Amazon Web Tool:
        * Search:           http://www.amazon.co.uk/gp/search?ie=UTF8&camp=1634&creative=6738&index=aps&keywords=<KEYWORDS>&linkCode=ur2&tag=<TAG>
+       *
+       * From Amazon Web Site:
+       * Book Search:      http://www.amazon.com/gp/search/ref=sr_adv_b/?search-alias=stripbooks&unfiltered=1&field-keywords=%3CKEYWORD%3E&field-author=%3CARTIST%3E&field-title=%3CTITLE%3E&field-isbn=%3CISBN%3E&field-publisher=%3CPUBLISHER%3E&node=45&field-p_n_condition-type=1294423011&field-feature_browse-bin=2656020011&field-subject=9-12&field-language=English&field-dateop=During&field-datemod=1&field-dateyear=2012&sort=relevanceexprank&Adv-Srch-Books-Submit.x=28&Adv-Srch-Books-Submit.y=7
+       *      Terms:       field-keywords=
+                           field-author=
+                           field-title=
+                           field-isbn=
+                           field-publisher=
+                           node=45
+                           field-p_n_condition-type=1294423011
+                           field-feature_browse-bin=2656020011
+                           field-subject=9-12
+                           field-language=English
+                           field-dateop=During
+                           field-datemod=1
+                           field-dateyear=2012
+                           sort=relevanceexprank
+                           Adv-Srch-Books-Submit.x=28&Adv-Srch-Books-Submit.y=7
+       * Music Search:     http://www.amazon.com/gp/search/ref=sr_adv_m_pop/?search-alias=popular&unfiltered=1&field-keywords=keyword&field-artist=&field-title=&field-label=&field-binding=&sort=relevancerank&Adv-Srch-Music-Album-Submit.x=32&Adv-Srch-Music-Album-Submit.y=8
+       *       Terms:      field-keywords=
+                           field-artist=
+                           field-title=
+                           field-label=
+                           field-binding=
+                           sort=relevancerank
+                           Adv-Srch-Music-Album-Submit.x=32&Adv-Srch-Music-Album-Submit.y=8
+       * Toys Search:      http://www.amazon.com/gp/search/ref=sr_adv_toys/?search-alias=toys-and-games&unfiltered=1&field-keywords=keyword&field-brand=&node=165993011&field-price=&field-age_range=&sort=relevancerank&Adv-Srch-Toys-Submit.x=41&Adv-Srch-Toys-Submit.y=5
+       *      Terms:       field-keywords=
+                           field-brand=
+                           node=165993011
+                           field-price=
+                           field-age_range=
+                           sort=relevancerank
+                           Adv-Srch-Toys-Submit.x=41&Adv-Srch-Toys-Submit.y=5
        */
       function get_url($url, $type, $asin, $search, $local_info, $settings) {
 
@@ -1726,7 +1773,7 @@ function alx_'.$slug.'_default_templates ($templates) {
                $term = $asin[$home_cc];
             } else {
                $type = 'nolink';
-               $term = is_array($settings['url']) ? $settings['url'][$cc] : (isset($settings['url']) ? $settings['url'] : '');
+               $term = isset($settings['url']) ? (is_array($settings['url']) ? $settings['url'][$cc] : $settings['url']) : '';
             }
          }
          return array('type' => $type, 'term' => $term);
