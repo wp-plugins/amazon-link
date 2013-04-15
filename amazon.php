@@ -342,7 +342,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          echo '<span id="al_popup" onmouseover="al_div_in()" onmouseout="al_div_out()"></span>';
          wp_localize_script('amazon-link-multi-script', 
                             'AmazonLinkMulti',
-                            array('country_data' => $this->get_country_data(), 'channels' => $this->get_channels(True, $settings['user_ids']), 'target' => ($settings['new_window'] ? 'target="_blank"' : ''))
+                            array('country_data' => $this->get_country_data(), 'channels' => $this->get_channels(True, !empty($settings['user_ids'])), 'target' => ($settings['new_window'] ? 'target="_blank"' : ''))
                            );
          wp_print_scripts('amazon-link-multi-script');
          remove_action('wp_print_footer_scripts', array($this, 'footer_scripts'));
@@ -794,9 +794,13 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
       }
 
       function validate_keys($Settings = NULL) {
-         if (Settings === NULL) $Settings = $this->getSettings();
+         if ($Settings === NULL) $Settings = $this->getSettings();
 
          $result['Valid'] = 0;
+         if (empty($Settings['pub_key']) || empty($Settings['priv_key'])) {
+            $result['Message'] = "Keys not set";
+            return $result;
+         }
          $result['Message'] = 'AWS query failed to get a response - try again later.';
          $request = array('Operation'     => 'ItemLookup', 
                           'ResponseGroup' => 'ItemAttributes',
@@ -924,7 +928,7 @@ function alx_'.$slug.'_default_templates ($templates) {
          return $this->channels;         
       }
 
-      function create_channel_rules($al, $rules, $channel, $data) // 888
+      function create_channel_rules($rules, $channel, $data, $al)
       {
          // Extract rules 'rand = xx <CR> cat = aa,bb,cc <CR> tag = dd,ee,ff <CR> author = ID <CR> type = TYPE'
 
@@ -964,7 +968,7 @@ function alx_'.$slug.'_default_templates ($templates) {
          ksort($channels);
          $channels = array('default' => $defaults) + $channels;
          foreach ($channels as $channel => $data) {
-            $channels[$channel]['Rule'] = apply_filters('amazon_link_save_channel_rule', $this, array(), $channel, $data);
+            $channels[$channel]['Rule'] = apply_filters('amazon_link_save_channel_rule', array(), $channel, $data, $this);
          }
          update_option(self::channels_name, $channels);
          $this->channels = $channels;
@@ -982,7 +986,7 @@ function alx_'.$slug.'_default_templates ($templates) {
          if ($settings === NULL)
             $settings = $this->getSettings();
 
-         $channels = $this->get_channels(True, $settings['user_ids']);
+         $channels = $this->get_channels(True, !empty($settings['user_ids']));
 
          if (isset($settings['in_post']) && $settings['in_post']) {
             $post = $GLOBALS['post'];
@@ -1191,7 +1195,7 @@ function alx_'.$slug.'_default_templates ($templates) {
          if ($settings === NULL)
             $settings = $this->getSettings();
 
-         if ($settings['localise'])
+         if (!empty($settings['localise']))
          {
             if (isset($this->local_country)) return $this->local_country;
 

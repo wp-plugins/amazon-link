@@ -6,7 +6,7 @@
  * Move from version 1.2 to 1.3 of the plugin (Option Version Null => 1)
  */
 if (!isset($Opts['version'])) {
-   $cc_map = array('co.uk' => 'uk', 'com' => 'us', 'fr' => fr, 'de' => 'de', 'ca' => 'ca', 'jp' => 'jp');
+   $cc_map = array('co.uk' => 'uk', 'com' => 'us', 'fr' => 'fr', 'de' => 'de', 'ca' => 'ca', 'jp' => 'jp');
 
    if (isset($Opts['tld'])) {
       $cc = isset($cc_map[$Opts['tld']]) ? $cc_map[$Opts['tld']] : 'uk';
@@ -25,14 +25,16 @@ if (!isset($Opts['version'])) {
  */
 if ($Opts['version'] == 1) {
    $Templates = $this->getTemplates();
-   foreach ($Templates as $Name => $value)
-   {
-      $renamed_templates[strtolower($Name)] = $value;
+   if (!empty($Templates)) {
+      foreach ($Templates as $Name => $value)
+      {
+         $renamed_templates[strtolower($Name)] = $value;
+      }
+      $this->saveTemplates($renamed_templates);
+      $Templates = $renamed_templates;
    }
-   $this->saveTemplates($renamed_templates);
-   $Templates = $renamed_templates;
    if (isset($Opts['wishlist_template']))
-       $Opts['wishlist_template'] = strtolower($Opts['wishlist_template']);
+      $Opts['wishlist_template'] = strtolower($Opts['wishlist_template']);
    $Opts['version'] = 2;
    $this->saveOptions($Opts);
 }
@@ -97,7 +99,7 @@ if ($Opts['version'] == 4) {
  */
 if ($Opts['version'] == 5) {
 
-   if ($Opts['cache_enabled']) {
+   if (!empty($Opts['cache_enabled'])) {
       $this->cache_remove();
       $this->cache_install();
    }
@@ -120,11 +122,13 @@ if ($Opts['version'] == 6) {
     */
    $templates = $this->getTemplates();
    if(!isset($templates['wishlist'])) {
+      $default_templates = $this->get_default_templates();
       foreach ($default_templates as $template_name => $template_details) {
          if(!isset($templates[$template_name])) {
             $templates[$template_name] = $template_details;
          }
       }
+      $this->saveTemplates($templates);
    }
 
    $Opts['version'] = 7;

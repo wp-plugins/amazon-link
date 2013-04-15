@@ -22,6 +22,7 @@
 
       foreach ($optionList as $optName => $optDetails) {
          if (isset($optDetails['Name'])) {
+            if (!isset($_POST[$optName])) $_POST[$optName] = NULL;
             // Read their posted value
             if ((($optName == 'pub_key') || ($optName == 'priv_key')) &&
                 ($Opts[$optName] != stripslashes($_POST[$optName]))) {
@@ -78,7 +79,7 @@
 
    
    // If Enabled then take the opportunity to flush old data
-   if ($Opts['cache_enabled']) {
+   if (!empty($Opts['cache_enabled'])) {
       $this->cache_flush();
       $optionList['cache_c']['Buttons'][__('Enable Cache', 'amazon-link' )]['Disabled'] = 1;
    } else {
@@ -89,8 +90,8 @@
 /*****************************************************************************************/
   // echo "<PRE>"; print_r($Opts); echo "</pRE>";
    /* AWS Keys not yet validate, do a dummy request to see if we get any errors */
-   if (strlen($Opts['pub_key']) > 0) {
-      if ((isset($AWS_keys_updated) || !$Opts['aws_valid'])) {
+   if (!empty($Opts['pub_key'])) {
+      if ( isset($AWS_keys_updated) || empty($Opts['aws_valid']) ) {
          $result = $this->validate_keys($Opts);
          $Opts['aws_valid'] = $result['Valid'];
          if (current_user_can('manage_options')) $this->saveOptions($Opts);
