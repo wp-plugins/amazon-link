@@ -87,7 +87,7 @@ if ($Opts['version'] == 3) {
 if ($Opts['version'] == 4) {
    $result = $this->validate_keys($Opts);
    $Opts['aws_valid'] = $result['Valid'];
-//   if (!empty($Opts['search_text'])) $Opts['search_text'] = preg_replace( '!%AUTHOR%!', '%ARTIST%', $Opts['search_text']);
+   if (!empty($Opts['search_text'])) $Opts['search_text'] = preg_replace( '!%AUTHOR%!', '%ARTIST%', $Opts['search_text']);
    $Opts['version'] = 5;
    $this->saveOptions($Opts);
 }

@@ -1,6 +1,6 @@
 === Amazon Link ===
 Contributors: paulstuttard
-Donate link: http://www.houseindorset.co.uk/plugins
+Donate link: /plugins
 Tags: Amazon, links, wishlist, recommend, shortcode, ip2nation, localise, images, media library, affiliate, product, template
 Requires at least: 3.3
 Tested up to: 3.5.1
@@ -110,13 +110,17 @@ This is created by either putting the line `amazon_recommends(<Category>,<Number
 == Screenshots ==
 
 
-1. This is the example wishlist taken from [www.HouseInDorset.co.uk](http://www.houseindorset.co.uk/plugins/amazon-link/faq/)
+1. Quickly create lists of associated products using the Wishlist feature.
 
-2. This shows the multinational Amazon link popup.
+2. Optionally enable the Amazon Link Multinational links to allow users to select their preferred Amazon site.
 
-3. This shows the Amazon Link Metabox that can be used to insert shortcode links into Posts or Pages.
+3. On the WordPress Post/Page edit screen utilise the Amazon Link Search Tool to find products and create links.
 
-4. This shows the Template editor available on the Plugin's Settings page.
+4. Use the Amazon Link Templates manager to modify and create your own Link Content.
+
+5. Use the extensive Amazon Link Options page to customise the behaviour of the plugin.
+
+6. On the Amazon Link Associate ID options page enter all your Amazon Associate IDs to earn commission from links.
 
 == Changelog ==
 
@@ -260,36 +264,36 @@ This is created by either putting the line `amazon_recommends(<Category>,<Number
 * Add an option to set the length of the wishlist displayed
 
 
-**1.8.1 **
+**1.8.1**
 Default to using .com for aws requests when user has configured Italian or Chinese as the default domain. Note requires Wordpress version 3.1 for this release.
 
-**1.8 **
+**1.8**
 Add support for images into the shortcode, as well as the ability to add images to the Wordpress media library.
 
-**1.7 **
+**1.7**
 Rework ip2nation download function
 
-**1.6 **
+**1.6**
 Add support for China and Canada Associates sites, fix ip2nation status check bug.
 
-**1.5 **
+**1.5**
 Change the multinational link to use less in-line javascript.
 
-**1.4 **
+**1.4**
 Added a simple widget to the post & page new/edit screen to assist in adding shortcodes to posts, providing a facility to search Amazon.
 
-**1.3 **
+**1.3**
 Add link localisation through IP address lookup, and support for all 6 amazon affiliate sites not just one via a image popup.
 
-**1.2 **
+**1.2**
 Improve options page processing.
 
-**1.1 **
+**1.1**
 Move options page into 'Options' section.
 Corrected stylesheet content, updated styles & provide facility to override the stylesheet.
 Add internationalisation hooks into plugin.
 
-**1.0 **
+**1.0**
 First Release
 == Frequently Asked Questions ==
 
@@ -332,6 +336,10 @@ On the Amazon-Link / Templates Settings page:
 
 
 
+**Why do my Kindle products not show any prices?**
+Unfortunately Amazon do not provide any offer prices with any of their Kindle items. Although Amazon frown on putting static price info you could do this by adding `&price=` to the shortcode, as long as you put the date of the price you should be okay.
+
+In the next version of the plugin I might add an 'unofficial' Kindle price finder.
 
 **How do I add the 'Amazon Product Previews' to my posts/templates?**
 The Amazon Product Preview popups are powered by javascript hosted on the Amazon servers, and works in all locales except for Italy and Spain.
@@ -810,9 +818,9 @@ Features I will be adding to the plugin in the future:
 
 == Upgrade Notice ==
 
-**3.1.0-rc5**
+**3.1.0-rc6**
 
-Upgrade to this version to allow much greater flexibility and features to the plugin. Some significant changes please see the [Changelog](http://wordpress.org/extend/plugins/amazon-link/changelog/) for details and follow the [Upgrade Guide](http://www.houseindorset.co.uk/plugins/amazon-link/upgrading/).
+Upgrade to this version to allow much greater flexibility and features to the plugin. Some significant changes please see the [Changelog](http://wordpress.org/extend/plugins/amazon-link/changelog/) for details and follow the [Upgrade Guide](http://www.houseindorset.co.uk/plugins/amazon-link/upgrading/). *Please double check your Associate IDs after upgrading!*
 
 **3.0.3**
 

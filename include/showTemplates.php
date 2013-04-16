@@ -182,7 +182,7 @@
          $options['live'] = 0;
          $asins = array();
       }
-      if (!$templateDetails['Preview_Off']) {
+      if (!empty($templateDetails['Preview_Off'])) {
          $templateOpts['preview']['Value'] = $this->make_links( $asins,'Text Item', $options). '<br style="clear:both"\>';
       } else {
          $templateOpts['preview']['Value'] = '';
