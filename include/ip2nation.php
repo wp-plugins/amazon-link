@@ -29,19 +29,17 @@ if (!class_exists('AmazonWishlist_ip2nation')) {
 
          $sql = "SHOW TABLE STATUS WHERE Name LIKE '". $this->db ."'";
          $db_info = $wpdb->get_row($sql);
-         if ($db_info) {
-            $ip2nationdb_ts = strtotime($db_info->Update_time);
+         if ($db_info != NULL) {
+            $ip2nationdb_ts = ($db_info->Update_time != NULL) ? strtotime($db_info->Update_time) : strtotime($db_info->Create_time);
             $ip2nationdb_time = date('D, d M Y H:i:s', $ip2nationdb_ts);
+            $uninstall = True;
          } else {
             $ip2nationdb_ts = False;
+            $uninstall = False;
          }
 
-         if( !class_exists( 'WP_Http' ) ) 
-            include_once( ABSPATH . WPINC. '/class-http.php' );
-
-         $request = new WP_Http;
-         $result = $request->head( $this->remote_file, array('timeout' => 5));
-         if ($result instanceof WP_Error )
+         $result = wp_remote_head($this->remote_file, array('timeout' => 5));
+         if (is_wp_error($result))
          {
             $ip2nationfile_ts = False;
          } else {
@@ -71,7 +69,7 @@ if (!class_exists('AmazonWishlist_ip2nation')) {
             }
          }
 
-         return array( 'Install' => $install, 'Message' => $message);
+         return array( 'Uninstall' => $uninstall, 'Install' => $install, 'Message' => $message);
       }
 
 /*****************************************************************************************/
@@ -81,19 +79,14 @@ if (!class_exists('AmazonWishlist_ip2nation')) {
       function install () {
          global $wpdb;
 
-          // Download zip file...
-         if( !class_exists( 'WP_Http' ) ) 
-            include_once( ABSPATH . WPINC. '/class-http.php' );
-
-          $request = new WP_Http;
-          $result = $request->request( $this->remote_file );
-          if ($result instanceof WP_Error )
+         $result = wp_remote_get($this->remote_file);
+         if (is_wp_error($result))
              return __('ip2nation install: Failed to Download remote database file.','amazon-link');
 
           // Save file to temp directory
           $zip_content = $result['body'];
           $zip_size = file_put_contents ($this->temp_zip_file, $zip_content);
-          if (!$zip_size)
+          if ($zip_size === False)
              return sprintf(__('ip2nation install: Failed to open temporary  file (%s).','amazon-link'), $this->temp_zip_file) ;
 
           // Unzip the file
@@ -113,28 +106,49 @@ if (!class_exists('AmazonWishlist_ip2nation')) {
 
           // Install the database
           $index = 0;
+          $queries =0;
           $end = strpos($sql, ';', $index)+1;
           $query = substr ($sql, $index, ($end-$index));
           while ($query !== FALSE) {
              if ($wpdb->query($query) === FALSE)
                 return sprintf(__('ip2nation install: Database downloaded and unzipped but failed to install [%s]','amazon-link'), $wpdb->last_error);
              $index=$end;
+             $queries++;
              $end = strpos($sql, ';', $index)+1;
              $query = substr ($sql, $index, ($end-$index));
           }
-          return sprintf(__('ip2nation install: Database downloaded and installed successfully. %s queries executed.','amazon-link'), $index);
+          zip_close($zfh);
+          return sprintf(__('ip2nation install: Database downloaded and installed successfully. %s queries executed.','amazon-link'), $queries);
+      }
+/*****************************************************************************************/
+
+      function uninstall () {
+         global $wpdb;
+         $query = 'DROP TABLE ip2nation,ip2nationCountries;';
+         if ($wpdb->query($query) === FALSE) {
+            return sprintf(__('ip2nation uninstall: Database failed to uninstall [%s]','amazon-link'), $wpdb->last_error);
+         } else {
+            return sprintf(__('ip2nation uninstall: Databases successfully uninstalled.','amazon-link'));
+         }
       }
 
 /*****************************************************************************************/
 
       function get_cc ($ip = FALSE) {
          global $wpdb, $_SERVER;
-         
+
          if ($ip === FALSE)
             $ip = $_SERVER['REMOTE_ADDR'];
 
-         $sql = 'SELECT country FROM ' . $this->db .' WHERE ip < INET_ATON("'.$ip.'") ORDER BY ip DESC LIMIT 0,1';
-         return $wpdb->get_var($sql);
+
+         $sql = "SHOW TABLE STATUS WHERE Name LIKE '". $this->db ."'";
+         $db_info = $wpdb->get_row($sql);
+         if ($db_info != NULL) {
+            $sql = 'SELECT country FROM ' . $this->db .' WHERE ip < INET_ATON("'.$ip.'") ORDER BY ip DESC LIMIT 0,1';
+            return $wpdb->get_var($sql);
+         } else {
+            return NULL;
+         }
 
       }
 
