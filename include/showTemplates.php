@@ -68,7 +68,7 @@
       foreach ($templateOpts as $Setting => $Details) {
          if (isset($Details['Name'])) {
             // Read their posted value
-            $Templates[$templateID][$Setting] = stripslashes($_POST[$Setting]);
+            $Templates[$templateID][$Setting] = isset($_POST[$Setting]) ? stripslashes($_POST[$Setting]) : NULL;
          }
       }
       $NotifyUpdate = True;
@@ -182,7 +182,7 @@
          $options['live'] = 0;
          $asins = array();
       }
-      if (!empty($templateDetails['Preview_Off'])) {
+      if (empty($templateDetails['Preview_Off'])) {
          $templateOpts['preview']['Value'] = $this->make_links( $asins,'Text Item', $options). '<br style="clear:both"\>';
       } else {
          $templateOpts['preview']['Value'] = '';

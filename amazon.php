@@ -94,7 +94,6 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
 /*****************************************************************************************/
       /// Settings:
 /*****************************************************************************************/
-      // String to insert into Posts to indicate where to insert the amazon items
       const cache_table   = 'amazon_link_cache';
       const refs_table    = 'amazon_link_refs';
       const ip2n_table    = 'ip2nation';
@@ -168,7 +167,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
             self::delete_options();
          }
       }
-
+      
       // On wordpress initialisation - load text domain and register styles & scripts
       function init() {
 
@@ -210,8 +209,8 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          add_filter('amazon_link_save_channel_rule', array($this, 'create_channel_rules'), 10,4);
 
          /* Set up the default channel filters - priority determines order */
-         add_filter('amazon_link_get_channel' , array($this, 'get_channel_by_rules'), 10,5);
-         add_filter('amazon_link_get_channel' , array($this, 'get_channel_by_setting'), 12,5);
+         add_filter('amazon_link_get_channel' , array($this, 'get_channel_by_setting'), 10,5);
+         add_filter('amazon_link_get_channel' , array($this, 'get_channel_by_rules'), 12,5);
          add_filter('amazon_link_get_channel' , array($this, 'get_channel_by_user'), 14,5);
 
          // Call any user hooks - passing the current plugin Settings and the Amazon Link Instance.
@@ -830,7 +829,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
       }
 
       function save_user_options($ID, $options ) {
-   update_usermeta( $ID, self::user_options,  $options );
+         update_usermeta( $ID, self::user_options,  $options );
       }
 
 /*****************************************************************************************/
@@ -1026,11 +1025,6 @@ function alx_'.$slug.'_default_templates ($templates) {
                if (isset($data['Rule']['rand']) && ($data['Rule']['rand'] > rand(0,99)))
                   return $data;
 
-               // If manually set always respect.
-               if (isset($settings['chan']) && isset($channels[strtolower($settings['chan'])])) {
-                  continue;
-               }
-
                if (isset($post)) {
 
                   if (isset($data['Rule']['cat']) && has_category($data['Rule']['cat'], $post))
@@ -1057,7 +1051,7 @@ function alx_'.$slug.'_default_templates ($templates) {
        */
       function get_channel_by_setting ($channel_data, $channels, $post, $settings, $al) {
 
-         /* This filter will override the 'rule' filter above if it is set. */
+         if (!empty($channel_data)) return $channel_data;
 
          if (isset($settings['chan']) && isset($channels[strtolower($settings['chan'])])) {
             return $channels[strtolower($settings['chan'])];
@@ -1637,7 +1631,7 @@ function alx_'.$slug.'_default_templates ($templates) {
          /*
           * Generate a localised/multinational link open tag <a ... >
           */
-         $attributes = 'rel="nofollow"' . $settings['new_window'] ? ' target="_blank"' : '';
+         $attributes = 'rel="nofollow"' . ($settings['new_window'] ? ' target="_blank"' : '');
          $attributes .= !empty($settings['link_title']) ? ' title="'.addslashes($settings['link_title']).'"' : '';
          $url = apply_filters('amazon_link_url', '', $type, $settings['asin'], $search[0], $local_info, $settings, $this);
          $text="<a $attributes href=\"$url\">";
@@ -1928,5 +1922,5 @@ function amazon_make_links($args)
    $awlfw->Settings['in_post'] = False;
    return $awlfw->make_links($awlfw->Settings['asin'], $awlfw->Settings['text'], $awlfw->Settings);        // Return html
 }
-
+// vim:set ts=4 sts=4 sw=4 st:
 ?>

@@ -448,11 +448,11 @@ if (!class_exists('AmazonLinkSearch')) {
          $this->data     = $data;
          $countries      = implode('|',$countries_a);
          do {
-            $input = preg_replace_callback( "!%(?<keyword>$keywords)%(?:(?<cc>$countries)?(?<escape>S)?(?<index>[0-9]+)?#)?!i", array($this, 'parse_template_callback'), $input, -1, $count);
+            $input = preg_replace_callback( "!%(?P<keyword>$keywords)%(?:(?P<cc>$countries)?(?P<escape>S)?(?P<index>[0-9]+)?#)?!i", array($this, 'parse_template_callback'), $input, -1, $count);
 
          } while ($count);
 
-         $input = preg_replace_callback( "!%(?<keyword>$keywords_c)%(?:(?<cc>$countries)?(?<escape>S)?(?<index>[0-9]+)?#)?!i", array($this, 'parse_template_callback'), $input);
+         $input = preg_replace_callback( "!%(?P<keyword>$keywords_c)%(?:(?P<cc>$countries)?(?P<escape>S)?(?P<index>[0-9]+)?#)?!i", array($this, 'parse_template_callback'), $input);
 
          $this->alink->Settings['default_cc'] = $item['default_cc'];
          $this->alink->Settings['multi_cc'] = $item['multi_cc'];
