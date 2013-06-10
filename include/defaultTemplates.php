@@ -16,8 +16,29 @@ $wishlist_template = htmlspecialchars ('
    </div>
   </div>
  </div>
+<img src="http://www.assoc-amazon.%TLD%/e/ir?t=%TAG%&l=as2&o=%MPLACE_ID%&a=%ASIN%" width="1" height="1" border="0" alt="" style="border:none !important; margin:0px !important;" />
 </div>');
 
+$multinational_template = htmlspecialchars (' <div class="amazon_prod">
+  <div class="amazon_img_container">
+   %LINK_OPEN%<img class="%IMAGE_CLASS%" src="%THUMB%">%LINK_CLOSE%
+  </div>
+  <div class="amazon_text_container">
+   <p>%LINK_OPEN%%TITLE%%LINK_CLOSE%</p>
+   <div class="amazon_details">
+     <p>by %ARTIST% [%MANUFACTURER%]<br />
+     <b>Price: <span class="amazon_price">
+<span class="al_found%FOUND%uk#">%LINK_OPEN%uk# <img height=10px src="%FLAG%uk#"> %PRICE%uk#%LINK_CLOSE%</span>
+<span class="al_found%FOUND%fr#">%LINK_OPEN%FR# <img height=10px src="%FLAG%fr#"> %PRICE%FR#%LINK_CLOSE%</span>
+<span class="al_found%FOUND%de#">%LINK_OPEN%de# <img height=10px src="%FLAG%de#"> %PRICE%DE#%LINK_CLOSE%</span>
+<span class="al_found%FOUND%es#">%LINK_OPEN%es# <img height=10px src="%FLAG%es#"> %PRICE%es#%LINK_CLOSE%</span>
+</span></b>
+    </p>
+   </div>
+  </div>
+ </div>
+<img src="http://www.assoc-amazon.%TLD%/e/ir?t=%TAG%&l=as2&o=%MPLACE_ID%&a=%ASIN%" width="1" height="1" border="0" alt="" style="border:none !important; margin:0px !important;" />
+');
 
 $carousel_template = htmlspecialchars ('
 <script type=\'text/javascript\'>
@@ -35,13 +56,14 @@ amzn_wdgt.height=\'200\';
 
 
 $iframe_template = htmlspecialchars ('
-<iframe src="http://rcm-%CC%.amazon.%TLD%/e/cm?lt1=_blank&bc1=000000&IS2=1&bg1=FFFFFF&fc1=000000&lc1=0000FF&t=%TAG%&o=2&p=8&l=as4&m=amazon&f=ifr&ref=ss_til&asins=%ASIN%" style="width:120px;height:240px;" scrolling="no" marginwidth="0" marginheight="0" frameborder="0"></iframe>
+<iframe src="http://%RCM%/e/cm?lt1=_blank&bc1=000000&IS2=1&bg1=FFFFFF&fc1=000000&lc1=0000FF&t=%TAG%&o=%MPLACE_ID%&p=8&l=as4&m=amazon&f=ifr&ref=ss_til&asins=%ASIN%" style="width:120px;height:240px;" scrolling="no" marginwidth="0" marginheight="0" frameborder="0"></iframe>
 ');
 
 
 $image_template = htmlspecialchars ('
 <div class="al_found%FOUND%">
  %LINK_OPEN%<img alt="%TITLE%" title="%TITLE%" src="%IMAGE%" class="%IMAGE_CLASS%">%LINK_CLOSE%
+<img src="http://www.assoc-amazon.%TLD%/e/ir?t=%TAG%&l=as2&o=%MPLACE_ID%&a=%ASIN%" width="1" height="1" border="0" alt="" style="border:none !important; margin:0px !important;" />
 </div>
 ');
 
@@ -86,24 +108,54 @@ amzn_wdgt.marketPlace=\'%MPLACE%\';
 $thumbnail_template = htmlspecialchars ('
 <div class="al_found%FOUND%">
  %LINK_OPEN%<img alt="%TITLE%" title="%TITLE%" src="%THUMB%" class="%IMAGE_CLASS%">%LINK_CLOSE%
+<img src="http://www.assoc-amazon.%TLD%/e/ir?t=%TAG%&l=as2&o=%MPLACE_ID%&a=%ASIN%" width="1" height="1" border="0" alt="" style="border:none !important; margin:0px !important;" />
 </div>');
+
+$preview_script_template = ('
+<script type="text/javascript" src="http://wms.assoc-amazon.%TLD%/20070822/%MPLACE%/js/link-enhancer-common.js?tag=%TAG%">
+</script>
+<noscript>
+    <img src="http://wms.assoc-amazon.%TLD%/20070822/%MPLACE%/img/noscript.gif?tag=%TAG%" alt="" />
+</noscript>');
+
+$easy_banner_template = htmlspecialchars ('
+<iframe src="http://%RCM%/e/cm?t=%TAG%&o=%MPLACE_ID%&p=26&l=ez&f=ifr&f=ifr" width="468" height="60" scrolling="no" marginwidth="0" marginheight="0" border="0" frameborder="0" style="border:none;">
+</iframe>');
+
+$add_to_cart_template = htmlspecialchars ('
+<form method="GET" action="http://www.amazon.%TLD%/gp/aws/cart/add.html">
+ <input type="hidden" name="AssociateTag" value="%TAG%"/>
+ <input type="hidden" name="SubscriptionId" value="%PUB_KEY%"/>
+ <input type="hidden" name="ASIN.1" value="%ASIN%"/><br>
+ <input type="hidden" name="Quantity.1" value="1"/><br>
+ <input type="image" name="add" value="Buy from Amazon.%TLD%" border="0" alt="Buy from Amazon.%TLD%" src="%BUY_BUTTON%">
+</form>');
 
 
          $this->default_templates = array (
-            'carousel' => array ( 'Name' => 'Carousel', 'Description' => __('Amazon Carousel Widget', 'amazon-link'), 
-                                  'Content' => $carousel_template ),
+            'add to cart' => array ( 'Name' => 'Add To Cart', 'Description' => __('Buy From Amazon Button', 'amazon-link'), 
+                                 'Content' => $add_to_cart_template, 'Version' => '1', 'Notice' => '', 'Type' => 'Product', 'Preview_Off' => 0 ),
+            'banner easy' => array ( 'Name' => 'Banner Easy', 'Description' => __('Easy Banner (468x60)', 'amazon-link'), 
+                                 'Content' => $easy_banner_template, 'Version' => '1', 'Notice' => '', 'Type' => 'No ASIN', 'Preview_Off' => 0 ),
+            'carousel' => array ( 'Name' => 'Carousel', 'Description' => __('Amazon Carousel Widget (limited locales)', 'amazon-link'), 
+                                  'Content' => $carousel_template, 'Version' => '1', 'Notice' => '', 'Type' => 'Multi', 'Preview_Off' => 0 ),
             'iframe image' => array ( 'Name' => 'Iframe Image', 'Description' => __('Standard Amazon Image Link', 'amazon-link'), 
-                                  'Content' => $iframe_template ),
+                                  'Content' => $iframe_template, 'Type' => 'Product', 'Version' => '1', 'Notice' => '', 'Preview_Off' => 0 ),
             'image' => array ( 'Name' => 'Image', 'Description' => __('Localised Image Link', 'amazon-link'), 
-                                  'Content' => $image_template ),
-            'mp3 clips' => array ( 'Name' => 'MP3 Clips', 'Description' => __('Amazon MP3 Clips Widget', 'amazon-link'), 
-                                  'Content' => $mp3_clips_template ),
-            'my favourites' => array ( 'Name' => 'My Favourites', 'Description' => __('Amazon My Favourites Widget', 'amazon-link'), 
-                                  'Content' => $my_favourites_template),
+                                  'Content' => $image_template, 'Type' => 'Product', 'Version' => '2', 'Notice' => 'Add impression tracking', 'Preview_Off' => 0 ),
+            'mp3 clips' => array ( 'Name' => 'MP3 Clips', 'Description' => __('Amazon MP3 Clips Widget (limited locales)', 'amazon-link'), 
+                                  'Content' => $mp3_clips_template, 'Version' => '1', 'Notice' => '', 'Type' => 'Multi', 'Preview_Off' => 0 ),
+            'my favourites' => array ( 'Name' => 'My Favourites', 'Description' => __('Amazon My Favourites Widget (limited locales)', 'amazon-link'), 
+                                  'Content' => $my_favourites_template, 'Version' => '1', 'Notice' => '', 'Type' => 'Multi', 'Preview_Off' => 0 ),
+            'preview script' => array ( 'Name' => 'Preview Script', 'Description' => __('Add Amazon Preview Pop-up script (limited locales)', 'amazon-link'),
+                                  'Content' => $preview_script_template, 'Version' => '1', 'Notice' => '', 'Type' => 'No ASIN', 'Preview_Off' => 1 ),
             'thumbnail' => array ( 'Name' => 'Thumbnail', 'Description' => __('Localised Thumb Link', 'amazon-link'), 
-                                  'Content' => $thumbnail_template),
+                                  'Content' => $thumbnail_template, 'Type' => 'Product', 'Version' => '2', 'Notice' => 'Add impression tracking', 'Preview_Off' => 0 ),
             'wishlist' => array ( 'Name' => 'Wishlist', 'Description' => __('Used to generate the wishlist', 'amazon-link'), 
-                                  'Content' => $wishlist_template)
+                                  'Content' => $wishlist_template, 'Type' => 'Product', 'Version' => '2', 'Notice' => 'Add impression tracking', 'Preview_Off' => 0),
+            'multinational' => array ( 'Name' => 'Multinational', 'Description' => __('Example Multinational Template', 'amazon-link'), 
+                                  'Content' => $multinational_template, 'Type' => 'Product', 'Version' => '1', 'Notice' => 'New Template', 'Preview_Off' => 0)
+
          );
 
 ?>
