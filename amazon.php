@@ -4,7 +4,7 @@
 Plugin Name: Amazon Link
 Plugin URI: http://www.houseindorset.co.uk/plugins/amazon-link
 Description: A plugin that provides a facility to insert Amazon product links directly into your site's Pages, Posts, Widgets and Templates.
-Version: 3.1.0-rc6
+Version: 3.1.0-rc7
 Text Domain: amazon-link
 Author: Paul Stuttard
 Author URI: http://www.houseindorset.co.uk
@@ -103,7 +103,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
       const channels_name = 'AmazonLinkChannels';
 
       var $option_version= 7;
-      var $plugin_version= '3.1.0-rc6';
+      var $plugin_version= '3.1.0-rc7';
       var $menu_slug     = 'amazon-link-settings';
       var $plugin_home   = 'http://www.houseindorset.co.uk/plugins/amazon-link/';
 
@@ -132,7 +132,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
 
          // Frontend & Backend Related
          register_activation_hook(__FILE__, array($this, 'install'));                // To perform options installation
-         register_uninstall_hook(__FILE__, array('AmazonWishlist_For_WordPress', 'uninstall'));               // To perform options removal
+         register_uninstall_hook(__FILE__, array('AmazonWishlist_For_WordPress', 'uninstall'));   // To perform options removal
          add_action('init', array($this, 'init'));                                   // Load i18n and initialise translatable vars
          add_filter('the_content', array($this, 'content_filter'),15,1);             // Process the content
          add_filter('widget_text', array($this, 'widget_filter'), 16);               // Filter widget text (after the content?)
@@ -371,24 +371,24 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
              'slink_open'   => array( 'Description' => __('Create an Amazon link to a search page with user defined content, of the form %SLINK_OPEN%My Content%LINK_CLOSE%', 'amazon-link'), 'Link' => 1),
              'link_close'   => array( 'Description' => __('Must follow a LINK_OPEN (translates to "</a>").', 'amazon-link'), 'Default' => '</a>'),
 
-             'asin'         => array( 'Description' => __('Item\'s unique ASIN', 'amazon-link'), 'Live' => '1', 'Group' => 'ItemAttributes', 'Default' => '0',
+             'asin'         => array( 'Description' => __('Item's unique ASIN', 'amazon-link'), 'Live' => '1', 'Group' => 'ItemAttributes', 'Default' => '0',
                                       'Position' => array(array('ASIN'))),
              'asins'        => array( 'Description' => __('Comma seperated list of ASINs', 'amazon-link'), 'Default' => '0'),
-             'product'      => array( 'Description' => __('Item\'s Product Group', 'amazon-link'), 'Live' => '1', 'Group' => 'ItemAttributes', 'Default' => '-',
+             'product'      => array( 'Description' => __('Item's Product Group', 'amazon-link'), 'Live' => '1', 'Group' => 'ItemAttributes', 'Default' => '-',
                                       'Position' => array(array('ItemAttributes','ProductGroup'))),
-             'binding'      => array( 'Description' => __('Item\'s Format (Paperbook, MP3 download, etc.)', 'amazon-link'), 'Live' => '1', 'Group' => 'ItemAttributes', 'Default' => ' ',
+             'binding'      => array( 'Description' => __('Item's Format (Paperbook, MP3 download, etc.)', 'amazon-link'), 'Live' => '1', 'Group' => 'ItemAttributes', 'Default' => ' ',
                                       'Position' => array(array('ItemAttributes','Binding'))),
-             'features'     => array( 'Description' => __('Item\'s Features', 'amazon-link'), 'Live' => '1', 'Group' => 'ItemAttributes', 'Filter' => 'amazon_link_format_list', 'Default' => ' ',
+             'features'     => array( 'Description' => __('Item's Features', 'amazon-link'), 'Live' => '1', 'Group' => 'ItemAttributes', 'Filter' => 'amazon_link_format_list', 'Default' => ' ',
                                       'Position' => array(array('ItemAttributes','Feature'))),
-             'title'        => array( 'Description' => __('Item\'s Title', 'amazon-link'), 'Live' => '1', 'Group' => 'ItemAttributes', 'Default' => ' ',
+             'title'        => array( 'Description' => __('Item's Title', 'amazon-link'), 'Live' => '1', 'Group' => 'ItemAttributes', 'Default' => ' ',
                                       'Position' => array(array('ItemAttributes','Title'))),
-             'artist'       => array( 'Description' => __('Item\'s Author, Artist or Creator', 'amazon-link'), 'Live' => '1', 'Group' => 'ItemAttributes', 'Default' => '-',
+             'artist'       => array( 'Description' => __('Item's Author, Artist or Creator', 'amazon-link'), 'Live' => '1', 'Group' => 'ItemAttributes', 'Default' => '-',
                                       'Position' => array(array('ItemAttributes','Artist'),
                                                           array('ItemAttributes','Author'),
                                                           array('ItemAttributes','Director'),
                                                           array('ItemAttributes','Creator'),
                                                           array('ItemAttributes','Brand'))),
-             'manufacturer' => array( 'Description' => __('Item\'s Manufacturer', 'amazon-link'), 'Live' => '1', 'Group' => 'ItemAttributes', 'Default' => '-',
+             'manufacturer' => array( 'Description' => __('Item's Manufacturer', 'amazon-link'), 'Live' => '1', 'Group' => 'ItemAttributes', 'Default' => '-',
                                       'Position' => array(array('ItemAttributes','Manufacturer'),
                                                           array('ItemAttributes','Brand'))),
              'thumb'        => array( 'Description' => __('URL to Thumbnail Image', 'amazon-link'), 'Live' => '1', 'Group' => 'Images', 'Default' => 'http://images-eu.amazon.com/images/G/02/misc/no-img-lg-uk.gif',
@@ -498,18 +498,18 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
             'text' => array( 'Name' => __('Link Text', 'amazon-link'), 'Description' => __('Default text to display if none specified', 'amazon-link'), 'Default' => 'www.amazon.co.uk', 'Type' => 'text', 'Size' => '40', 'Class' => 'al_border' ),
             'image_class' => array ( 'Name' => __('Image Class', 'amazon-link'), 'Description' => __('Style Sheet Class of image thumbnails', 'amazon-link'), 'Default' => 'wishlist_image', 'Type' => 'text', 'Size' => '40', 'Class' => 'alternate al_border' ),
             'wishlist_template' => array (  'Default' => 'Wishlist', 'Name' => __('Wishlist Template', 'amazon-link') , 'Description' => __('Default template to use for the wishlist <em>* <a href="#aws_notes" title="AWS Access keys required for full functionality">AWS</a> *</em>', 'amazon-link'), 'Type' => 'selection', 'Class' => 'al_border'  ),
-            'wishlist_items' => array (  'Name' => __('Wishlist Length', 'amazon-link'), 'Description' => __('Maximum number of items to display in a wishlist (Amazon only returns a maximum of 5, for the \'Similar\' type of list) <em>* <a href="#aws_notes" title="AWS Access keys required for full functionality">AWS</a> *</em>', 'amazon-link'), 'Default' => 5, 'Type' => 'text', 'Class' => 'alternate al_border' ),
-            'wishlist_type' => array (  'Name' => __('Wishlist Type', 'amazon-link'), 'Description' => __('Default type of wishlist to display, \'Similar\' shows items similar to the ones found, \'Random\' shows a random selection of the ones found <em>* <a href="#aws_notes" title="AWS Access keys required for full functionality">AWS</a> *</em>', 'amazon-link'), 'Default' => 'Similar', 'Options' => array('Similar', 'Random', 'Multi'), 'Type' => 'selection', 'Class' => 'al_border'  ),
+            'wishlist_items' => array (  'Name' => __('Wishlist Length', 'amazon-link'), 'Description' => __('Maximum number of items to display in a wishlist (Amazon only returns a maximum of 5, for the 'Similar' type of list) <em>* <a href="#aws_notes" title="AWS Access keys required for full functionality">AWS</a> *</em>', 'amazon-link'), 'Default' => 5, 'Type' => 'text', 'Class' => 'alternate al_border' ),
+            'wishlist_type' => array (  'Name' => __('Wishlist Type', 'amazon-link'), 'Description' => __('Default type of wishlist to display, 'Similar' shows items similar to the ones found, 'Random' shows a random selection of the ones found <em>* <a href="#aws_notes" title="AWS Access keys required for full functionality">AWS</a> *</em>', 'amazon-link'), 'Default' => 'Similar', 'Options' => array('Similar', 'Random', 'Multi'), 'Type' => 'selection', 'Class' => 'al_border'  ),
             'new_window' => array('Name' => __('New Window Link', 'amazon-link'), 'Description' => __('When link is clicked on, open it in a new browser window', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox', 'Class' => 'alternate al_border' ),
-            'link_title' => array( 'Name' => __('Link Title Text', 'amazon-link'), 'Description' => __('The text to put in the link \'title\' attribute, can use the same keywords as in the Templates (e.g. %TITLE% %ARTIST%), leave blank to not have a link title.', 'amazon-link'), 'Default' => '', 'Type' => 'text', 'Size' => '40', 'Class' => '' ),
+            'link_title' => array( 'Name' => __('Link Title Text', 'amazon-link'), 'Description' => __('The text to put in the link 'title' attribute, can use the same keywords as in the Templates (e.g. %TITLE% %ARTIST%), leave blank to not have a link title.', 'amazon-link'), 'Default' => '', 'Type' => 'text', 'Size' => '40', 'Class' => '' ),
 
             'hd1e' => array ( 'Type' => 'end'),
 
              /* Options that control localisation */
             'hd2s' => array ( 'Type' => 'section', 'Value' => __('Localisation Options', 'amazon-link'), 'Title_Class' => 'al_section_head', 'Description' => __('Control the localisation of data displayed and links created.','amazon-link'), 'Section_Class' => 'al_subhead1'),
             'ip2n_message' => array( 'Type' => 'title', 'Title_Class' => 'al_para', 'Class' => 'al_pad al_border'),
-            'default_cc' => array( 'Name' => __('Default Country', 'amazon-link'), 'Hint' => __('The Amazon Affiliate Tags should be entered in the \'Afiliate IDs\' settings page.', 'amazon-link'),'Description' => __('Which country\'s Amazon site to use by default', 'amazon-link'), 'Default' => 'uk', 'Type' => 'selection', 'Class' => 'alternate al_border' ),
-            'localise' => array('Name' => __('Localise Amazon Link', 'amazon-link'), 'Description' => __('Make the link point to the user\'s local Amazon website, (you must have ip2nation installed for this to work).', 'amazon-link'), 'Default' => '1', 'Type' => 'checkbox', 'Class' => 'al_border' ),
+            'default_cc' => array( 'Name' => __('Default Country', 'amazon-link'), 'Hint' => __('The Amazon Affiliate Tags should be entered in the 'Afiliate IDs' settings page.', 'amazon-link'),'Description' => __('Which country's Amazon site to use by default', 'amazon-link'), 'Default' => 'uk', 'Type' => 'selection', 'Class' => 'alternate al_border' ),
+            'localise' => array('Name' => __('Localise Amazon Link', 'amazon-link'), 'Description' => __('Make the link point to the user's local Amazon website, (you must have ip2nation installed for this to work).', 'amazon-link'), 'Default' => '1', 'Type' => 'checkbox', 'Class' => 'al_border' ),
             'global_over' => array('Name' => __('Global Defaults', 'amazon-link'), 'Description' => __('Default values in the shortcode "title=xxxx" affect all locales, if not set only override the default locale.', 'amazon-link'), 'Default' => '1', 'Type' => 'checkbox', 'Class' => 'alternate al_border' ),
             'search_link' => array('Name' => __('Create Search Links', 'amazon-link'), 'Description' => __('Generate links to search for the items by "Artist Title" for non local links, rather than direct links to the product by ASIN.', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox', 'Class' => 'al_border' ),
             'search_text' => array( 'Name' => __('Default Search String', 'amazon-link'), 'Description' => __('Default items to search for with "Search Links", uses the same system as the Templates below.', 'amazon-link'), 'Default' => '%ARTIST% | %TITLE%', 'Type' => 'text', 'Size' => '40', 'Class' => 'alternate al_border' ),
@@ -525,7 +525,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
             'priv_key' => array( 'Name' => __('AWS Private key', 'amazon-link'), 'Description' => __('Secret Access Key ID provided by your AWS Account.', 'amazon-link'), 'Default' => '', 'Type' => 'text', 'Size' => '40', 'Class' => 'alternate' ),
             'aws_valid' => array ( 'Type' => 'checkbox', 'Read_Only' => 1, 'Name' => 'AWS Keys Validated', 'Default' => '0', 'Class' => 'al_border'),
             'live' => array ( 'Name' => __('Live Data', 'amazon-link'), 'Description' => __('When creating Amazon links, use live data from the Amazon site, otherwise populate the shortcode with static information. <em>* <a href="#aws_notes" title="AWS Access keys required for full functionality">AWS</a> *</em>', 'amazon-link'), 'Default' => '1', 'Type' => 'checkbox', 'Class' => 'al_border' ),
-            'condition' => array ( 'Name' => __('Condition', 'amazon-link'), 'Description' => __('By default Amazon only returns Offers for \'New\' items, change this to return items of a different condition.', 'amazon-link'), 'Default' => '', 'Type' => 'selection', 
+            'condition' => array ( 'Name' => __('Condition', 'amazon-link'), 'Description' => __('By default Amazon only returns Offers for 'New' items, change this to return items of a different condition.', 'amazon-link'), 'Default' => '', 'Type' => 'selection', 
                                    'Options' => array( '' => array('Name' => 'Use Default'), 'All' => array ('Name' => 'All'), 'New' => array('Name' => 'New'),'Used' => array('Name' => 'Used'),'Collectible' => array('Name' => 'Collectible'),'Refurbished' => array('Name' => 'Refurbished')),
                                    'Class' => 'alternate al_border' ),
             'prefetch' => array ( 'Name' => __('Prefetch Data', 'amazon-link'), 'Description' => __('For every product link, prefetch the data from the Amazon Site - use of the cache essential for this option! <em>* <a href="#aws_notes" title="AWS Access keys required for full functionality">AWS</a> *</em>', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox', 'Class' => '' ),
@@ -749,7 +749,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
                if (is_array($args[$key])) {
                   $this->Settings[$key] = array_map("trim", $args[$key]);
                } else {
-                  $this->Settings[$key] = trim(stripslashes($args[$key]),"\x22\x27");
+                  $this->Settings[$key] = trim(stripslashes($args[$key]),"x22x27");
                }
 
             /* If No local setting but global setting is configured then use that. */
@@ -871,17 +871,17 @@ function alx_'.$slug.'_default_templates ($templates) {
             if (!isset($data['Version'])) $data['Version'] = 1;
             if (!isset($data['Notice'])) $data['Notice'] = 'New Template';
             unset($data['nonce'], $data['nonce1'], $data['nonce2']);
-            $content .= " \$templates['$id'] = \n  array(";
+            $content .= " $templates['$id'] = n  array(";
             foreach ($data as $item => $details) {
                if ($item == 'Content') {
-                  $content .= "   '$item' => htmlspecialchars (". var_export($details, true) . "),\n";
+                  $content .= "   '$item' => htmlspecialchars (". var_export($details, true) . "),n";
                } else {
-                  $content .= "   '$item' => ". var_export($details, true) . ",\n";
+                  $content .= "   '$item' => ". var_export($details, true) . ",n";
                }
             }
-            $content .= "  );\n";
+            $content .= "  );n";
          }
-         $content .= "  return \$templates;\n}\nadd_filter( 'amazon_link_default_templates', 'alx_${slug}_default_templates');\n?>";
+         $content .= "  return $templates;n}nadd_filter( 'amazon_link_default_templates', 'alx_${slug}_default_templates');n?>";
          $result = file_put_contents( $filename, $content);
          if ($result === FALSE) {
             return array ( 'Success' => 0, 'Message' => "Export Failed could not write to: <em>$filename</em>" );
@@ -933,23 +933,23 @@ function alx_'.$slug.'_default_templates ($templates) {
 
          if (empty($data['Filter'])) return $rules;
 
-         preg_match('~rand\s*=\s*(?P<rand>\d*)~i', $data['Filter'], $matches);
+         preg_match('~rands*=s*(?P<rand>d*)~i', $data['Filter'], $matches);
          if (!empty($matches['rand']))
             $rules['rand'] = $matches['rand'];
 
-         $author = preg_match('~author\s*=\s*(?P<author>\w*)~i', $data['Filter'], $matches);
+         $author = preg_match('~authors*=s*(?P<author>w*)~i', $data['Filter'], $matches);
          if (!empty($matches['author']))
             $rules['author'] = $matches['author'];
 
-         $type   = preg_match('~type\s*=\s*(?P<type>\w*)~i', $data['Filter'], $matches);
+         $type   = preg_match('~types*=s*(?P<type>w*)~i', $data['Filter'], $matches);
          if (!empty($matches['type']))
             $rules['type'] = $matches['type'];
 
-         $cat    = preg_match('~cat\s*=\s*(?P<cat>(\w*)(\s*,\s*(\w*))*)~i', $data['Filter'], $matches);
+         $cat    = preg_match('~cats*=s*(?P<cat>(w*)(s*,s*(w*))*)~i', $data['Filter'], $matches);
          if (!empty($matches['cat']))
             $rules['cat'] = array_map('trim',explode(",",$matches['cat']));
 
-         $tag    = preg_match('~tag\s*=\s*(?P<tag>(\w*)(\s*,\s*(\w*))*)~i', $data['Filter'], $matches);
+         $tag    = preg_match('~tags*=s*(?P<tag>(w*)(s*,s*(w*))*)~i', $data['Filter'], $matches);
          if (!empty($matches['tag']))
             $rules['tag'] = array_map('trim',explode(",",$matches['tag']));
 
@@ -1252,13 +1252,13 @@ function alx_'.$slug.'_default_templates ($templates) {
           * Default regex needs to match opening and closing brackets '['
           */
          $regex = '~
-                   \[amazon\s+                  # "[amazon" with at least one space
+                   [amazons+                  # "[amazon" with at least one space
                    (?P<args>                    # capture everything that follows as a named expression "args"
-                    (?:(?>[^\[\]]*)             # argument name excluding any "[" or "]" character
-                     (?:\[(?>[a-z]*)\])?        # optional "[alphaindex]" phrase
+                    (?:(?>[^[]]*)             # argument name excluding any "[" or "]" character
+                     (?:[(?>[a-z]*)])?        # optional "[alphaindex]" phrase
                     )*                          # 0 or more of these arguments
                    )                            # end of "args" group
-                   \]                           # closing ]
+                   ]                           # closing ]
                    ~sx';
          $regex = apply_filters('amazon_link_regex', $regex, $this);
 
@@ -1301,14 +1301,14 @@ function alx_'.$slug.'_default_templates ($templates) {
             $this->tags = array_merge($this->Settings['asin'], $this->tags);
             $this->Settings['in_post'] = $in_post;
             if ($this->Settings['debug']) {
-               $output .= '<!-- Amazon Link: Version:' . $this->plugin_version . ' - Args: ' . $args . "\n";
+               $output .= '<!-- Amazon Link: Version:' . $this->plugin_version . ' - Args: ' . $args . "n";
                $output .= print_r($this->Settings, true) . ' -->';
             }
             $output .= $this->make_links($this->Settings['asin'], $this->Settings['text']);
          } else {
             $this->Settings['in_post'] = $in_post;
             if ($this->Settings['debug']) {
-               $output .= '<!-- Amazon Link: Version:' . $this->plugin_version . ' - Args: ' . $args . "\n";
+               $output .= '<!-- Amazon Link: Version:' . $this->plugin_version . ' - Args: ' . $args . "n";
                $output .= print_r($this->Settings, true) . ' -->';
             }
             $output .= $this->showRecommendations($this->Settings['cat'], $this->Settings['last']);
@@ -1634,7 +1634,7 @@ function alx_'.$slug.'_default_templates ($templates) {
          $attributes = 'rel="nofollow"' . ($settings['new_window'] ? ' target="_blank"' : '');
          $attributes .= !empty($settings['link_title']) ? ' title="'.addslashes($settings['link_title']).'"' : '';
          $url = apply_filters('amazon_link_url', '', $type, $settings['asin'], $search[0], $local_info, $settings, $this);
-         $text="<a $attributes href=\"$url\">";
+         $text="<a $attributes href="$url">";
          if ($settings['multi_cc']) {
             $multi_data = array('settings' => $settings, 'type' => $type, 'search' => $search[1], 'cc' => $local_info['cc'], 'channel' => $local_info['channel'] );
             $text = $this->create_popup($multi_data, $text);
@@ -1733,12 +1733,12 @@ function alx_'.$slug.'_default_templates ($templates) {
 
          foreach ($countries as $country => $country_data) {
             $link = $this->get_link_type ($data['type'], $data['settings']['asin'], $country, $data['search'], $data['settings']);
-            $term .= $sep. $country .' : \''.$type_map[$link['type']].'-' . $link['term'] . '\'';
+            $term .= $sep. $country .' : ''.$type_map[$link['type']].'-' . $link['term'] . ''';
             $sep = ',';
          }
          $term .= '}';
 
-         $script = 'onMouseOut="al_link_out()" onMouseOver="al_gen_multi('. $this->multi_id . ', ' . $term. ', \''. $data['cc']. '\', \''. $data['channel'] .'\');" ';
+         $script = 'onMouseOut="al_link_out()" onMouseOver="al_gen_multi('. $this->multi_id . ', ' . $term. ', ''. $data['cc']. '', ''. $data['channel'] .'');" ';
          $script = str_replace ('<a', '<a ' . $script, $text);
          $this->multi_id++;
          return $script;
