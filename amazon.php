@@ -463,6 +463,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
                                         'jp' => array('country_name' => __('Japan', 'amazon-link'), 'cc' => 'jp', 'lang' => 'ja', 'flag' => $this->URLRoot. '/'. 'images/flag_jp.gif', 'tld' => 'jp', 'site' => 'https://affiliate.amazon.co.jp', 'default_tag' => 'livpaul21-22'),
                                         'it' => array('country_name' => __('Italy', 'amazon-link'), 'cc' => 'it', 'lang' => 'it', 'flag' => $this->URLRoot. '/'. 'images/flag_it.gif', 'tld' => 'it', 'site' => 'https://programma-affiliazione.amazon.it', 'default_tag' => 'livpaul-21'),
                                         'cn' => array('country_name' => __('China', 'amazon-link'), 'cc' => 'cn', 'lang' => 'zh-CHS', 'flag' => $this->URLRoot. '/'. 'images/flag_cn.gif', 'tld' => 'cn', 'site' => 'https://associates.amazon.cn', 'default_tag' => 'livpaul-23'),
+                                        'in' => array('country_name' => __('India', 'amazon-link'), 'cc' => 'in', 'lang' => 'hi', 'flag' => $this->URLRoot. '/'. 'images/flag_in.gif', 'tld' => 'in', 'site' => 'https://associates.amazon.in', 'default_tag' => 'livpau-21'),
                                         'ca' => array('country_name' => __('Canada', 'amazon-link'), 'cc' => 'ca', 'lang' => 'en', 'flag' => $this->URLRoot. '/'. 'images/flag_ca.gif', 'tld' => 'ca', 'site' => 'https://associates.amazon.ca', 'default_tag' => 'lipas-20'));
          }
          return $this->country_data;
@@ -1181,7 +1182,8 @@ function alx_'.$slug.'_default_templates ($templates) {
                                'it' => array('it'),
                                'cn' => array('cn'),
                                'ca' => array('ca', 'pm'),
-                               'jp' => array('jp')
+                               'jp' => array('jp'),
+                               'in' => array('in')
                               );
 
       function get_country($settings = NULL) {

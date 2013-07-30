@@ -7,7 +7,11 @@
    if (strcasecmp($categories, "local") != 0) {
       // First process all post content for the selected categories
       $content = '';
-      $lastposts = get_posts("numberposts=$last&cat=$categories");
+      if (preg_match('!^[0-9,]*$!', $categories)) {
+         $lastposts = get_posts("numberposts=$last&cat=$categories");
+      } else {
+         $lastposts = get_posts("numberposts=$last&cat_name=$categories");
+      }
       foreach ($lastposts as $id => $post) {
          $content .= $post->post_content;
       }
@@ -46,15 +50,19 @@
          }
 
          $pxml = $this->doQuery($request);
-         if (is_array($pxml['Cart']['SimilarProducts']['SimilarProduct']))
+         if (!empty($pxml['Cart']['SimilarProducts']['SimilarProduct']))
          {
             $Items=$pxml['Cart']['SimilarProducts']['SimilarProduct'];
+            if (!array_key_exists('0', $Items)) {
+               $Items = array('0'=>$Items);
+            }
          } else {
             $output .= '<!--' . __('Amazon query failed to return any results - Have you configured the AWS settings?', 'amazon-link').'-->';
             $output .= '<!-- '. print_r($request, true) . '-->';
             $Items=array();
          }
-         
+        
+         $ASINs = array();         
          foreach ($Items as $Item => $Details)
             $ASINs[] = $Details['ASIN'];
 

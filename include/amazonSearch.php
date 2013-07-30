@@ -568,11 +568,11 @@ if (!class_exists('AmazonLinkSearch')) {
           * Need to ensure there are no unescaped ' or " characters or new lines
           *
           * It is up to the receiving javascript to ensure that the data is present correctly for the next stage
-          *  - in postedit -> strip out " and & and [ to ensure the shortcode is parsed correctly
+          *  - in postedit -> strip out > and " and & and [ to ensure the shortcode is parsed correctly
           *  - in popup (do nothing?).
           */
          if ($escaped) $phrase = str_ireplace(array( "'"), array("\'"), $phrase);
-         if (empty($key_data['Link']) && empty($key_data['Calculated'])) $phrase = str_ireplace(array( '"', "'", "\r", "\n"), array('&#34;', '&#39;','&#13;','&#10;'), $phrase);
+         if (empty($key_data['User']) && empty($key_data['Link']) && empty($key_data['Calculated'])) $phrase = str_ireplace(array( '"', "'", "\r", "\n"), array('&#34;', '&#39;','&#13;','&#10;'), $phrase);
 
          // Update unused_args to remove used keyword.
          if (!empty($this->data[$default_country]['unused_args'])) $this->data[$default_country]['unused_args'] = preg_replace('!(&?)'.$keyword.'=[^&]*(\1?)&?!','\2', $this->data[$default_country]['unused_args']);
