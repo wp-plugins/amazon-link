@@ -21,7 +21,7 @@ display: none;
 
 .show0
 {
-display: inline;
+display: inherit;
 }
 
 #al_popup img {
