@@ -15,12 +15,12 @@ display: none;
 
 .hide1
 {
-  display: none;
+  display:none;
 }
 
 .show0
 {
-  display: inherit;
+  display:inherit;
 }
 
 #al_popup img {
