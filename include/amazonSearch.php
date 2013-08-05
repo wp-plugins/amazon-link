@@ -58,10 +58,6 @@ if (!class_exists('AmazonLinkSearch')) {
 
       var $data = array();
 
-      function AmazonLinkSearch() {
-         $this->__construct();
-      }
-
       function __construct() {
          $this->URLRoot = plugins_url("", __FILE__);
          $this->base_name  = plugin_basename( __FILE__ );
