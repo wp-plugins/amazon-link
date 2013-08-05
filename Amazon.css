@@ -8,9 +8,20 @@ left: 0;
 top: 0;
 }
 
-.al_found0 
+.al_found0
 {
 display: none;
+}
+
+
+.hide1
+{
+display: none;
+}
+
+.show0
+{
+display: inline;
 }
 
 #al_popup img {
@@ -30,6 +41,7 @@ margin: 1px;
 .amazon_container {
  min-width: 320px;
  margin-right:10px;
+ position:relative;
 }
 
 .amazon_prod {
