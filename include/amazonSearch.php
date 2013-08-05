@@ -498,6 +498,22 @@ if (!class_exists('AmazonLinkSearch')) {
          }
          $asin = $this->data[$country]['asin'];
 
+        
+                    
+         if ($settings['live'] && $settings['prefetch']) {
+            $item_data = $this->alink->cached_query($asin, $settings, True);
+
+            if ($item_data['found'] && empty($settings['asin'][$country])) {
+               $settings['asin'][$country] = $asin;
+               $this->settings['asin'][$country] = $asin;
+            } else if ($settings['localise'] && ($country != $default_country)) {
+               $settings['default_cc'] = $default_country;
+               $settings['localise']   = 0;
+               $item_data = $this->alink->cached_query($asin, $settings, True);
+            }
+            $this->data[$country] = array_merge($item_data, (array)$this->data[$country]);
+         }
+
          $phrase = apply_filters( 'amazon_link_template_get_'. $keyword, isset($this->data[$country][$keyword])?$this->data[$country][$keyword]:NULL, $keyword, $country, $this->data, $settings, $this->alink);
          if ($phrase !== NULL) $this->data[$country][$keyword] = $phrase;
    
@@ -505,21 +521,6 @@ if (!class_exists('AmazonLinkSearch')) {
           * If the keyword is not yet set then we need to populate it
           */
          if (!isset($this->data[$country][$keyword])) {
-
-            if ($settings['live'] && $settings['prefetch']) {
-               $item_data = $this->alink->cached_query($asin, $settings, True);
-
-               if ($item_data['found'] && empty($settings['asin'][$country])) {
-                  $settings['asin'][$country] = $asin;
-                  $this->settings['asin'][$country] = $asin;
-               } else if ($settings['localise'] && ($country != $settings['default_cc'])) {
-                  $settings['default_cc'] = $settings['default_cc'];
-                  $settings['localise']   = 0;
-                  $item_data = $this->alink->cached_query($asin, $settings, True);
-               }
-               $this->data[$country] = array_merge($item_data, (array)$this->data[$country]);
-
-            }
 
             if (!array_key_exists($keyword, $this->data[$country]) ) {
              if (!empty($key_data['Live'])) {
