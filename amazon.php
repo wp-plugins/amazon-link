@@ -934,7 +934,7 @@ function alx_'.$slug.'_default_templates ($templates) {
 
          if (empty($data['Filter'])) return $rules;
 
-         preg_match('~rand\s*=\s*(?P<rand>d*)~i', $data['Filter'], $matches);
+         preg_match('~rand\s*=\s*(?P<rand>\d*)~i', $data['Filter'], $matches);
          if (!empty($matches['rand']))
             $rules['rand'] = $matches['rand'];
 
@@ -1595,9 +1595,9 @@ function alx_'.$slug.'_default_templates ($templates) {
                   $key_data = $this->grab($result, $key_info['Position'], (is_array($key_info['Default']) ? $key_info['Default'][$cc] : $key_info['Default']) );
                   $key_info['Keyword'] = $keyword;
                   if (isset($key_info['Callback'])) {
-                     $key_data = call_user_func($key_info['Callback'], $key_data, $key_info, $this);
+                     $key_data = call_user_func($key_info['Callback'], $key_data, $key_info, $this, $data[$index]);
                   } else if (isset($key_info['Filter'])) {
-                     $key_data = apply_filters($key_info['Filter'], $key_data, $key_info, $this);
+                     $key_data = apply_filters($key_info['Filter'], $key_data, $key_info, $this, $data[$index]);
                   }
                   $data[$index][$keyword] = $key_data;
                }

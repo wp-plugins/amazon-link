@@ -555,7 +555,7 @@ if (!class_exists('AmazonLinkSearch')) {
 
          }
 
-         $this->data[$country][$keyword] = apply_filters( 'amazon_link_template_process_'. $keyword, $this->data[$country][$keyword], $keyword, $country, $this->data, $settings, $this->alink);
+         $this->data[$country][$keyword] = apply_filters( 'amazon_link_template_process_'. $keyword, isset($this->data[$country][$keyword])?$this->data[$country][$keyword]:NULL, $keyword, $country, $this->data, $settings, $this->alink);
 
          $phrase = $this->data[$country][$keyword];
          if (is_array($phrase)) {
