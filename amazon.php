@@ -116,11 +116,6 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
 
 /*****************************************************************************************/
       // Constructor for the Plugin
-
-      function AmazonWishlist_For_WordPress() {
-         $this->__construct();
-      }
-
       function __construct() {
          $this->URLRoot = plugins_url("", __FILE__);
          $this->icon = plugins_url('images/amazon-icon.png', __FILE__);
