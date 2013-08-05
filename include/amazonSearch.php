@@ -506,7 +506,7 @@ if (!class_exists('AmazonLinkSearch')) {
             if ($item_data['found'] && empty($settings['asin'][$country])) {
                $settings['asin'][$country] = $asin;
                $this->settings['asin'][$country] = $asin;
-            } else if ($settings['localise'] && ($country != $default_country)) {
+            } else if (!empty($settings['localise']) && ($country != $default_country)) {
                $settings['default_cc'] = $default_country;
                $settings['localise']   = 0;
                $item_data = $this->alink->cached_query($asin, $settings, True);
