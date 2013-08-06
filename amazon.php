@@ -1602,7 +1602,9 @@ function alx_'.$slug.'_default_templates ($templates) {
             $data[$index]['found']  = isset($result['found']) ? $result['found'] : 1;
 
             /* Save each item to the cache if it is enabled */
-            if ($data[$index]['found'] || ($result['Error']['Code'] == 'AWS.InvalidParameterValue'))
+            if ($data[$index]['found'] || 
+                 ($result['Error']['Code'] == 'AWS.InvalidParameterValue') ||
+                 ($result['Error']['Code'] == 'AWS.ECommerceService.ItemNotAccessible'))
                $this->cache_update_item($data[$index]['asin'], $cc, $data[$index]);
          }
 
@@ -1884,15 +1886,19 @@ function amazon_get_link($args)
 function amazon_scripts()
 {
   global $awlfw;
-  $this->footer_scripts();
+  $awlfw->footer_scripts();
 }
-
 
 function amazon_query($request)
 {
   global $awlfw;
   return $awlfw->doQuery($request);   // Return response
+}
 
+function amazon_cached_query($request, $settings = NULL, $first_only = False)
+{
+  global $awlfw;
+  return $awlfw->cached_query($request, $settings, $first_only);
 }
 
 function amazon_shortcode($args)
