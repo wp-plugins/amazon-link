@@ -493,10 +493,8 @@ if (!class_exists('AmazonLinkSearch')) {
             $this->data[$country]['asin'] = $this->data[$default_country]['asin'];
          }
          $asin = $this->data[$country]['asin'];
-
         
-                    
-         if ($settings['live'] && $settings['prefetch']) {
+         if ($settings['live'] && $settings['prefetch'] && empty($this->data[$country]['prefetch'])) {
             $item_data = $this->alink->cached_query($asin, $settings, True);
 
             if ($item_data['found'] && empty($settings['asin'][$country])) {
@@ -508,6 +506,7 @@ if (!class_exists('AmazonLinkSearch')) {
                $item_data = $this->alink->cached_query($asin, $settings, True);
             }
             $this->data[$country] = array_merge($item_data, (array)$this->data[$country]);
+            $this->data[$country]['prefetch'] = 1;
          }
 
          $phrase = apply_filters( 'amazon_link_template_get_'. $keyword, isset($this->data[$country][$keyword])?$this->data[$country][$keyword]:NULL, $keyword, $country, $this->data, $settings, $this->alink);
