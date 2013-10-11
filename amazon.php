@@ -4,7 +4,7 @@
 Plugin Name: Amazon Link
 Plugin URI: http://www.houseindorset.co.uk/plugins/amazon-link
 Description: A plugin that provides a facility to insert Amazon product links directly into your site's Pages, Posts, Widgets and Templates.
-Version: 3.1.0-rc8
+Version: 3.1.0
 Text Domain: amazon-link
 Author: Paul Stuttard
 Author URI: http://www.houseindorset.co.uk
@@ -103,7 +103,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
       const channels_name = 'AmazonLinkChannels';
 
       var $option_version= 7;
-      var $plugin_version= '3.1.0-rc7';
+      var $plugin_version= '3.1.0';
       var $menu_slug     = 'amazon-link-settings';
       var $plugin_home   = 'http://www.houseindorset.co.uk/plugins/amazon-link/';
 
@@ -257,7 +257,6 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
             add_action('personal_options_update', array($this, 'update_user_options')); // Update User Options
             add_action('edit_user_profile_update', array($this, 'update_user_options'));// Update User Options
          }
-
       }
 
       // Hooks required to bring up options page with meta boxes:
@@ -1125,7 +1124,7 @@ function alx_'.$slug.'_default_templates ($templates) {
       function cache_flush() {
          global $wpdb;
          $settings = $this->getOptions();
-         if (empty($settings['cache_enabled'])) return False;
+         if (empty($settings['cache_enabled']) || empty($settings['cache_age'])) return False;
          $cache_table = $wpdb->prefix . self::cache_table;
          $sql = "DELETE FROM $cache_table WHERE updated < DATE_SUB(NOW(),INTERVAL " . $settings['cache_age']. " HOUR);";
          $wpdb->query($sql);
@@ -1134,8 +1133,10 @@ function alx_'.$slug.'_default_templates ($templates) {
       function cache_update_item($asin, $cc, &$data) {
          global $wpdb;
          $settings = $this->getOptions();
-         $updated  = current_time('mysql');
-         $data['timestamp'] = $updated;
+         /* Use SQL timestamp to avoid timezone difference between SQL and PHP */
+         $result= $wpdb->get_row("SELECT NOW() AS timestamp", ARRAY_A);
+         $data['timestamp'] = $updated = $result['timestamp'];
+
          $cache_table = $wpdb->prefix . self::cache_table;
          if (!empty($settings['cache_enabled'])) {
             $sql = "DELETE FROM $cache_table WHERE asin LIKE '$asin' AND cc LIKE '$cc'";
@@ -1145,14 +1146,19 @@ function alx_'.$slug.'_default_templates ($templates) {
          }
       }
 
-      function cache_lookup_item($asin, $cc) {
+      function cache_lookup_item($asin, $cc, $settings = NULL) {
          global $wpdb;
-         $settings = $this->getOptions();
+         if ($settings === NULL)
+            $settings = $this->getOptions();
 
          if (!empty($settings['cache_enabled'])) {
             // Check if asin is already in the cache
             $cache_table = $wpdb->prefix . self::cache_table;
-            $sql = "SELECT xml FROM $cache_table WHERE asin LIKE '$asin' AND cc LIKE '$cc' AND  updated >= DATE_SUB(NOW(),INTERVAL " . $settings['cache_age']. " HOUR)";
+            if (!empty($settings['cache_age'])) {
+               $sql = "SELECT xml FROM $cache_table WHERE asin LIKE '$asin' AND cc LIKE '$cc' AND  updated >= DATE_SUB(NOW(),INTERVAL " . $settings['cache_age']. " HOUR)";
+            } else {
+               $sql = "SELECT xml FROM $cache_table WHERE asin LIKE '$asin' AND cc LIKE '$cc'";
+            }
             $result = $wpdb->get_row($sql, ARRAY_A);
             if ($result !== NULL) {
                $data = unserialize($result['xml']);
@@ -1308,7 +1314,7 @@ function alx_'.$slug.'_default_templates ($templates) {
                $output .= '<!-- Amazon Link: Version:' . $this->plugin_version . ' - Args: ' . $args . "\n";
                $output .= print_r($this->Settings, true) . ' -->';
             }
-            $output .= $this->showRecommendations($this->Settings['cat'], $this->Settings['last']);
+            $output .= $this->showRecommendations($this->Settings['cat'], (isset($this->Settings['last'])?$this->Settings['last']:NULL));
          }
          return $output;
       }
@@ -1855,7 +1861,6 @@ function alx_'.$slug.'_default_templates ($templates) {
          $output = '';
          if (!empty($details))
          {
-
             foreach ($details as $item) {
                $output .= $this->search->parse_template($item);
             }
@@ -1907,7 +1912,7 @@ function amazon_shortcode($args)
    $awlfw->parseArgs($args);       // Get the default settings
    $awlfw->Settings['in_post'] = False;
    if (isset($awlfw->Settings['cat']))
-      return $awlfw->showRecommendations($awlfw->Settings['cat'], $awlfw->Settings['last']);
+      return $awlfw->showRecommendations($awlfw->Settings['cat'], (isset($awlfw->Settings['last'])? $awlfw->Settings['last']:NULL));
    else
       return $awlfw->make_links($awlfw->Settings['asin'], $awlfw->Settings['text'], $awlfw->Settings);
 }

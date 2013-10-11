@@ -6,7 +6,7 @@
     'title' => 'Templates',
     'content' => '
 <p>If you want to display anything more complex than a simple text link then you can take advantage of the built in templates or create your own.</p>
-<p>Use the Amazon Link Templates Option page to display all the available templates. On this page you can create, delete and copy templates. The template content is based on standard html with additional keywords that are surrounded by ‘%’ characters. These keywords are automatically filled in with the relevant Amazon product information.</p>
+<p>Use the Amazon Link > Templates Settings page to display all the available templates. On this page you can create, delete and copy templates. The template content is based on standard html with additional keywords that are surrounded by ‘%’ characters. These keywords are automatically filled in with the relevant Amazon product information.</p>
 <p>See the Template Help section for a description of each of the keywords that can be used.</p>
 ',
   ),
@@ -50,7 +50,7 @@
     'content' => '
 <p>If you want an item in the template to be forced to output information from a specific locale you can apply country modifiers to the template keywords.</p>
 <p>For example you wish to show the prices from a number of locales.</p>
-<p>This is possible by adding a country modifier to the end of the Template keyword, one of (UK#, CA#, CN#, DE#, ES#, FR#, IT#, JP#, US#). This can be applied to any of the template keywords.</p>
+<p>This is possible by adding a country modifier to the end of the Template keyword, one of (UK#, CA#, CN#, DE#, ES#, FR#, IN# IT#, JP#, US#). This can be applied to any of the template keywords.</p>
 <p>So <code>%PRICE%UK#, %PRICE%DE#, %PRICE%FR#</code> would generate a list of prices from the UK, Germany and France.</p>
 ',
   ),

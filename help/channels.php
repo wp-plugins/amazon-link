@@ -8,7 +8,7 @@
 <p>The site owner can enter their Amazon Associate IDs on the Amazon Link Associate IDs Settings page. Enter your IDs for all the locales that you have registered for in the default channel.</p>
 <p>Any user of your site (including the owner/administrator) can also add their Affiliate IDs to their User Profile.</p>
 <p>It is recommended that the Affiliate IDs in the default channel are set up, as some sections of the site (e.g. shortcodes inserted in sidebar widgets) do not have an \'author\'.</p>
-<p>If some of the IDs are not supplied in a User\'s profile, or in a particular Channel, then the ones in the default channel will be used instead.</p>
+<p>If some of the IDs are not supplied in a User\'s profile, or in a particular Channel, then the ones in the default channel will be used instead. Only if no affiliate IDs are provided for a particular locale will the plugins built-in IDs be used.</p>
 ',
   ),
   'amazon link channels' => 
@@ -58,7 +58,7 @@ tag=booze</code></p>
 <p>If the shortcode is in a post that meets one of the specified channel filter rules then this channel will be used.</p>
 <p>If the post or page is authored by a user who has specified their own affiliate ids then these will be used next.</p>
 <p>Otherwise the Affiliate IDs in the \'default\' channel will be used.</p>
-<p>If the Channel selected does not contain affiliate IDs for all locales then ones from the \'default\' Channel will be automatically inserted. If the \'default\' Channel does not have affiliate IDs for that particular locale then the IDs hardcoded into the plugin will be used.</p>
+<p>If the Channel selected does not contain affiliate IDs for all locales then ones from the \'default\' Channel will be automatically inserted. If the \'default\' Channel does not have affiliate IDs for that locale then the IDs hardcoded into the plugin will be used.</p>
 
 ',
   ),

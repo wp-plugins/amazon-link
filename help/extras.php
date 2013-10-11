@@ -8,7 +8,7 @@
 <p>On the Amazon Link Extras Settings page you can manage plugins that add extra functionality to the main Amazon Link plugin. These plugins are either user provided or have been requested by users of the Amazon Link plugin. However although useful they may come with some performance or database impact. As such they are not built into the Amazon Link plugin by default.</p>
 <p>The plugins use the filters and action hooks built into the main Amazon Link plugin to modify its behaviour (see the \'Filters\' section), any changes made on this page will cause the Amazon Link Cache to be emptied.</p>
 <p>It is recommended that if you wish to modify the behaviour of Amazon Link plugin then create your own plugins (using the provided ones as a template). They are independent of the main plugin and so will survive any upgrades to the main plugin.</p>
-<p>Currently there are two Amazon Link Extra plugins:</p>
+<p>Currently there are a handful of Amazon Link Extra plugins:</p>
 <ul>
 <li><strong>Convert Links</strong> - A BETA release of a utility to convert all amazon-link shortcodes into another format, e.g. static content or hidden html.</li>
 <li><strong>Editorial Content</strong> - Grab the Editorial content from Amazon and use it to populate the %EDITORIAL% keyword, can be a large amount of data to download and store in the cache.</li>
@@ -25,17 +25,20 @@
     'page' => 'extras',
     'title' => 'Filters',
     'content' => '
-<p>The plugin exposes three filters that can be accessed via the standard WordPress <a href="http://codex.wordpress.org/Plugin_API#Filters">Filter</a> API:</p>
+<p>The plugin exposes a number of filters that can be accessed via the standard WordPress <a href="http://codex.wordpress.org/Plugin_API#Filters">Filter</a> API:</p>
 <ul>
 <li>amazon_link_keywords</li>
 <li>amazon_link_option_list</li>
 <li>amazon_link_user_option_list</li>
 <li>amazon_link_default_templates</li>
 <li>amazon_link_admin_menus</li>
-<li>amazon_link_process_args</li>
-<li>amazon_link_save_channel_rule</li>
 <li>amazon_link_regex</li>
 <li>amazon_link_url</li>
+<li>amazon_link_process_args</li>
+<li>amazon_link_save_channel_rule</li>
+<li>amazon_link_get_channel</li>
+<li>amazon_link_template_get_%KEYWORD%</li>
+<li>amazon_link_template_process_%KEYWORD</li>
 </ul>
 <p>It is also possible to add your own filters to process individual data items returned via Amazon by adding a \'Filter\' item using the \'amazon_link_keywords\' filter. See the \'Editorial Content\' plugin for an example of how to do this.</p>
 <p>The plugin exposes one action hook that can be used via the standard WordPress Action API:</p>
@@ -187,11 +190,11 @@ If this template should not be previewed on the Options page, e.g. it is javascr
  \'amazon-link-channels\' => array( \'Slug\' => \'amazon-link-channels\', 
                                   \'Help\' => \'help/channels.php\',
                                   \'Description\' => \'Short Description of Settings Page.\',
-                                  \'Title\' => __(\'Manage Amazon Associate IDs\', \'amazon-link\'), 
-                                  \'Label\' =>__(\'Associate IDs\', \'amazon-link\'), 
+                                  \'Title\' =>\'Manage Amazon Associate IDs\', 
+                                  \'Label\' => \'Associate IDs\', 
                                   \'Icon\' => \'plugins\',
                                   \'Capability\' => \'manage_options\',
-                                  \'Metaboxes\' => array( \'alBox1\' => array( \'Title\' => __( \'Title\', \'amazon-link\' ),
+                                  \'Metaboxes\' => array( \'alBox1\' => array( \'Title\' => \'Title\',
                                                                            \'Callback\' => array (&$this, \'show_box1\' ), 
                                                                            \'Context\' => \'normal\', 
                                                                            \'Priority\' => \'core\')))
@@ -204,7 +207,7 @@ If this template should not be previewed on the Options page, e.g. it is javascr
     'page' => 'extras',
     'title' => 'Content Filter',
     'content' => '
-<p><strong>amazon_link_regex</strong> - Use this filter to change the regular expression that the plugin uses to find the Amazon Link shortcodes. See the <a href="http://www.php.net/manual/en/book.pcre.php" title="PCRE Documenation">PHP documentation</a> on Regular Expressions for more info.</p>
+<p><strong>amazon_link_regex</strong> - Use this filter to change the regular expression that the plugin uses to find the Amazon Link shortcodes. See the <a href="/manual/en/book.pcre.php" title="PCRE Documenation">PHP documentation</a> on Regular Expressions for more info.</p>
 <p>The regular expression must return named items for the key elements of the \'shortcode\'. The default Regular Expression \'<code>/[amazon +(?&lt;args>(?:[^[]]*(?:[[a-z]*]){0,1})*)]/</code>\' returns the shortcode \'args\' as a named item.</p>
 <p>The following named items are currently processed by the plugin:</p>
 <p><strong>args</strong> - The shortcode arguments in the form of setting=value&setting=value...</p>
@@ -243,6 +246,8 @@ If this template should not be previewed on the Options page, e.g. it is javascr
 <p>$channel_data is the options associated with the channel, one of which is the Filter ($channel_data[\'Filter\']).</p>
 <p>$amazon_link is the amazon link class instance, to allow access to internal functions.</p>
 <p><strong>amazon_link_get_channel</strong> - Is the filter used to help select which channel should be used for a particular shortcode. Is passed 4 arguments: $selected_channel_data, $channels, $post, $settings, $amazon_link.</p>
+<p><strong>amazon_link_template_get_%KEYWORD%</strong> & <strong>amazon_link_template_process_%KEYWORD%</strong> - These filters are applied to every instance of a keyword as it is encountered in the template. The \'get\' filter is applied before any data is retrieved from Amazon or the product Cache, the \'process\' filter is applied immediately after data retrieval.</p>
+<p>So to alter how the %PRICE% keyword is displayed you would add a filter with the tag \'amazon_link_template_process_price\'.</p>
 ',
   ),
 );?>

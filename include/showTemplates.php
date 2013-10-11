@@ -90,7 +90,7 @@
       $NewID = '';
       while (isset($Templates[ __('template', 'amazon-link') . $NewID ]))
          $NewID++;
-      $Templates[__('template', 'amazon-link') . $NewID] = array('Name' => __('Template', 'amazon-link') . $NewID, 'Content' => '', 'Description' => __('Template Description', 'amazon-link'));
+      $Templates[__('template', 'amazon-link') . $NewID] = array('Name' => __('Template', 'amazon-link') . $NewID, 'Content' => '', 'Type' => 'Product', 'Description' => __('Template Description', 'amazon-link'));
       $NotifyUpdate = True;
       $UpdateMessage = sprintf (__('Template "%s" created.','amazon-link'), __('template', 'amazon-link') . $NewID);
    } else if ($Action == __('Install', 'amazon-link') ) {
@@ -151,7 +151,7 @@
    unset($templateOpts['Template']);
    foreach ($Templates as $templateID => $templateDetails) {
       $templateOpts['ID']['Default'] = $templateID;
-      $templateOpts['title']['Value'] = sprintf(__('<b>%s</b> - %s','amazon-link'), $templateID, $templateDetails['Description']);
+      $templateOpts['title']['Value'] = sprintf(__('<b>%s</b> - %s','amazon-link'), $templateID, (isset($templateDetails['Description'])?$templateDetails['Description']:''));
       unset($templateOpts['Buttons1']['Buttons'][__('Upgrade', 'amazon-link')]);
       unset($templateOpts['Buttons1']['Buttons'][__('Reset', 'amazon-link')]);
       if (array_key_exists($templateID,$default_templates)) {
@@ -169,8 +169,8 @@
       $options['text3'] = 'User Text 3';
       $options['text4'] = 'User Text 4';
 
-      $options['template_type'] = $templateDetails['Type'];
-      $options['template_content'] = $templateDetails['Content'];
+      $options['template_type'] = isset($templateDetails['Type'])?$templateDetails['Type']:'Product';
+      $options['template_content'] = isset($templateDetails['Content'])?$templateDetails['Content']:'';
 
       $asins = explode(',',$options['template_asins']);
       if ( $templateDetails['Type'] == 'Multi' ) {
