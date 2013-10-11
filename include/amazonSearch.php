@@ -93,6 +93,7 @@ if (!class_exists('AmazonLinkSearch')) {
 /*****************************************************************************************/
 
       function performSearch($Opts='') {
+         
          if (!is_array($Opts)) $Opts = $_POST;
 
          $Settings = array_merge($this->alink->getSettings(), $Opts);
@@ -104,7 +105,7 @@ if (!class_exists('AmazonLinkSearch')) {
             $Items = $this->alink->cached_query($Opts['asin'], $Settings);
          } else {
             $Settings['found'] = 1;
-            if ($Settings['translate'] && !empty($Opts['s_title_trans'])) $Opts['s_title'] = $Opts['s_title_trans'];
+            if (!empty($Settings['translate']) && !empty($Opts['s_title_trans'])) $Opts['s_title'] = $Opts['s_title_trans'];
             $Items = $this->do_search($Opts);
          }
 
@@ -185,9 +186,9 @@ if (!class_exists('AmazonLinkSearch')) {
          $search_index_by_locale = array( 
             'ca' => array('All', 'Blended', 'Books', 'Classical', 'DVD', 'Electronics', 'ForeignBooks', 'Kitchen', 'Music', 'Software', 'SoftwareVideoGames',
 'VHS', 'Video', 'VideoGames'),
-            'us' => array('All', 'Apparel', 'Appliances', 'ArtsAndCrafts', 'Automotive', 'Baby', 'Beauty', 'Blended', 'Books', 'Classical', 'DigitalMusic',
+            'us' => array('All', 'Apparel', 'Appliances', 'ArtsAndCrafts', 'Automotive', 'Baby', 'Beauty', 'Blended', 'Books', 'Classical', 'Collectibles', 'DigitalMusic',
 'Grocery', 'MP3Downloads', 'DVD', 'Electronics', 'HealthPersonalCare', 'HomeGarden', 'Industrial', 'Jewelry', 'KindleStore',
-'Kitchen', 'Magazines', 'Merchants', 'Miscellaneous', 'MobileApps', 'Music', 'MusicalInstruments', 'MusicTracks',
+'Kitchen', 'LawnAndGarden', 'Magazines', 'Merchants', 'Miscellaneous', 'MobileApps', 'Music', 'MusicalInstruments', 'MusicTracks',
 'OfficeProducts', 'OutdoorLiving', 'PCHardware', 'PetSupplies', 'Photo', 'Shoes', 'Software', 'SportingGoods', 'Tools', 'Toys',
 'UnboxVideo', 'VHS', 'Video', 'VideoGames', 'Watches', 'Wireless', 'WirelessAccessories'),
             'cn' => array('All', 'Apparel', 'Appliances', 'Automotive', 'Baby', 'Beauty', 'Books', 'Electronics', 'Grocery', 'HealthPersonalCare', 'Home',
@@ -199,15 +200,16 @@ if (!class_exists('AmazonLinkSearch')) {
 'SoftwareVideoGames', 'SportingGoods', 'Tools', 'Toys', 'VHS', 'Video', 'VideoGames', 'Watches'),
             'es' => array('All', 'Books', 'DVD', 'Electronics', 'ForeignBooks', 'Kitchen', 'Music', 'Software', 'Toys', 'VideoGames', 'Watches'),
             'fr' => array('All', 'Apparel', 'Baby', 'Beauty', 'Blended', 'Books', 'Classical', 'DVD', 'Electronics', 'ForeignBooks', 'HealthPersonalCare',
-'Jewelry', 'Kitchen', 'Lighting', 'MP3Downloads', 'Music', 'MusicalInstruments', 'MusicTracks', 'OfficeProducts', 'Outlet',
+'HomeImprovement', 'Jewelry', 'Kitchen', 'Lighting', 'MP3Downloads', 'Music', 'MusicalInstruments', 'MusicTracks', 'OfficeProducts', 'Outlet',
 'Shoes', 'Software', 'SoftwareVideoGames', 'VHS', 'Video', 'VideoGames', 'Watches'),
-            'it' => array('All', 'Books', 'DVD', 'Electronics', 'ForeignBooksSearchIndex:Garden', 'Kitchen', 'Music', 'Shoes', 'Software', 'Toys',
+            'it' => array('All', 'Books', 'DVD', 'Electronics', 'ForeignBooksSearchIndex:Garden', 'KindleStore', 'Kitchen', 'Music', 'Shoes', 'Software', 'Toys',
 'VideoGames', 'Watches'),
-            'jp' => array('All', 'Apparel', 'Automotive', 'Baby', 'Beauty', 'Blended', 'Books', 'Classical', 'DVD', 'Electronics', 'ForeignBooks', 'Grocery',
+            'in' => array('Books', 'DVD'),
+            'jp' => array('All', 'Apparel', 'Appliances', 'Automotive', 'Baby', 'Beauty', 'Blended', 'Books', 'Classical', 'DVD', 'Electronics', 'ForeignBooks', 'Grocery',
 'HealthPersonalCare', 'Hobbies', 'HomeImprovement', 'Jewelry', 'Kitchen', 'MP3Downloads', 'Music', 'MusicalInstruments',
 'MusicTracks', 'OfficeProducts', 'Shoes', 'Software', 'SportingGoods', 'Toys', 'VHS', 'Video', 'VideoGames', 'Watches'),
             'uk' => array('All', 'Apparel', 'Automotive', 'Baby', 'Beauty', 'Blended', 'Books', 'Classical', 'DVD', 'Electronics', 'Grocery', 'HealthPersonalCare',
-'HomeGarden', 'Jewelry', 'Kitchen', 'Lighting', 'MP3Downloads', 'Music', 'MusicalInstruments', 'MusicTracks',
+'HomeGarden', 'Jewelry', 'KindleStore', 'Kitchen', 'Lighting', 'MP3Downloads', 'Music', 'MusicalInstruments', 'MusicTracks',
 'OfficeProducts', 'OutdoorLiving', 'Outlet', 'Shoes', 'Software', 'SoftwareVideoGames', 'Toys', 'VHS', 'Video', 'VideoGames', 'Watches'),
             'us' => array('All', 'Apparel', 'Appliances', 'ArtsAndCrafts', 'Automotive', 'Baby', 'Beauty', 'Blended', 'Books', 'Classical', 'DigitalMusic',
 'Grocery', 'MP3Downloads', 'DVD', 'Electronics', 'HealthPersonalCare', 'HomeGarden', 'Industrial', 'Jewelry', 'KindleStore',
@@ -493,8 +495,8 @@ if (!class_exists('AmazonLinkSearch')) {
             $this->data[$country]['asin'] = $this->data[$default_country]['asin'];
          }
          $asin = $this->data[$country]['asin'];
-        
-         if ($settings['live'] && $settings['prefetch'] && empty($this->data[$country]['prefetch'])) {
+         
+         if ($settings['live'] && $settings['prefetch'] && empty($this->data[$country]['prefetched'])) {
             $item_data = $this->alink->cached_query($asin, $settings, True);
 
             if ($item_data['found'] && empty($settings['asin'][$country])) {
@@ -506,7 +508,7 @@ if (!class_exists('AmazonLinkSearch')) {
                $item_data = $this->alink->cached_query($asin, $settings, True);
             }
             $this->data[$country] = array_merge($item_data, (array)$this->data[$country]);
-            $this->data[$country]['prefetch'] = 1;
+            $this->data[$country]['prefetched'] = 1;
          }
 
          $phrase = apply_filters( 'amazon_link_template_get_'. $keyword, isset($this->data[$country][$keyword])?$this->data[$country][$keyword]:NULL, $keyword, $country, $this->data, $settings, $this->alink);

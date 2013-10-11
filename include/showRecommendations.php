@@ -22,10 +22,11 @@
       $this->Settings = $Settings;                   // Reset settings as content filter will overwrite them
    }
 
-
+   $output = '';
+   
    if ((count($this->tags) != 0) && is_array($this->tags))
    {
-      $output = '<div class="amazon_container">';
+      $output .= '<div class="amazon_container">';
       if (strcasecmp($Settings['wishlist_type'],'similar') == 0) {
  
          $request = array("Operation" => "CartCreate",
