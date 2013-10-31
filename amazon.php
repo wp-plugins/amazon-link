@@ -305,7 +305,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
 
       function admin_columns($columns, $id) {
          if (isset($this->pages[$id])) {
-      $columns[$id] = 2;
+            $columns[$id] = 2;
          }
          return $columns;
       }

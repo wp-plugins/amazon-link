@@ -298,6 +298,7 @@ if (!class_exists('AmazonLinkSearch')) {
 
          $ASIN = strtoupper($ASIN);
 
+         $settings = $this->alink->getSettings();
          $data = $this->alink->cached_query($ASIN,NULL,True);
 
          if ( ! ( ( $uploads = wp_upload_dir() ) && false === $uploads['error'] ) )
@@ -307,7 +308,13 @@ if (!class_exists('AmazonLinkSearch')) {
          $filename = '/' . wp_unique_filename( $uploads['path'], basename($filename));
          $filename_full = $uploads['path'] . $filename;
 
-         $result = wp_remote_get($data['image']);
+         $data['template_content'] = '%IMAGE%';
+         $data = array_merge($settings,$data);
+         $image_url = $this->parse_template($data);
+         
+         if (empty($image_url)) return new WP_Error(__('No Images Found for this ASIN', 'amazon-link'));
+
+         $result = wp_remote_get($image_url);
          if (is_wp_error($result))
             return $result; //new WP_Error(__('Could not retrieve remote image file','amazon-link'));
 
@@ -331,7 +338,6 @@ if (!class_exists('AmazonLinkSearch')) {
             update_post_meta($attach_id , 'amazon-link-ASIN', $ASIN);
             require_once(ABSPATH . "wp-admin" . '/includes/image.php');
             $attach_data = wp_generate_attachment_metadata( $attach_id, $filename_full );
-            //echo "<PRE>"; print_r($attach_data); echo "</PRE>";
             wp_update_attachment_metadata( $attach_id,  $attach_data );
          } else {
             return new WP_Error(__('Could not read downloaded image','amazon-link'));
@@ -458,7 +464,7 @@ if (!class_exists('AmazonLinkSearch')) {
 
          $time = microtime(true) - $start_time;
 
-         $input .="<!-- Time Taken: $time. -->";
+         if (!empty($item['debug'])) $input .="<!-- Time Taken: $time. -->";
          return $input;
       }
 
@@ -509,6 +515,7 @@ if (!class_exists('AmazonLinkSearch')) {
             }
             $this->data[$country] = array_merge($item_data, (array)$this->data[$country]);
             $this->data[$country]['prefetched'] = 1;
+            // echo "<PRE>"; print_r($item_data); echo "</pRE>";
          }
 
          $phrase = apply_filters( 'amazon_link_template_get_'. $keyword, isset($this->data[$country][$keyword])?$this->data[$country][$keyword]:NULL, $keyword, $country, $this->data, $settings, $this->alink);
