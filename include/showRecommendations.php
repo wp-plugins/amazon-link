@@ -86,10 +86,10 @@
       }
       
       if ( is_array($ASINs) && !empty($ASINs)) {
-         $ASINs = array_slice($ASINs,0,$Settings['wishlist_items']);
          $Settings['live'] = 1;
+         $Settings['asin'] = array_slice($ASINs,0,$Settings['wishlist_items']);
          if (!isset($Settings['template'])) $Settings['template'] = $Settings['wishlist_template'];
-         $output .= $this->make_links($ASINs, $Settings['text'], $Settings);
+         $output .= $this->make_links($Settings);
 
       }
       $output .= "</div>";

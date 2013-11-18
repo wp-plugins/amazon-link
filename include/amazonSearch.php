@@ -83,7 +83,11 @@ if (!class_exists('AmazonLinkSearch')) {
          add_filter('amazon_link_template_get_link_open', array($this, 'get_links_filter'), 12, 6);
          add_filter('amazon_link_template_get_rlink_open', array($this, 'get_links_filter'), 12, 6);
          add_filter('amazon_link_template_get_slink_open', array($this, 'get_links_filter'), 12, 6);
-
+         add_filter('amazon_link_template_get_url', array($this, 'get_urls_filter'), 12, 6);
+         add_filter('amazon_link_template_get_rurl', array($this, 'get_urls_filter'), 12, 6);
+         add_filter('amazon_link_template_get_surl', array($this, 'get_urls_filter'), 12, 6);
+         add_filter('amazon_link_template_get_tag', array($this, 'get_tags_filter'), 12, 6);
+         add_filter('amazon_link_template_get_chan', array($this, 'get_channel_filter'), 12, 6);
          $this->alink    = $parent;
       }
 
@@ -204,7 +208,7 @@ if (!class_exists('AmazonLinkSearch')) {
 'Shoes', 'Software', 'SoftwareVideoGames', 'VHS', 'Video', 'VideoGames', 'Watches'),
             'it' => array('All', 'Books', 'DVD', 'Electronics', 'ForeignBooksSearchIndex:Garden', 'KindleStore', 'Kitchen', 'Music', 'Shoes', 'Software', 'Toys',
 'VideoGames', 'Watches'),
-            'in' => array('Books', 'DVD'),
+            'in' => array('All', 'Books', 'DVD', 'Electronics', 'Marketplace'),
             'jp' => array('All', 'Apparel', 'Appliances', 'Automotive', 'Baby', 'Beauty', 'Blended', 'Books', 'Classical', 'DVD', 'Electronics', 'ForeignBooks', 'Grocery',
 'HealthPersonalCare', 'Hobbies', 'HomeImprovement', 'Jewelry', 'Kitchen', 'MP3Downloads', 'Music', 'MusicalInstruments',
 'MusicTracks', 'OfficeProducts', 'Shoes', 'Software', 'SportingGoods', 'Toys', 'VHS', 'Video', 'VideoGames', 'Watches'),
@@ -347,12 +351,40 @@ if (!class_exists('AmazonLinkSearch')) {
 
 /*****************************************************************************************/
 
+      function get_channel_filter ($channel, $keyword, $country, $data, $settings, $al) {
+
+         if (!empty($channel)) return $channel;
+
+         $channel = $al->get_channel(array_merge($settings, $data[$country]));
+         return $channel['ID'];
+      }
+
+      function get_tags_filter ($tag, $keyword, $country, $data, $settings, $al) {
+
+         if (!empty($tag)) return $tag;
+
+         $channel = $al->get_channel(array_merge($settings, $data[$country]));
+         return $channel['tag_'.$country];
+      }
+
+      function get_urls_filter ($url, $keyword, $country, $data, $settings, $al) {
+
+         if (!empty($url)) return $url;
+
+         $map = array( 'url' => 'A', 'rurl' => 'R', 'surl' => 'S');
+         $type = $map[$keyword];
+
+         $url = apply_filters('amazon_link_url', '', $type, $settings['asin'], $data[$settings['local_cc']]['search_text'], $data[$country], $settings, $al);
+         return $url;
+
+      }
+
       function get_links_filter ($link, $keyword, $country, $data, $settings, $al) {
 
 
          if (empty($al->search->settings['multi_cc']) && !empty($link)) return $link;
 
-         $map = array( 'link_open' => 'product', 'rlink_open' => 'review', 'slink_open' => 'search');
+         $map = array( 'link_open' => 'A', 'rlink_open' => 'R', 'slink_open' => 'S');
          $type = $map[$keyword];
 
          return $al->make_link($settings, $data[$country], $type, array($data[$settings['local_cc']]['search_text'],$data[$settings['local_cc']]['search_text_s']));
@@ -436,7 +468,7 @@ if (!class_exists('AmazonLinkSearch')) {
          $item['local_cc'] = $local_country;
          
          // 'channel' used may be different for each shortcode or post so need to refresh every template
-         $data = $this->alink->get_full_local_info();
+         $data = $this->alink->get_country_data();
 
          if (empty($item['asin']) || !is_array($item['asin'])) $item['asin'] = array($default_country => !empty($item['asin']) ? $item['asin'] : '');
 
