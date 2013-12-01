@@ -75,16 +75,39 @@
       if ($this->cache_empty()) {
          $update = __('Amazon Data Cache Emptied', 'amazon-link');
       }
+   } else if ( $Action == __('Enable SC Cache', 'amazon-link')) {
+      if ($this->sc_cache_install()) {
+         $update = __('Amazon Data Cache Enabled', 'amazon-link');
+         $Opts['sc_cache_enabled'] = 1;
+      }
+   } else if ( $Action == __('Disable SC Cache', 'amazon-link')) {
+      if ($this->sc_cache_remove()) {
+         $update = __('Amazon Data Cache Disabled and Removed', 'amazon-link');
+         $Opts['sc_cache_enabled'] = 0;
+      }
+   } else if ( $Action == __('Flush SC Cache', 'amazon-link')) {
+      if ($this->sc_cache_empty()) {
+         $update = __('Amazon Data Cache Emptied', 'amazon-link');
+      }
    }
 
    
-   // If Enabled then take the opportunity to flush old data
+   // If Amazon Data Cache Enabled then take the opportunity to flush old data
    if (!empty($Opts['cache_enabled'])) {
       $this->cache_flush();
       $optionList['cache_c']['Buttons'][__('Enable Cache', 'amazon-link' )]['Disabled'] = 1;
    } else {
       $optionList['cache_c']['Buttons'][__('Disable Cache', 'amazon-link' )]['Disabled'] = 1;
       $optionList['cache_c']['Buttons'][__('Flush Cache', 'amazon-link' )]['Disabled'] = 1;
+   }
+
+   // If Shortcode Cache Enabled then take the opportunity to flush old data
+   if (!empty($Opts['sc_cache_enabled'])) {
+      $this->sc_cache_flush();
+      $optionList['sc_cache_c']['Buttons'][__('Enable SC Cache', 'amazon-link' )]['Disabled'] = 1;
+   } else {
+      $optionList['sc_cache_c']['Buttons'][__('Disable SC Cache', 'amazon-link' )]['Disabled'] = 1;
+      $optionList['sc_cache_c']['Buttons'][__('Flush SC Cache', 'amazon-link' )]['Disabled'] = 1;
    }
 
 /*****************************************************************************************/

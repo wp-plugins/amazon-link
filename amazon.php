@@ -78,13 +78,9 @@ To serve a page containing amazon links the plugin performs the following:
 
 *******************************************************************************************************/
 
-require_once('include/displayForm.php');
-
-if (!class_exists('AmazonWishlist_ip2nation'))
-   include_once ( 'include/ip2nation.php');
-
-if (!class_exists('AmazonLinkSearch'))
-   include_once ( 'include/amazonSearch.php');
+include ('include/displayForm.php');
+include ('include/ip2nation.php');
+include ('include/amazonSearch.php');
 
 if (!class_exists('AmazonWishlist_For_WordPress')) {
    class AmazonWishlist_For_WordPress {
@@ -92,20 +88,19 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
 /*****************************************************************************************/
       /// Settings:
 /*****************************************************************************************/
-      const cache_table   = 'amazon_link_cache';
-      const refs_table    = 'amazon_link_refs';
-      const ip2n_table    = 'ip2nation';
-      const optionName    = 'AmazonLinkOptions';
-      const user_options  = 'amazonlinkoptions';
-      const templatesName = 'AmazonLinkTemplates';
-      const channels_name = 'AmazonLinkChannels';
+      const cache_table      = 'amazon_link_cache';
+      const sc_cache_table   = 'amazon_link_sc_cache';
+      const refs_table       = 'amazon_link_refs';
+      const ip2n_table       = 'ip2nation';
+      const optionName       = 'AmazonLinkOptions';
+      const user_options     = 'amazonlinkoptions';
+      const templatesName    = 'AmazonLinkTemplates';
+      const channels_name    = 'AmazonLinkChannels';
 
       var $option_version= 7;
       var $plugin_version= '3.1.1';
       var $menu_slug     = 'amazon-link-settings';
       var $plugin_home   = 'http://www.houseindorset.co.uk/plugins/amazon-link/';
-
-      var $multi_id      = 0;
 
       var $stats         = array();
 
@@ -153,6 +148,11 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
             /* Remove Cache */
             if (!empty($opts['cache_enabled'])) {
                $cache_table = $wpdb->prefix . self::cache_table;
+               $sql = "DROP TABLE $cache_table;";
+               $wpdb->query($sql);
+            }
+            if (!empty($opts['sc_cache_enabled'])) {
+               $cache_table = $wpdb->prefix . self::sc_cache_table;
                $sql = "DROP TABLE $cache_table;";
                $wpdb->query($sql);
             }
@@ -208,17 +208,23 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          add_filter('amazon_link_get_channel' , array($this, 'get_channel_by_user'), 14,5);
 
          // Call any user hooks - passing the current plugin Settings and the Amazon Link Instance.
-         do_action('amazon_link_init', $this->getSettings(), $this);
+         $settings = $this->getSettings();
+         if ($settings['sc_cache_enabled']) {
+            // We can't tell if the multinational popup is needed so just laod the script
+            $this->scripts_done = True;
+            add_action('wp_print_footer_scripts', array($this, 'footer_scripts'));
+         }
+         do_action('amazon_link_init', $settings, $this);
       }
 
       // If in admin section then register options page and required styles & metaboxes
       function admin_menu() {
-
+         
          $submenus = $this->get_menus();
 
          // Add plugin options page, with load hook to bring in meta boxes and scripts and styles
-         $this->menu = add_menu_page(__('Amazon Link Options', 'amazon-link'), __('Amazon Link', 'amazon-link'), 'manage_options',  $this->menu_slug, NULL, $this->icon, 81.375);
- 
+         $this->menu = add_menu_page(__('Amazon Link Options', 'amazon-link'), __('Amazon Link', 'amazon-link'), 'manage_options',  $this->menu_slug, NULL, $this->icon, '102.375');
+
          foreach ($submenus as $slug => $menu) {
             $ID= add_submenu_page($this->menu_slug, $menu['Title'], $menu['Label'], $menu['Capability'],  $slug, array($this, 'show_settings_page'));
             $this->pages[$ID] = $menu;
@@ -509,6 +515,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
             'last' => array ( 'Type' => 'hidden' ),
             'template' => array(  'Type' => 'hidden' ),
             'chan' => array(  'Type' => 'hidden' ),
+            'template_content' => array( 'Type' => 'hidden' ),
 
             /* Options that change how the items are displayed */
             'hd1s' => array ( 'Type' => 'section', 'Value' => __('Display Options', 'amazon-link'), 'Title_Class' => 'al_section_head', 'Description' => __('Change the default appearance and behaviour of the Links.','amazon-link'), 'Section_Class' => 'al_subhead1'),
@@ -519,7 +526,8 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
             'wishlist_items' => array (  'Name' => __('Wishlist Length', 'amazon-link'), 'Description' => __('Maximum number of items to display in a wishlist (Amazon only returns a maximum of 5, for the \'Similar\' type of list) <em>* <a href="#aws_notes" title="AWS Access keys required for full functionality">AWS</a> *</em>', 'amazon-link'), 'Default' => 5, 'Type' => 'text', 'Class' => 'alternate al_border' ),
             'wishlist_type' => array (  'Name' => __('Wishlist Type', 'amazon-link'), 'Description' => __('Default type of wishlist to display, \'Similar\' shows items similar to the ones found, \'Random\' shows a random selection of the ones found <em>* <a href="#aws_notes" title="AWS Access keys required for full functionality">AWS</a> *</em>', 'amazon-link'), 'Default' => 'Similar', 'Options' => array('Similar', 'Random', 'Multi'), 'Type' => 'selection', 'Class' => 'al_border'  ),
             'new_window' => array('Name' => __('New Window Link', 'amazon-link'), 'Description' => __('When link is clicked on, open it in a new browser window', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox', 'Class' => 'alternate al_border' ),
-            'link_title' => array( 'Name' => __('Link Title Text', 'amazon-link'), 'Description' => __('The text to put in the link \'title\' attribute, can use the same keywords as in the Templates (e.g. %TITLE% %ARTIST%), leave blank to not have a link title.', 'amazon-link'), 'Default' => '', 'Type' => 'text', 'Size' => '40', 'Class' => '' ),
+            'link_title' => array( 'Name' => __('Link Title Text', 'amazon-link'), 'Description' => __('The text to put in the link \'title\' attribute, can use the same keywords as in the Templates (e.g. %TITLE% %ARTIST%), leave blank to not have a link title.', 'amazon-link'), 'Default' => '', 'Type' => 'text', 'Size' => '40', 'Class' => 'al_border' ),
+            'media_library' => array( 'Name' => __('Use Media Library', 'amazon-link'), 'Description' => __('The plugin will look for and use thumbnails and images in the WordPress media library that are marked with an Amazon ASIN.', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox', 'Class' => 'alternate' ),
 
             'hd1e' => array ( 'Type' => 'end'),
 
@@ -551,12 +559,20 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
 
             'hd3e' => array ( 'Type' => 'end'),
 
-            'hd4s' => array ( 'Type' => 'section', 'Value' => __('Amazon Data Cache','amazon-link'), 'Title_Class' => 'al_section_head', 'Description' => __('Improve page performance by caching Amazon product data.','amazon-link'), 'Section_Class' => 'al_subhead1'),
-            'cache_age' => array ( 'Name' => __('Cache Data Age', 'amazon-link'), 'Description' => __('Max age in hours of the data held in the Amazon Link Cache', 'amazon-link'), 'Type' => 'text', 'Default' => '48', 'Class' => 'al_border'),
+            'hd4s' => array ( 'Type' => 'section', 'Value' => __('Amazon Caches','amazon-link'), 'Title_Class' => 'al_section_head', 'Description' => __('Improve page performance by caching Amazon product data and shortcode output.','amazon-link'), 'Section_Class' => 'al_subhead1'),
+            'title3' => array ( 'Type' => 'title', 'Value' => __(' Product Cache','amazon-link'), 'Title_Class' => 'al_section_head', 'Description' => __(' Improve page performance when using large numbers of links by caching Amazon Product lookups.','amazon-link')),
+            'cache_age' => array ( 'Name' => __('Cache Data Age', 'amazon-link'), 'Description' => __('Max age in hours of the data held in the Amazon Link Cache', 'amazon-link'), 'Type' => 'text', 'Default' => '48'),
             'cache_enabled' => array ( 'Type' => 'backend', 'Default' => '0'),
-            'cache_c' => array( 'Type' => 'buttons', 'Buttons' => array( __('Enable Cache', 'amazon-link' ) => array( 'Hint' => __('Install the sql database table to cache data retrieved from Amazon.', 'amazon-link'), 'Class' => 'button-secondary', 'Action' => 'AmazonLinkAction'),
+            'cache_c' => array( 'Type' => 'buttons', 'Class' => 'al_border', 'Buttons' => array( __('Enable Cache', 'amazon-link' ) => array( 'Hint' => __('Install the sql database table to cache data retrieved from Amazon.', 'amazon-link'), 'Class' => 'button-secondary', 'Action' => 'AmazonLinkAction'),
                                                      __('Disable Cache', 'amazon-link' ) => array( 'Hint' => __('Remove the Amazon Link cache database table.', 'amazon-link'),'Class' => 'button-secondary', 'Action' => 'AmazonLinkAction'),
                                                      __('Flush Cache', 'amazon-link' ) => array( 'Hint' => __('Delete all data in the Amazon Link cache.', 'amazon-link'),'Class' => 'button-secondary', 'Action' => 'AmazonLinkAction'),
+                                                                        )),
+            'title4' => array ( 'Type' => 'title', 'Value' => __(' Shortcode Cache','amazon-link'), 'Title_Class' => 'al_section_head', 'Description' => __(' Reduce server load for high traffic sites by caching the shortcode expansion.','amazon-link')),
+            'sc_cache_age' => array ( 'Name' => __('SC Cache Data Age', 'amazon-link'), 'Description' => __('Max age in hours of the data held in the Amazon Link Shortcode Cache.', 'amazon-link'), 'Type' => 'text', 'Default' => '1'),
+            'sc_cache_enabled' => array ( 'Type' => 'backend', 'Default' => '0'),
+            'sc_cache_c' => array( 'Type' => 'buttons', 'Class' => 'al_border', 'Buttons' => array( __('Enable SC Cache', 'amazon-link' ) => array( 'Hint' => __('Install the sql database table to cache shortcode output.', 'amazon-link'), 'Class' => 'button-secondary', 'Action' => 'AmazonLinkAction'),
+                                                     __('Disable SC Cache', 'amazon-link' ) => array( 'Hint' => __('Remove the Amazon Link Shortcode cache database table.', 'amazon-link'),'Class' => 'button-secondary', 'Action' => 'AmazonLinkAction'),
+                                                     __('Flush SC Cache', 'amazon-link' ) => array( 'Hint' => __('Delete all data in the Amazon Link Shortcode cache.', 'amazon-link'),'Class' => 'button-secondary', 'Action' => 'AmazonLinkAction'),
                                                                         )),
             'hd4e' => array ( 'Type' => 'end'),
 
@@ -1004,7 +1020,7 @@ function alx_'.$slug.'_default_templates ($templates) {
          if ($settings === NULL)
             $settings = $this->getSettings();
 
-         if (isset($settings['in_post']) && $settings['in_post']) {
+         if (!empty($settings['in_post'])) {
             $post = $GLOBALS['post'];
             $post_ID = $post->ID;
          } else {
@@ -1160,12 +1176,12 @@ function alx_'.$slug.'_default_templates ($templates) {
       function cache_update_item($asin, $cc, &$data) {
          global $wpdb;
          $settings = $this->getOptions();
-         /* Use SQL timestamp to avoid timezone difference between SQL and PHP */
-         $result= $wpdb->get_row("SELECT NOW() AS timestamp", ARRAY_A);
-         $data['timestamp'] = $updated = $result['timestamp'];
-
-         $cache_table = $wpdb->prefix . self::cache_table;
          if (!empty($settings['cache_enabled'])) {
+            /* Use SQL timestamp to avoid timezone difference between SQL and PHP */
+            $result= $wpdb->get_row("SELECT NOW() AS timestamp", ARRAY_A);
+            $data['timestamp'] = $updated = $result['timestamp'];
+            
+            $cache_table = $wpdb->prefix . self::cache_table;
             $sql = "DELETE FROM $cache_table WHERE asin LIKE '$asin' AND cc LIKE '$cc'";
             $wpdb->query($sql);
             $sql_data = array( 'asin' => $asin, 'cc' => $cc, 'xml' => serialize($data), 'updated' => $updated);
@@ -1192,6 +1208,107 @@ function alx_'.$slug.'_default_templates ($templates) {
                $data['cached'] = 1;
                return $data;
             }
+         }
+         return NULL;
+      }
+
+/*****************************************************************************************/
+      // Shortcode Cache Facility
+/*****************************************************************************************/
+
+      function sc_cache_install() {
+         global $wpdb;
+         $settings = $this->getOptions();
+         if (!empty($settings['sc_cache_enabled'])) return False;
+         $cache_table = $wpdb->prefix . self::sc_cache_table;
+         $sql = "CREATE TABLE $cache_table (
+                 cc varchar(5) NOT NULL,
+                 postid bigint(20) NOT NULL,
+                 hash varchar(32) NOT NULL,
+                 updated datetime NOT NULL,
+                 args text NOT NULL,
+                 content blob NOT NULL,
+                 PRIMARY KEY  (hash, cc, postid)
+                 );";
+         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+         dbDelta($sql);
+         $settings['sc_cache_enabled'] = 1;
+         $this->saveOptions($settings);
+         return True;
+      }
+
+      function sc_cache_remove() {
+         global $wpdb;
+
+         $settings = $this->getOptions();
+         if (empty($settings['sc_cache_enabled'])) return False;
+         $settings['sc_cache_enabled'] = 0;
+         $this->saveOptions($settings);
+
+         $cache_table = $wpdb->prefix . self::sc_cache_table;
+         $sql = "DROP TABLE $cache_table;";
+         $wpdb->query($sql);
+         return True;
+      }
+
+      function sc_cache_empty() {
+         global $wpdb;
+
+         $settings = $this->getOptions();
+         if (empty($settings['sc_cache_enabled'])) return False;
+
+         $cache_table = $wpdb->prefix . self::sc_cache_table;
+         $sql = "TRUNCATE TABLE $cache_table;";
+         $wpdb->query($sql);
+         return True;
+      }
+
+      function sc_cache_flush() {
+         global $wpdb;
+         $settings = $this->getOptions();
+         if (empty($settings['sc_cache_enabled']) || empty($settings['sc_cache_age'])) return False;
+         $cache_table = $wpdb->prefix . self::sc_cache_table;
+         $sql = "DELETE FROM $cache_table WHERE updated < DATE_SUB(NOW(),INTERVAL " . $settings['sc_cache_age']. " HOUR);";
+         $wpdb->query($sql);
+      }
+
+      function sc_cache_update_item($args, $cc, $postid, &$data) {
+         global $wpdb;
+         $settings = $this->getOptions();
+         
+         if (!empty($settings['sc_cache_enabled'])) {
+            /* Use SQL timestamp to avoid timezone difference between SQL and PHP */
+            $result= $wpdb->get_row("SELECT NOW() AS timestamp", ARRAY_A);
+            $updated = $result['timestamp'];
+            $hash = hash('md5', $args);
+            $postid = (!empty($postid) ? $postid : '0');
+            $cache_table = $wpdb->prefix . self::sc_cache_table;
+            $sql = "DELETE FROM $cache_table WHERE hash = '$hash' AND cc = '$cc' AND postid = '$postid'";
+            $wpdb->query($sql);
+            $sql_data = array( 'hash' => $hash, 'cc' => $cc, 'postid' => $postid, 'args' => $args, 'content' => $data, 'updated' => $updated);
+            $wpdb->insert($cache_table, $sql_data);
+         }
+      }
+
+      function sc_cache_lookup_item($args, $cc, $postid, $settings = NULL) {
+         global $wpdb;
+         if ($settings === NULL)
+            $settings = $this->getOptions();
+         if (!empty($settings['sc_cache_enabled'])) {
+            $postid = (!empty($postid) ? $postid : '0');
+            $hash = hash('md5', $args);
+            // Check if shortcode is already in the cache
+            $cache_table = $wpdb->prefix . self::sc_cache_table;
+            if (!empty($settings['sc_cache_age'])) {
+               $sql = "SELECT content FROM $cache_table WHERE hash = '$hash' AND cc = '$cc' AND postid = '$postid' AND  updated >= DATE_SUB(NOW(),INTERVAL " . $settings['sc_cache_age']. " HOUR)";
+            } else {
+               $sql = "SELECT content FROM $cache_table WHERE hash = '$hash' AND cc = '$cc' AND postid = '$postid'";
+            }
+            $result = $wpdb->get_row($sql, ARRAY_A);
+            if ($result !== NULL) {
+               return $result['content'];
+            }
+
          }
          return NULL;
       }
@@ -1259,13 +1376,18 @@ function alx_'.$slug.'_default_templates ($templates) {
       function content_filter($content, $doLinks=TRUE, $in_post=TRUE) {
 
          $this->in_post = $in_post;
-         
+         if ($in_post) {
+            $this->post_ID = $GLOBALS['post']->ID;
+         } else {
+            $this->post_ID = '0';
+         }
          /* 
           * Default regex needs to match opening and closing brackets '['
+                   (?P<args>                    # capture everything that follows as a named expression "args"
           */
          $regex = '~
                    \[amazon\s+                  # "[amazon" with at least one space
-                   (?P<args>                    # capture everything that follows as a named expression "args"
+                   (                    # capture everything that follows as a named expression "args"
                     (?:(?>[^\[\]]*)             # argument name excluding any "[" or "]" character
                      (?:\[(?>[a-z]*)\])?        # optional "[alphaindex]" phrase
                     )*                          # 0 or more of these arguments
@@ -1293,30 +1415,46 @@ function alx_'.$slug.'_default_templates ($templates) {
          $in_post = $this->in_post;
 
          // Get all named args
-         $extra_args  = !empty($split_content['args']) ? $split_content['args'] : '';
+	 if (empty($split_content['args'])) {
+            $extra_args  = !empty($split_content[1]) ? $split_content[1] : '';
+	 } else {
+            $extra_args  = $split_content['args'];
+	 }
          unset ($split_content['args']);
          $args = $sep ='';
          foreach ($split_content as $arg => $data) {
             if (!is_int($arg) && !empty($data)) {
-               $args .= $sep. $arg .'='. $data;
+               $args .= $sep. $arg .'='. str_replace('&','%26',$data);
                $sep = '&';
             }
          }
          if (!empty($extra_args)) $args .= $sep . $extra_args;
 
          $this->parseArgs($args);
+
          $this->inc_stats('shortcodes',0);
 
          $output='';     
          if (empty($this->Settings['cat'])) {
-            // Generate Amazon Link
+
             $this->tags = array_merge($this->Settings['asin'], $this->tags);
+
+            // Lookup Shortcode in Shortcode Cache
+            $cc=$this->get_country();
+            $cached_output = $this->sc_cache_lookup_item($args, $cc, $this->post_ID);
+            if (!empty($cached_output)) return $cached_output;
+
+            // Generate Amazon Link
             $this->Settings['in_post'] = $in_post;
             if ($this->Settings['debug']) {
                $output .= '<!-- Amazon Link: Version:' . $this->plugin_version . ' - Args: ' . $args . "\n";
                $output .= print_r($this->Settings, true) . ' -->';
             }
             $output .= $this->make_links($this->Settings);
+            
+            // Save Shortcode
+            $this->sc_cache_update_item($args, $cc, $this->post_ID, $output);
+            
          } else {
             $this->Settings['in_post'] = $in_post;
             if ($this->Settings['debug']) {
@@ -1750,9 +1888,8 @@ function alx_'.$slug.'_default_templates ($templates) {
          }
          $term .= '}';
 
-         $script = 'onMouseOut="al_link_out()" onMouseOver="al_gen_multi('. $this->multi_id . ', ' . $term. ', \''. $data['cc']. '\', \'%CHAN%\');" ';
+         $script = 'onMouseOut="al_link_out()" onMouseOver="al_gen_multi('. rand() . ', ' . $term. ', \''. $data['cc']. '\', \'%CHAN%\');" ';
          $script = str_replace ('<a', '<a ' . $script, $text);
-         $this->multi_id++;
          return $script;
       }
 
@@ -1838,7 +1975,8 @@ function alx_'.$slug.'_default_templates ($templates) {
          $details = array();
          $asins = $Settings['asin'];
          unset($Settings['asin']);
-            
+         if (empty($Settings['template_type'])) $Settings['template_type'] = 'Product';
+             
          if ($Settings['template_type'] == 'Multi') {
             /* Multi-product template collapse array back to a list, respecting country specific selection */
             $sep = ''; $list='';
@@ -1870,13 +2008,12 @@ function alx_'.$slug.'_default_templates ($templates) {
          if (!empty($details))
          {
             foreach ($details as $item) {
+
                $output .= $this->search->parse_template($item);
             }
          }
-
          return $output;
       }
-
 /////////////////////////////////////////////////////////////////////
 
 
