@@ -144,10 +144,14 @@ wpAmazonLinkAdmin.prototype = {
         args = this.generateArgs('');
 
         this['options']['args'] = args;
-        this['options']['unused_args'] = args;
+        this['options']['template_content'] = this['template_content'];
+        this['options']['unused_args'] = args.replace( new RegExp( '(&?)template_content=[^&]*(\\1?)&?','i'), '$2');
         this['keywords'].push('args');
+        this['keywords'].push('template_content');
+        this['keywords'].push('template');
         this['keywords'].push('unused_args');
-        jQuery.each(this['keywords'], function (id, keyword){
+
+       jQuery.each(this['keywords'], function (id, keyword){
            var match = template.match( new RegExp( '%'+keyword+'%','i'));
            template = template.replace( new RegExp( '%'+keyword+'%','gi'), $this['options'][keyword]);
            if (match) {
@@ -189,7 +193,8 @@ wpAmazonLinkAdmin.prototype = {
         $this['template_user_keywords'] = jQuery(f).find('#amazonLinkID input[name="template_user_keywords"]').val();
         $this['template_live_keywords'] = jQuery(f).find('#amazonLinkID input[name="template_live_keywords"]').val();
         $this['template_keywords']      = jQuery(f).find('input[name="T_' + $this['options']['template'] + '"]').val();
-        if ($this['template_user_keywords'] != undefined) {
+        $this['template_content']       = jQuery(f).find('input[name="TC_' + $this['options']['template'] + '"]').val();
+       if ($this['template_user_keywords'] != undefined) {
            this['keywords'] = $this['template_user_keywords'].concat(',',$this['template_live_keywords']).split(',');
         }
 

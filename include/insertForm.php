@@ -118,6 +118,7 @@
             $template_data[] = $keyword;
       }
       $optionList['T_' . $templateName] = array( 'Id' => 'AmazonLinkTemplates', 'Type' => 'hidden', 'Value' => implode(',',$template_data));
+      $optionList['TC_' . $templateName] = array( 'Id' => 'AmazonLinkTemplates', 'Type' => 'hidden', 'Value' => htmlspecialchars($Details['Content']));
    }
 
    $optionList['chan']['Options'] = array(' ');

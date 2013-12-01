@@ -4,18 +4,17 @@ function al_gen_multi (id, term, def, chan) {
    for (var cc in AmazonLinkMulti.country_data) {
       var type = term[cc].substr(0,1);
       var arg  = term[cc].substr(2);
+      var tld  = AmazonLinkMulti.country_data[cc].tld;
+      var tag  = AmazonLinkMulti.channels[chan]['tag_'+cc];
+      
       if (cc != def) {
-         if ( type == 'A' ) {
-            var url = 'http://www.amazon.' + AmazonLinkMulti.country_data[cc].tld + '/gp/product/' + arg+ '?ie=UTF8&linkCode=as2&camp=1634&creative=6738&tag=' + AmazonLinkMulti.channels[chan]['tag_'+cc] + '&creativeASIN='+ arg;
-         } else if( type == 'S') {
-            var url = 'http://www.amazon.' + AmazonLinkMulti.country_data[cc].tld + '/mn/search/?_encoding=UTF8&linkCode=ur2&camp=1634&creative=19450&tag=' + AmazonLinkMulti.channels[chan]['tag_'+cc] + '&field-keywords=' + arg;
-         } else if( type == 'U') {
-            var url = arg;
-         } else if ( type == 'R'){
-            var url = 'http://www.amazon.' + AmazonLinkMulti.country_data[cc].tld + '/review/' + arg+ '?ie=UTF8&linkCode=ur2&camp=1634&creative=6738&tag=' + AmazonLinkMulti.channels[chan]['tag_'+cc];
-         } else {
-            continue;
-         }
+         url = AmazonLinkMulti.link_templates[type];
+         url = url.replace(/%CC%#/g, '');
+         url = url.replace(/%CC%/g, cc);
+         url = url.replace(/%MANUAL_CC%/g, cc);
+         url = url.replace(/%ARG%/g, arg);
+         url = url.replace(/%TLD%/g, tld);
+         url = url.replace(/%TAG%/g, tag);
          content = content +'<a '+AmazonLinkMulti.target+' href="' + url + '"><img src="' + AmazonLinkMulti.country_data[cc].flag + '"></a>';
       }
    }
