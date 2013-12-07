@@ -112,6 +112,7 @@ if (!class_exists('AmazonLinkSearch')) {
          $Settings['multi_cc'] = '0';
          $Settings['localise'] = 0;
          $Settings['live'] = 1;
+         $Settings['skip_slow'] = 1;
 
          if ( empty($Opts['s_title']) && empty($Opts['s_author']) ) {
             $Items = $this->alink->cached_query($Opts['asin'], $Settings);
@@ -238,7 +239,8 @@ if (!class_exists('AmazonLinkSearch')) {
          $Settings['multi_cc'] = '0';
          $Settings['found'] = 1;
          $Settings['localise'] = 0;
-
+         $Settings['skip_slow'] = '1';
+         
          // Not working: Baby, MusicalInstruments
          $Creator = array( 'Author' => array( 'Books', 'ForeignBooks', 'MobileApps', 'MP3Downloads'),
                            'Actor' => array( 'DigitalMusic' ),
@@ -283,7 +285,7 @@ if (!class_exists('AmazonLinkSearch')) {
          } else {
             $request['Title'] = $Opts['s_title'];
          }
-
+         
          $items = $this->alink->cached_query($request, $Settings);
 
          return $items;

@@ -1,24 +1,27 @@
 <?php
 
    $Settings = $this->getSettings();
-   $local_info = $this->get_local_info($Settings);
+   $cc = $this->get_country($Settings);
 
    // If using local tags then just process the ones on this page otherwise search categories.
    if (strcasecmp($categories, "local") != 0) {
       // First process all post content for the selected categories
       $content = '';
+      $get_posts = new WP_Query;
       if (preg_match('!^[0-9,]*$!', $categories)) {
-         $lastposts = get_posts("numberposts=$last&cat=$categories");
+         $lastposts = $get_posts->query(array('numberposts'=>$last, 'cat'=>$categories));
       } else {
-         $lastposts = get_posts("numberposts=$last&cat_name=$categories");
+         $lastposts = $get_posts->query(array('numberposts'=>$last, 'category_name'=>$categories));
       }
       foreach ($lastposts as $id => $post) {
          $content .= $post->post_content;
       }
+      unset($lastposts);
       $saved_tags = $this->tags;
 
       $this->tags = array();
       $this->content_filter($content, FALSE);
+      unset($content);
       $this->Settings = $Settings;                   // Reset settings as content filter will overwrite them
    }
 
@@ -40,7 +43,7 @@
 
          foreach ($this->tags as $asins)
          {
-             $asin = isset($asins[$local_info['cc']]) ? $asins[$local_info['cc']] : (isset($asins[$Settings['default_cc']]) ? $asins[$Settings['default_cc']] : '');
+             $asin = isset($asins[$cc]) ? $asins[$cc] : (isset($asins[$Settings['default_cc']]) ? $asins[$Settings['default_cc']] : '');
 
              if ((strlen($asin) > 8) && !in_array($asin,$unique_asins)) {
                 $request["Item." . $counter . ".ASIN"] = $asin;
@@ -76,7 +79,7 @@
          }
          $unique_asins = array();
          for ($index=0; $index < count($ASINs); $index++) {
-            $asin = isset($ASINs[$index][$local_info['cc']]) ? $ASINs[$index][$local_info['cc']] : (isset($ASINs[$index][$Settings['default_cc']]) ? $ASINs[$index][$Settings['default_cc']] : '');
+            $asin = isset($ASINs[$index][$cc]) ? $ASINs[$index][$cc] : (isset($ASINs[$index][$Settings['default_cc']]) ? $ASINs[$index][$Settings['default_cc']] : '');
             if (in_array($asin, $unique_asins)) {
                unset($ASINs[$index]);
             } else {

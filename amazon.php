@@ -1387,7 +1387,7 @@ function alx_'.$slug.'_default_templates ($templates) {
           */
          $regex = '~
                    \[amazon\s+                  # "[amazon" with at least one space
-                   (                    # capture everything that follows as a named expression "args"
+                   (?P<args>                    # capture everything that follows as a named expression "args"
                     (?:(?>[^\[\]]*)             # argument name excluding any "[" or "]" character
                      (?:\[(?>[a-z]*)\])?        # optional "[alphaindex]" phrase
                     )*                          # 0 or more of these arguments
@@ -1415,11 +1415,11 @@ function alx_'.$slug.'_default_templates ($templates) {
          $in_post = $this->in_post;
 
          // Get all named args
-	 if (empty($split_content['args'])) {
+         if (empty($split_content['args'])) {
             $extra_args  = !empty($split_content[1]) ? $split_content[1] : '';
-	 } else {
+         } else {
             $extra_args  = $split_content['args'];
-	 }
+         }
          unset ($split_content['args']);
          $args = $sep ='';
          foreach ($split_content as $arg => $data) {
@@ -1463,13 +1463,16 @@ function alx_'.$slug.'_default_templates ($templates) {
             }
             $output .= $this->showRecommendations($this->Settings['cat'], (isset($this->Settings['last'])?$this->Settings['last']:NULL));
          }
-         return $output;
+         return apply_filters('amazon_link_shortcode_output',$output,$this);
       }
 
       function shortcode_extract_asins ($split_content) {
          // Get all named args
-         $extra_args  = !empty($split_content['args']) ? $split_content['args'] : '';
-         unset ($split_content['args']);
+         if (empty($split_content['args'])) {
+            $extra_args  = !empty($split_content[1]) ? $split_content[1] : '';
+         } else {
+            $extra_args  = $split_content['args'];
+         }unset ($split_content['args']);
          $args = $sep ='';
          foreach ($split_content as $arg => $data) {
             if (!is_int($arg) && !empty($data)) {
@@ -1733,31 +1736,41 @@ function alx_'.$slug.'_default_templates ($templates) {
          }
 
          $keywords = $this->get_keywords();
+         $partial = False;
 
          /* Extract useful information from the xml */
          for ($index=0; $index < count($items); $index++ ) {
             $result = $items[$index];
-
             foreach ($keywords as $keyword => $key_info) {
-               if (!empty($key_info['Live']) && isset($key_info['Position']) && is_array($key_info['Position'])) {
+               if (!empty($key_info['Live']) &&                                     // Is a Live Keyword
+                   isset($key_info['Position']) && is_array($key_info['Position'])) // Has a pointer to what data to use
+               {
+
+                  if (!empty($settings['skip_slow']) && !empty($key_info['Slow'])) {
+                     /* Slow Callbacks skipped so flag partial data so as not to cache it */
+                     $partial = True;
+                  } else {
                   $key_data = $this->grab($result, $key_info['Position'], (is_array($key_info['Default']) ? $key_info['Default'][$cc] : $key_info['Default']) );
-                  $key_info['Keyword'] = $keyword;
-                  if (isset($key_info['Callback'])) {
-                     $key_data = call_user_func($key_info['Callback'], $key_data, $key_info, $this, $data[$index]);
-                  } else if (isset($key_info['Filter'])) {
-                     $key_data = apply_filters($key_info['Filter'], $key_data, $key_info, $this, $data[$index]);
-                  }
+                     $key_info['Keyword'] = $keyword;
+                     if (isset($key_info['Callback'])) {
+                        $key_data = call_user_func($key_info['Callback'], $key_data, $key_info, $this, $data[$index]);
+                     } else if (isset($key_info['Filter'])) {
+                        $key_data = apply_filters($key_info['Filter'], $key_data, $key_info, $this, $data[$index]);
+                     }
                   $data[$index][$keyword] = $key_data;
+                  }
                }
             }
             $data[$index]['asins']  = 0;
             $data[$index]['artist'] = $this->remove_parents($data[$index]['artist']);
             $data[$index]['found']  = isset($result['found']) ? $result['found'] : 1;
-
-            /* Save each item to the cache if it is enabled */
-            if ($data[$index]['found'] || 
+            $data[$index]['partial'] = isset($settings['skip_slow']) ? $settings['skip_slow'] : 0;
+            
+            /* Save each item to the cache if it is enabled and got complete data */
+            if (!$partial &&
+                ($data[$index]['found'] || 
                  ($result['Error']['Code'] == 'AWS.InvalidParameterValue') ||
-                 ($result['Error']['Code'] == 'AWS.ECommerceService.ItemNotAccessible'))
+                 ($result['Error']['Code'] == 'AWS.ECommerceService.ItemNotAccessible')))
                $this->cache_update_item($data[$index]['asin'], $cc, $data[$index]);
          }
 
