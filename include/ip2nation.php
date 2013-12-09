@@ -12,8 +12,8 @@ if (!class_exists('AmazonWishlist_ip2nation')) {
          $this->db = 'ip2nation';
          $this->remote_file = 'http://www.ip2nation.com/ip2nation.zip';
          $upload_dir = wp_upload_dir();
-         $this->temp_zip_file = $upload_dir['basedir'] . '/ip2nation.zip';
-
+         $this->temp_sql_dir  = $upload_dir['basedir'] . '/ip2nation';
+         $this->temp_sql_file = $this->temp_sql_dir . '/ip2nation.sql';
       }
 
       function init() {
@@ -76,49 +76,53 @@ if (!class_exists('AmazonWishlist_ip2nation')) {
 
       /// Download and install the ip2nation mysql database
 
-      function install () {
-         global $wpdb;
+      function install ($url, $args) {
+         global $wpdb, $wp_filesystem;
+         
+         /*
+          * Use WordPress WP_Filesystem methods to install DB
+          */
+         
+         // Check Credentials
+         if (false === ($creds = request_filesystem_credentials($url,NULL,false,false,$args))) {
+            // Not yet valid, a form will have been presented - drop out.
+            return array ( 'HideForm' => true);
+         }
+         
+         if ( ! WP_Filesystem($creds) ) {
+            // our credentials were no good, ask the user for them again
+            request_filesystem_credentials($url,NULL,true,false,$args);
+            return array ( 'HideForm' => true);
+         }
+         
+         $temp_file = download_url($this->remote_file);
+         if (is_wp_error($temp_file))
+            return array ( 'Message' => __('ip2nation install: Failed to download file: ','amazon-link') . $temp_file->get_error_message());
+         
+         $result = unzip_file($temp_file, $this->temp_sql_dir);
+         if (is_wp_error($result)) {
+            unlink ($temp_file);
+            return array ( 'Message' => __('ip2nation install: Failed to unzip file: ','amazon-link') . $result->get_error_message());
+         }
+         
+         $sql = $wp_filesystem->get_contents($this->temp_sql_file);
+         
+         // Install the database
+         $index = 0;
+         $queries =0;
+         $end = strpos($sql, ';', $index)+1;
+         $query = substr ($sql, $index, ($end-$index));
+         while ($query !== FALSE) {
+            if ($wpdb->query($query) === FALSE)
+            return array ( 'Message' => sprintf(__('ip2nation install: Database downloaded and unzipped but failed to install [%s]','amazon-link'), $wpdb->last_error));
+            $index=$end;
+            $queries++;
+            $end = strpos($sql, ';', $index)+1;
+            $query = substr ($sql, $index, ($end-$index));
+         }
 
-         $result = wp_remote_get($this->remote_file);
-         if (is_wp_error($result))
-             return __('ip2nation install: Failed to Download remote database file.','amazon-link');
-
-          // Save file to temp directory
-          $zip_content = $result['body'];
-          $zip_size = file_put_contents ($this->temp_zip_file, $zip_content);
-          if ($zip_size === False)
-             return sprintf(__('ip2nation install: Failed to open temporary  file (%s).','amazon-link'), $this->temp_zip_file) ;
-
-          // Unzip the file
-          if (!($zfh = zip_open ($this->temp_zip_file)) || !($zpe = zip_read ($zfh))) {
-             unlink ($this->temp_zip_file);
-             return __('ip2nation install: Failed to open local zip file', 'amazon-link');
-          }
-
-          if (($unzip_size = zip_entry_filesize($zpe)) > 5000000) {
-             unlink ($this->temp_zip_file);
-             return sprintf(__('ip2nation install: Failed - Content of the Zip file looks too large (%s bytes).', 'amazon-link'), $unzip_size);
-          }
-
-          // Read the unzipped content into memory and free up the zip file.
-          $sql = zip_entry_read($zpe, $unzip_size);
-          unlink ($this->temp_zip_file);
-
-          // Install the database
-          $index = 0;
-          $queries =0;
-          $end = strpos($sql, ';', $index)+1;
-          $query = substr ($sql, $index, ($end-$index));
-          while ($query !== FALSE) {
-             if ($wpdb->query($query) === FALSE)
-                return sprintf(__('ip2nation install: Database downloaded and unzipped but failed to install [%s]','amazon-link'), $wpdb->last_error);
-             $index=$end;
-             $queries++;
-             $end = strpos($sql, ';', $index)+1;
-             $query = substr ($sql, $index, ($end-$index));
-          }
-          zip_close($zfh);
-          return sprintf(__('ip2nation install: Database downloaded and installed successfully. %s queries executed.','amazon-link'), $queries);
+         $wp_filesystem->delete($this->temp_sql_dir,true);
+         return array ( 'Message' =>  sprintf(__('ip2nation install: Database downloaded and installed successfully. %s queries executed.','amazon-link'), $queries));
       }
 /*****************************************************************************************/
 

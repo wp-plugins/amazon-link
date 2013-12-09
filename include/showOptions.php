@@ -12,7 +12,7 @@
 
    $Action = (isset($_POST[ 'AmazonLinkAction' ]) && check_admin_referer( 'update-AmazonLink-options')) ?
                       $_POST[ 'AmazonLinkAction' ] : 'No Action';
-
+   
    // See if the user has posted us some information
    // If they did, the admin Nonce should be set.
    $update = False;
@@ -38,21 +38,27 @@
 
 /*****************************************************************************************/
 
-    } else if ( $Action == __('Install Database','amazon-link')) {
+   } else if ( $Action == __('Install Database','amazon-link')) {
 
       // User requested installation of the ip2nation database
+      $url = wp_nonce_url('admin.php?page=amazon-link-settings','update-AmazonLink-options');
+      $install = $this->ip2n->install($url, array('AmazonLinkAction'));
+      if (!empty($install['HideForm'])) {
+         echo "</br></br>";
+         return;
+      }
+      
 ?>
-
 <div class="updated">
- <p><strong><?php echo $this->ip2n->install(); ?></strong></p>
+ <p><strong><?php echo $install['Message'] ?></strong></p>
 </div>
 
 <?php
-    } else if ( $Action == __('Remove Database','amazon-link')) {
+   } else if ( $Action == __('Remove Database','amazon-link')) {
 
       // User requested Uninstallation of the ip2nation database
+      
 ?>
-
 <div class="updated">
  <p><strong><?php echo $this->ip2n->uninstall(); ?></strong></p>
 </div>
