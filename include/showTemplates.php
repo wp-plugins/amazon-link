@@ -168,6 +168,7 @@
       $options['text2'] = 'User Text 2';
       $options['text3'] = 'User Text 3';
       $options['text4'] = 'User Text 4';
+      $options['text']  = 'Text Item';
 
       $options['template_type'] = isset($templateDetails['Type'])?$templateDetails['Type']:'Product';
       $options['template_content'] = isset($templateDetails['Content'])?$templateDetails['Content']:'';
@@ -182,8 +183,9 @@
          $options['live'] = 0;
          $asins = array();
       }
+      $options['asin'] = $asins;
       if (empty($templateDetails['Preview_Off'])) {
-         $templateOpts['preview']['Value'] = $this->make_links( $asins,'Text Item', $options). '<br style="clear:both"\>';
+         $templateOpts['preview']['Value'] = $this->make_links($options). '<br style="clear:both"\>';
       } else {
          $templateOpts['preview']['Value'] = '';
       }

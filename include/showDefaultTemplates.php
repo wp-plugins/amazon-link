@@ -43,23 +43,30 @@
          unset($templateOpts['Buttons1']['Buttons'][__('Upgrade', 'amazon-link')]);
       }
       $templateOpts['title']['Value'] = sprintf(__('<b>%s</b> - %s','amazon-link'), $templateID, $templateDetails['Description'] . ' (Version ' . $templateDetails['Version'] .')');
-      $options = $this->getSettings();
-      unset($options['template']);
-      $options['template_type'] = $templateDetails['Type'];
-      $options['template_content'] = $templateDetails['Content'];
 
-      $asins = explode(',',$options['template_asins']);
-      if ( $templateDetails['Type'] == 'Multi' ) {
-         $options['live'] = 0;
-      } else if ( $templateDetails['Type'] == 'Product' ) {
-         $asins = array($asins[0]);
-         $options['live'] = 1;
-      } else {
-         $options['live'] = 0;
-         $asins = array();
-      }
       if (!$templateDetails['Preview_Off']) {
-         $templateOpts['preview']['Value'] = $this->make_links( $asins,'Text Item', $options). '<br style="clear:both"\>';
+         $options = $this->getSettings();
+         unset($options['template']);
+         $options['text1'] = 'User Text 1';
+         $options['text2'] = 'User Text 2';
+         $options['text3'] = 'User Text 3';
+         $options['text4'] = 'User Text 4';
+         $options['text']  = 'Text Item';
+         $options['template_type'] = $templateDetails['Type'];
+         $options['template_content'] = $templateDetails['Content'];
+
+         $asins = explode(',',$options['template_asins']);
+         if ( $templateDetails['Type'] == 'Multi' ) {
+            $options['live'] = 0;
+         } else if ( $templateDetails['Type'] == 'Product' ) {
+            $asins = array($asins[0]);
+            $options['live'] = 1;
+         } else {
+            $options['live'] = 0;
+            $asins = array();
+         }
+         $options['asin'] = $asins;
+         $templateOpts['preview']['Value'] = $this->make_links($options). '<br style="clear:both"\>';
       } else {
          $templateOpts['preview']['Value'] = '';
       }
