@@ -72,7 +72,7 @@ if (!class_exists('AmazonWishlist_Options')) {
    <dl <?php echo $class ?>>
     <dt class="al_label"><label for="<?php echo $optName; ?>"><?php echo $optDetails['Name']; ?></label></dt>
     <dd class="al_opt_details">
-      <input style="float:left" <?php echo $readonly . $id. ' '. $script ?> name="<?php echo $optName; ?>" title="<?php echo stripslashes($hint); ?>" type="checkbox" value="<?php echo ($Opts[$optName] >=1)+1 ?>" <?php checked($Opts[$optName] >= 1) ?>/>&nbsp;
+      <input style="margin-top:2px;float:left" <?php echo $readonly . $id. ' '. $script ?> name="<?php echo $optName; ?>" title="<?php echo stripslashes($hint); ?>" type="checkbox" value="<?php echo ($Opts[$optName] >=1)+1 ?>" <?php checked($Opts[$optName] >= 1) ?>/>&nbsp;
       <?php if (isset($optDetails['Input'])) $this->displayInput($optionList[$Details['Input']], $Details['Input'], $Opts); ?>
       <?php if (isset($optDetails['Buttons'])) displayButtons($optDetails['Buttons']); ?>
       <?php if (isset($optDetails['Description'])) echo '<div class="al_description">'.$optDetails['Description'].'</div>'; ?>
@@ -161,7 +161,7 @@ if (!class_exists('AmazonWishlist_Options')) {
                $Value= $Details;
                $id = '';
             }
-            echo "<li><input ". $readonly .$id." name='$optName' type='radio' value='$Value' ". checked( $Opts[$optName], $Value, False). " >" . $Name;
+            echo "<li><input style='margin-top:2px' ". $readonly .$id." name='$optName' type='radio' value='$Value' ". checked( $Opts[$optName], $Value, False). " >" . $Name;
             if (isset($Details['Input'])) $this->displayInput($optionList[$Details['Input']], $Details['Input'], $Opts);
             echo "</li>\n";
          }

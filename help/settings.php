@@ -39,6 +39,8 @@
 <p>If this option is enabled then when generating links, the plugin will ensure that if they are clicked on it will open it in a new browser window. This option is equivalent to the \'new_window=1\' shortcode argument.</p>
 <h5>Link Title Text</h5>
 <p>This is the text that will appear in the link \'title\' attribute for the Amazon links, it may contain any of the usual template keywords e.g. %TITLE% or %TEXT%. Leave blank to not have a title attribute.</p>
+<h5>Use Media Library</h5>
+<p>This option adds the ability to upload images for products from the Amazon site to your local WordPress media library. Once uploaded the plugin will always use these local images for all shortcodes for that product.</p>
 ',
   ),
   'localisation options' => 
@@ -90,21 +92,29 @@
  Use the Condition parameter to filter the offers returned in the product list by condition type. By default, Condition equals "New". If you do not get results, consider changing the value to "All...</p>
 <p>ItemSearch returns up to ten search results at a time. When condition equals "All," ItemSearch returns up to three offers per condition (if they exist), for example, three new, three used, three refurbished, and three collectible items. Or, for example, if there are no collectible or refurbished offers, ItemSearch returns three new and three used offers.
 </p></blockquote>
+<h5>Prefetch Data</h5>
+<p>Normally the plugin will not fetch data from the Product cache or via AWS unless it needs to populate a keyword. This means that for simple text links the plugin is much faster. However if all your shortcodes are complex and require data retrieved from the AWS then enable this option to improve template parsing.</p>
 <h5>User Affiliate IDs</h5>
 <p>This options enables all users of the WordPress site to have their own set of Affiliate IDs. This allows each post author to collect Amazon commission on posts for which they are the Author. The IDs (one for each locale) are accessible on the User\'s profile page.</p>
 ',
   ),
-  'amazon data cache' => 
+  'amazon caches' => 
   array (
-    'id' => 'amazon-link-settings-amazon-data-cache',
+    'id' => 'amazon-link-settings-amazon-caches',
     'page' => 'settings',
-    'title' => 'Amazon Data Cache',
+    'title' => 'Amazon Caches',
     'content' => '
-<p>If you use the plugin to its full extent and display alot of content retrieved from the Amazon Web Service it is recommended that you enable the Amazon Data Cache.</p>
+<h5>Amazon Product Cache</h4>
+<p>If you use the plugin to its full extent and display a lot of content retrieved from the Amazon Web Service it is recommended that you enable the Amazon Product Cache.</p>
 <p>This will improve page load times for pages that retrieve live data from the Amazon Web Service by keeping a local copy of the data.</p>
 <p>At the bottom of this section are buttons to Enable, Disable (and remove) and Flush the content of the Amazon Data Cache.</p>
 <h5>Cache Data Age</h5>
 <p>Amazon recommend that data is not stored in caches for too long, especially price and availability information. Adjust this setting depending on the volatility of the data you display (e.g. Titles, List Prices and Artist information rarely change, however Offer prices may change more frequently).</p>
+<h5>Shortcode Cache</h5>
+<p>If you have a site with high levels of traffic, then it may be worth while enabling the \'Shortcode cache\'. This stores the expanded template in the site database rather than evaluating it for every visitor. You are trading off extra Database access and storage against Server CPU load. This option is currently experimental and has not been properly evaluated to see if it does actually reduce server load.</p>
+<p>If you are already using some other form of WordPress content cache then this will add no additional benefit.</p>
+<h5>SC Cache Data Age</h5>
+<p>The number of hours data is kept in the shortcode cache without being refreshed. Keep this low to ensure that the latest product details are always displayed.</p>
 ',
   ),
   'advanced options' => 

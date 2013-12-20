@@ -4,7 +4,7 @@
 Plugin Name: Amazon Link Extra - Images
 Plugin URI: http://www.houseindorset.co.uk/
 Description: Update the Amazon Link plugin to improve the processing of Images, allows setting the Image and Thumbnail size per shortcode as well as grabbing all possible images from the Amazon site.
-Version: 1.2
+Version: 1.2.1
 Author: Paul Stuttard
 Author URI: http://www.houseindorset.co.uk
 */
@@ -51,7 +51,10 @@ function alx_images_display_images($images, $keyword, $country, $data, $settings
       /*
        * Put each image into our custom HTML, we can use any of the usual template keywords here.
        */
-      $output .= str_replace( array('%IMAGE%', '%THUMB%', '%IMAGE_INDEX%'), array($data[$country]['image'][$index],$data[$country]['thumb'][$index], $index+1), $input);
+      $output .= str_replace( array('%IMAGE%', '%THUMB%', '%IMAGE_INDEX%'), 
+                              array($data[$country]['image'][$index],
+                                    $data[$country]['thumb'][$index], 
+                                    $index+1), $input);
    }
 
    return $output;
@@ -83,7 +86,7 @@ function alx_images_process_images ($images, $keyword_info, $al) {
       $data[] = preg_replace('!(http://(?:[^/]*/)+(?:[^.]*)).*$!', '\1._SL'.$keyword.'_.jpg', $url);
 
    }
-   return array_unique($data);
+   return array_values(array_unique($data));
 }
 
 
