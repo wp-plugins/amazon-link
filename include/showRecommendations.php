@@ -3,22 +3,47 @@
    $Settings = $this->getSettings();
    $cc = $this->get_country($Settings);
 
+   // Search Query
+   if (!empty($this->Settings['s_index'])) {
+      if (empty($this->search)) $this->search = new AmazonLinkSearch;
+      $request = $this->search->create_search_query($this->Settings);
+      $request['ResponseGroup'] = 'ItemAttributes';
+      $pxml = $this->doQuery($request);
+      if (!empty($pxml['Items']['Item']))
+      {
+         $Items=$pxml['Items']['Item'];
+         if (!array_key_exists('0', $Items)) {
+            $Items = array('0'=>$Items);
+         }
+      } else {
+         $output .= '<!--' . __('Amazon query failed to return any results - Have you configured the AWS settings?', 'amazon-link').'-->';
+         $output .= '<!-- '. print_r($request, true) . '-->';
+         $Items=array();
+      }
+      
+      $ASINs = array();         
+      foreach ($Items as $Item => $Details)
+         $ASINs[] = $Details['ASIN'];
+      $saved_tags = $this->tags;
+      $this->tags = $ASINs;
+      $Settings['wishlist_type'] = 'multi';
+      
    // If using local tags then just process the ones on this page otherwise search categories.
-   if (strcasecmp($categories, "local") != 0) {
+   } else if (strcasecmp($Settings['cat'], 'local') != 0) {
       // First process all post content for the selected categories
       $content = '';
       $get_posts = new WP_Query;
-      if (preg_match('!^[0-9,]*$!', $categories)) {
-         $lastposts = $get_posts->query(array('numberposts'=>$last, 'cat'=>$categories));
+      if (preg_match('!^[0-9,]*$!', $Settings['cat'])) {
+         $lastposts = $get_posts->query(array('numberposts'=>$Settings['last'], 'cat'=>$Settings['cat']));
       } else {
-         $lastposts = $get_posts->query(array('numberposts'=>$last, 'category_name'=>$categories));
+         $lastposts = $get_posts->query(array('numberposts'=>$Settings['last'], 'category_name'=>$Settings['cat']));
       }
       foreach ($lastposts as $id => $post) {
          $content .= $post->post_content;
       }
       unset($lastposts);
       $saved_tags = $this->tags;
-
+      
       $this->tags = array();
       $this->content_filter($content, FALSE);
       unset($content);
@@ -98,7 +123,7 @@
       $output .= "</div>";
 
    } else {
-      $output .= "<!--". sprintf(__('No [amazon] tags found in the last %1$s posts in categories %2$s', 'amazon-link'), $last, $categories). "--!>";
+      $output .= "<!--". sprintf(__('No [amazon] tags found in the last %1$s posts in categories %2$s', 'amazon-link'), $Settings['last'], $Settings['cat']). "--!>";
    }
    if (isset($saved_tags)) {
       $this->tags = $saved_tags;

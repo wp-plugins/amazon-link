@@ -4,7 +4,7 @@
 Plugin Name: Amazon Link Extra - Convert
 Plugin URI: http://www.houseindorset.co.uk/plugins/amazon-link/
 Description: <strong>!!!BETA!!!</strong> This plugin adds the ability to search for Amazon Link shortcodes and convert them into static content or links of a different format and vice versa.</br>
-Version: 1.4
+Version: 1.5
 Author: Paul Stuttard
 Author URI: http://www.houseindorset.co.uk
 */
@@ -225,14 +225,14 @@ function alx_convert_do_shortcode($match) {
    $settings = $awlfw->parseArgs($args);
    $asin = $settings['asin'];
 
-   $settings['static'] = $awlfw->make_links( $settings['asin'],$settings['text'], $settings);
+   $settings['static'] = $awlfw->make_links($settings);
    $settings['args'] = $args;
    $settings['unused_args'] = $args;
    $settings['asin'] = $asin[0];
    $settings['template_content'] = $alx_convert['Template'];
    $alx_convert['Count']++;
 
-   return preg_replace( '![\s]+!', ' ',$awlfw->search->parse_template($settings));
+   return preg_replace( '![\s]+!', ' ',$awlfw->parse_template($settings));
 }
 
 /*

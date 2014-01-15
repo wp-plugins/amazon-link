@@ -95,33 +95,34 @@
    // **********************************************************
    // Uninstall the selected plugin
 
-   } else if ( $action == __('Uninstall', 'amazon-link')) {
-      $result = delete_plugins((array)$plugin_ID);
-      if (!is_wp_error($result)) {
-         $update = __('Plugin ' . $installed_plugins[$plugin_ID]['Name']. ' - has been Uninstalled', 'amazon-link');
-         unset($installed_plugins[$plugin_ID]);
-         $action = __('Deactivate','amazon-link');
-      } else {
-         $error = $result->get_error_message();
-      }
    } 
 
    // **********************************************************
    // Deactivate the selected plugin
 
-   if ( $action == __('Deactivate', 'amazon-link')) {
+   if ( $action == __('Deactivate', 'amazon-link') || ( $action == __('Uninstall', 'amazon-link'))) {
       $result = deactivate_plugins($plugin_ID);
       if (!is_wp_error($result)) {
-         if ($update !== False) {
-            $update .= __(' and Deactivated', 'amazon-link');
-         } else {
-            $update = __('Plugin ' . $installed_plugins[$plugin_ID]['Name']. ' - has been Deactivated', 'amazon-link');
-         }
+         $update = __('Plugin ' . $installed_plugins[$plugin_ID]['Name']. ' - has been Deactivated', 'amazon-link');
          if (isset($installed_plugins[$plugin_ID])) $installed_plugins[$plugin_ID]['Activated'] = False;
       } else {
          $error = $result->get_error_message();
       }
    }
+   
+   if ( $action == __('Uninstall', 'amazon-link')) {
+      $result = delete_plugins((array)$plugin_ID);
+      if (!is_wp_error($result)) {
+         if ($update !== False) {
+            $update .= __(' and Uninstalled', 'amazon-link');
+         } else {
+            $update = __('Plugin ' . $installed_plugins[$plugin_ID]['Name']. ' - has been Uninstalled', 'amazon-link');
+         }
+         unset($installed_plugins[$plugin_ID]);
+      } else {
+         $error = $result->get_error_message();
+      }
+   } 
 
    // **********************************************************
 

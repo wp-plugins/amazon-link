@@ -4,7 +4,7 @@
 Plugin Name: Amazon Link
 Plugin URI: http://www.houseindorset.co.uk/plugins/amazon-link
 Description: A plugin that provides a facility to insert Amazon product links directly into your site's Pages, Posts, Widgets and Templates.
-Version: 3.1.2
+Version: 3.1.3
 Text Domain: amazon-link
 Author: Paul Stuttard
 Author URI: http://www.houseindorset.co.uk
@@ -98,7 +98,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
       const channels_name    = 'AmazonLinkChannels';
 
       var $option_version= 7;
-      var $plugin_version= '3.1.1';
+      var $plugin_version= '3.1.3';
       var $menu_slug     = 'amazon-link-settings';
       var $plugin_home   = 'http://www.houseindorset.co.uk/plugins/amazon-link/';
 
@@ -123,7 +123,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          register_uninstall_hook(__FILE__, array('AmazonWishlist_For_WordPress', 'uninstall'));   // To perform options removal
          add_action('init', array($this, 'init'));                                   // Load i18n and initialise translatable vars
          add_filter('the_content', array($this, 'content_filter'),15,1);             // Process the content
-         add_filter('widget_text', array($this, 'widget_filter'), 16,1);               // Filter widget text (after the content?)
+         add_filter('widget_text', array($this, 'widget_filter'), 16,1);             // Filter widget text (after the content?)
 
          // Backend only 
          add_action('admin_menu', array($this, 'admin_menu'));                       // Add options page and page/post edit hooks
@@ -165,33 +165,40 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
       // On wordpress initialisation - load text domain and register styles & scripts
       function init() {
 
-         /* load localisation  */
-         load_plugin_textdomain('amazon-link', $this->plugin_dir . '/i18n', $this->plugin_dir . '/i18n');
+         $settings = $this->getSettings();
+         
 
-         // Initialise dependent classes
-         $this->form = new AmazonWishlist_Options;
-         $this->form->init($this);                     // Need to register form styles
-         $this->search = new AmazonLinkSearch;
-         $this->search->init($this);                   // Need to register scripts & ajax callbacks
+         if (is_admin()) {
+            /* load localisation  */
+            load_plugin_textdomain('amazon-link', $this->plugin_dir . '/i18n', $this->plugin_dir . '/i18n');
+
+            /* Initialise dependent classes */
+            $this->form = new AmazonWishlist_Options;
+            $this->form->init($this);                     // Need to register form styles
+            $this->search = new AmazonLinkSearch;
+            $this->search->init($this);                   // Need to register scripts & ajax callbacks
+
+            /* Register backend scripts */
+            $edit_script = plugins_url("postedit.js", __FILE__);
+            $admin_script = plugins_url("include/amazon-admin.js", __FILE__);
+            wp_register_script('amazon-link-edit-script', $edit_script, array('jquery', 'amazon-link-search'), $this->plugin_version);
+            wp_register_script('amazon-link-admin-script', $admin_script, false, $this->plugin_version);
+            
+         } else if (!empty($settings['media_library'])) {
+            
+            /* Initialise dependent classes */
+            $this->search = new AmazonLinkSearch;
+            $this->search->init($this);
+         }
          $this->ip2n->init($this);                     // ip2nation needed on Frontend
 
-         // Register our styles and scripts
+         // Register our frontend styles and scripts
          $script = plugins_url("amazon.js", __FILE__);
-         $edit_script = plugins_url("postedit.js", __FILE__);
-         $admin_script = plugins_url("include/amazon-admin.js", __FILE__);
          $multi_script = plugins_url("include/amazon-multi.js", __FILE__);
-         // Allow the user to override our default styles. 
-         if (file_exists(dirname (__FILE__).'/user_styles.css')) {
-            $stylesheet = plugins_url("user_styles.css", __FILE__); 
-         } else {
-            $stylesheet = plugins_url("Amazon.css", __FILE__);
-         }
-
+         $stylesheet = apply_filters('amazon_link_style_sheet', plugins_url("Amazon.css", __FILE__)); 
          wp_register_style ('amazon-link-style', $stylesheet, false, $this->plugin_version);
          wp_register_script('amazon-link-script', $script, false, $this->plugin_version);
          wp_register_script('amazon-link-multi-script', $multi_script, false, $this->plugin_version);
-         wp_register_script('amazon-link-edit-script', $edit_script, array('jquery', 'amazon-link-search'), $this->plugin_version);
-         wp_register_script('amazon-link-admin-script', $admin_script, false, $this->plugin_version);
 
          // Add base stylesheet
          add_action('wp_enqueue_scripts', array($this, 'amazon_styles'));
@@ -207,8 +214,18 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          add_filter('amazon_link_get_channel' , array($this, 'get_channel_by_rules'), 12,5);
          add_filter('amazon_link_get_channel' , array($this, 'get_channel_by_user'), 14,5);
 
+         /* Set up the default link and channel filters */
+         add_filter('amazon_link_template_get_link_open', array($this, 'get_links_filter'), 12, 6);
+         add_filter('amazon_link_template_get_rlink_open', array($this, 'get_links_filter'), 12, 6);
+         add_filter('amazon_link_template_get_slink_open', array($this, 'get_links_filter'), 12, 6);
+         add_filter('amazon_link_template_get_url', array($this, 'get_urls_filter'), 12, 6);
+         add_filter('amazon_link_template_get_rurl', array($this, 'get_urls_filter'), 12, 6);
+         add_filter('amazon_link_template_get_surl', array($this, 'get_urls_filter'), 12, 6);
+         add_filter('amazon_link_template_get_tag', array($this, 'get_tags_filter'), 12, 6);
+         add_filter('amazon_link_template_get_chan', array($this, 'get_channel_filter'), 12, 6);
+
          // Call any user hooks - passing the current plugin Settings and the Amazon Link Instance.
-         $settings = $this->getSettings();
+
          if ($settings['sc_cache_enabled']) {
             // We can't tell if the multinational popup is needed so just load the script
             $this->scripts_done = True;
@@ -346,6 +363,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
                            );
          wp_print_scripts('amazon-link-multi-script');
          remove_action('wp_print_footer_scripts', array($this, 'footer_scripts'));
+
       }
 
       function register_plugin_links($links, $file) {
@@ -378,6 +396,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
           */
          
          if (!isset($this->keywords)) {
+
             $this->keywords = array(
              'link_open'    => array( 'Description' => __('Create an Amazon link to a product with user defined content, of the form %LINK_OPEN%My Content%LINK_CLOSE%', 'amazon-link'), 'Link' => 1 ),
              'rlink_open'   => array( 'Description' => __('Create an Amazon link to product reviews with user defined content, of the form %RLINK_OPEN%My Content%LINK_CLOSE%', 'amazon-link'), 'Link' => 1),
@@ -453,7 +472,6 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
              'found'        => array( 'Description' => __('1 if product was found doing a live data request (also 1 if live not enabled).', 'amazon-link'), 'Calculated' => '1', 'Default' => '1'),
              'timestamp'    => array( 'Description' => __('Date and time of when the Amazon product data was retrieved from Amazon.', 'amazon-link'), 'Calculated' => 1, 'Default' => '0')
             );
-
             $this->keywords = apply_filters('amazon_link_keywords', $this->keywords, $this);
          }
          return $this->keywords;
@@ -538,7 +556,9 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
      
          if (!isset($this->option_list)) {
 
-            $this->option_list = array(
+            if (is_admin()) {
+                           
+               $this->option_list = array(
 
             /* Hidden Options - not saved in Settings */
 
@@ -583,7 +603,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
             'priv_key'      => array( 'Name' => __('AWS Private key', 'amazon-link'), 'Description' => __('Secret Access Key ID provided by your AWS Account.', 'amazon-link'), 'Default' => '', 'Type' => 'text', 'Size' => '40', 'Class' => 'alternate' ),
             'aws_valid'     => array( 'Type' => 'checkbox', 'Read_Only' => 1, 'Name' => 'AWS Keys Validated', 'Default' => '0', 'Class' => 'al_border'),
             'live'          => array( 'Name' => __('Live Data', 'amazon-link'), 'Description' => __('When creating Amazon links, use live data from the Amazon site, otherwise populate the shortcode with static information. <em>* <a href="#aws_notes" title="AWS Access keys required for full functionality">AWS</a> *</em>', 'amazon-link'), 'Default' => '1', 'Type' => 'checkbox', 'Class' => 'al_border' ),
-            'condition'     => array( 'Name' => __('Condition', 'amazon-link'), 'Description' => __('By default Amazon only returns Offers for \'New\' items, change this to return items of a different condition.', 'amazon-link'), 'Default' => '', 'Type' => 'selection', 
+            'condition'     => array( 'Name' => __('Condition', 'amazon-link'), 'Description' => __('By default Amazon only returns Offers for \'New\' items, change this to return items of a different condition.', 'amazon-link'), 'Default' => '', 'Type' => 'selection',
                                       'Options' => array( '' => array('Name' => 'Use Default'), 'All' => array ('Name' => 'All'), 'New' => array('Name' => 'New'),'Used' => array('Name' => 'Used'),'Collectible' => array('Name' => 'Collectible'),'Refurbished' => array('Name' => 'Refurbished')),
                                       'Class' => 'alternate al_border' ),
             'prefetch'      => array( 'Name' => __('Prefetch Data', 'amazon-link'), 'Description' => __('For every product link, prefetch the data from the Amazon Site - use of the cache essential for this option! <em>* <a href="#aws_notes" title="AWS Access keys required for full functionality">AWS</a> *</em>', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox', 'Class' => '' ),
@@ -613,22 +633,99 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
             'full_uninstall' => array( 'Name' => __('Purge on Uninstall', 'amazon-link'), 'Description' => __('On uninstalling the plugin remove all Settings, Templates, Associate Tracking IDs, Cache Data & ip2nation Data .<b>Use when removing the plugin for good</b>.', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox', 'Size' => '40', 'Class' => '' ),
             'hd5e'           => array( 'Type' => 'end')
              );
+            } else {
+            $this->option_list = array(
 
-            $country_data = $this->get_country_data();
-            // Populate Country related options
-            foreach ($country_data as $cc => $data) {
-               $this->option_list['default_cc']['Options'][$cc]['Name'] = $data['country_name'];
+            /* Hidden Options - not saved in Settings */
+
+            'cat' => array(),
+            'last' => array(),
+            'template' => array(),
+            'chan' => array(),
+            's_index' => array(),
+            's_title' => array(),
+            's_author' => array(),
+            's_page' => array(),
+            'template_content' => array(),
+
+            /* Options that change how the items are displayed */
+            'hd1s' => array(),
+            'text'              => array( 'Default' => 'Amazon'),
+            'image_class'       => array( 'Default' => 'wishlist_image' ),
+            'wishlist_template' => array( 'Default' => 'Wishlist' ),
+            'wishlist_items'    => array( 'Default' => 5 ),
+            'wishlist_type'     => array( 'Default' => 'Similar' ),
+            'new_window'        => array( 'Default' => '0' ),
+            'link_title'        => array( 'Default' => '' ),
+            'media_library'     => array( 'Default' => '0' ),
+            'hd1e' => array(),
+
+             /* Options that control localisation */
+            'hd2s' => array(),
+            'ip2n_message' => array(),
+            'default_cc'    => array( 'Default' => 'uk' ),
+            'localise'      => array( 'Default' => '1' ),
+            'global_over'   => array( 'Default' => '1' ),
+            'search_link'   => array( 'Default' => '0' ),
+            'search_text'   => array( 'Default' => '%ARTIST% | %TITLE%' ),
+            'search_text_s' => array( 'Default' => '%ARTIST%S# | %TITLE%S#' ),
+            'multi_cc'      => array( 'Default' => '1' ),
+            'hd2e' => array(),
+
+            /* Options related to the Amazon backend */
+            'hd3s' => array(),
+            'pub_key' => array(),
+            'priv_key' => array(),
+            'aws_valid' => array(),
+            'live'          => array( 'Default' => '1' ),
+            'condition'     => array( 'Default' => '' ),
+            'prefetch'      => array( 'Default' => '0' ),
+            'user_ids'      => array( 'Default' => '0' ),
+            'hd3e' => array(),
+
+            'hd4s' => array(),
+            'title3' => array(),
+            'cache_age'     => array( 'Default' => '48'),
+            'cache_enabled' => array( 'Default' => '0'),
+            'cache_c' => array(),
+            'title4' => array(),
+            'sc_cache_age'     => array( 'Default' => '1'),
+            'sc_cache_enabled' => array( 'Default' => '0'),
+            'sc_cache_c' => array(),
+            'hd4e' => array(),
+
+            'hd5s' => array(),
+            'template_asins' => array(),
+            'debug'          => array( 'Default' => '0' ),
+            'full_uninstall' => array(),
+            'hd5e' => array()
+             );
+            } 
+            if (is_admin()) {
+               $country_data = $this->get_country_data();
+               // Populate Country related options
+               foreach ($country_data as $cc => $data) {
+                  $this->option_list['default_cc']['Options'][$cc]['Name'] = $data['country_name'];
+               }
+
+               // Populate the hidden Template Keywords
+               foreach ($this->get_keywords() as $keyword => $details) {
+                  if (!isset($this->option_list[$keyword]))
+                     $this->option_list[$keyword] = array( 'Type' => 'hidden' );
+               }
+            } else {
+               // Populate the hidden Template Keywords
+               foreach ($this->get_keywords() as $keyword => $details) {
+                  if (!isset($this->option_list[$keyword]))
+                     $this->option_list[$keyword] = array();
+               }
             }
 
-            // Populate the hidden Template Keywords
-            foreach ($this->get_keywords() as $keyword => $details) {
-               if (!isset($this->option_list[$keyword]))
-                  $this->option_list[$keyword] = array( 'Type' => 'hidden' );
-            }
             $this->option_list = apply_filters('amazon_link_option_list', $this->option_list);
 
-            $this->option_list['button'] = array( 'Type' => 'buttons', 'Buttons' => array( __('Update Options', 'amazon-link' ) => array( 'Class' => 'button-primary', 'Action' => 'AmazonLinkAction')));
-
+            if (is_admin()) {
+               $this->option_list['button'] = array( 'Type' => 'buttons', 'Buttons' => array( __('Update Options', 'amazon-link' ) => array( 'Class' => 'button-primary', 'Action' => 'AmazonLinkAction')));
+            }
          }
          return $this->option_list;
       }
@@ -775,11 +872,11 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
       function getSettings() {
          if (!isset($this->Settings)) {
             $this->Settings = $this->getOptions();
-         }
-         $option_list = $this->get_option_list();
-         foreach ($option_list as $key => $details) {
-            if (!isset($this->Settings[$key]) && isset($details['Default'])) {
-               $this->Settings[$key] = $details['Default'];
+            $option_list = $this->get_option_list();
+            foreach ($option_list as $key => $details) {
+               if (!isset($this->Settings[$key]) && isset($details['Default'])) {
+                  $this->Settings[$key] = $details['Default'];
+               }
             }
          }
 
@@ -916,44 +1013,6 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          ksort($Templates);
          update_option(self::templatesName, $Templates);
          $this->Templates = $Templates;
-      }
-
-      function export_templates($filename) {
-         $templates = $this->getTemplates();
-         $slug = str_replace('-', '_', sanitize_title(get_bloginfo()));
-         $content = '<?php
-/*
-Plugin Name: Amazon Link Extra - Exported Templates
-Plugin URI: http://www.houseindorset.co.uk/plugins/amazon-link/
-Description: Templates Exported from Amazon Link on ' . date("F j, Y, g:i a") . '
-Version: 1.0
-Author: Amazon Link User
-Author URI: ' . get_site_url() .'
-*/
-
-function alx_'.$slug.'_default_templates ($templates) {
-';
-         foreach($templates as $id => $data) {
-            if (!isset($data['Version'])) $data['Version'] = 1;
-            if (!isset($data['Notice'])) $data['Notice'] = 'New Template';
-            unset($data['nonce'], $data['nonce1'], $data['nonce2']);
-            $content .= " \$templates['$id'] = \n  array(";
-            foreach ($data as $item => $details) {
-               if ($item == 'Content') {
-                  $content .= "   '$item' => htmlspecialchars (". var_export($details, true) . "),\n";
-               } else {
-                  $content .= "   '$item' => ". var_export($details, true) . ",\n";
-               }
-            }
-            $content .= "  );\n";
-         }
-         $content .= "  return \$templates;\n}\nadd_filter( 'amazon_link_default_templates', 'alx_${slug}_default_templates');\n?>";
-         $result = file_put_contents( $filename, $content);
-         if ($result === FALSE) {
-            return array ( 'Success' => 0, 'Message' => "Export Failed could not write to: <em>$filename</em>" );
-         } else {
-            return array ( 'Success' => 1, 'Message' => "Templates exported to file: <em>$filename</em>, <em>$result</em> bytes written." );
-         }
       }
 
 /*****************************************************************************************/
@@ -1481,27 +1540,13 @@ function alx_'.$slug.'_default_templates ($templates) {
             
             // Save Shortcode
             $this->sc_cache_update_item($args, $cc, $this->post_ID, $output);
-            
-         } else if (!empty($this->Settings['s_index'])) {
-            $items = $this->search->do_search($this->Settings);
-            $settings = $this->Settings;
-            $settings['live'] = 1;
-            if (isset($items['Error'])) {
-               $output .= '<!-- Error: ' . (isset($items['Error']['Message']) ? $items['Error']['Message'] : 'No Error Message'). '-->';
-            } else if (is_array($items) && (count($items) >0)) {
-               foreach($items as $item) {
-                  $item = array_merge($settings,$item);
-                  $item['asin'] = array( array( $settings['default_cc'] => $item['asin']));
-                  $output .= $this->make_links($item);
-               }
-            }
          } else {
             $this->Settings['in_post'] = $in_post;
             if ($this->Settings['debug']) {
                $output .= '<!-- Amazon Link: Version:' . $this->plugin_version . ' - Args: ' . $args . "\n";
                $output .= print_r($this->Settings, true) . ' -->';
             }
-            $output .= $this->showRecommendations($this->Settings['cat'], (isset($this->Settings['last'])?$this->Settings['last']:NULL));
+            $output .= $this->showRecommendations();
          }
          return apply_filters('amazon_link_shortcode_output',$output,$this);
       }
@@ -1527,6 +1572,249 @@ function alx_'.$slug.'_default_templates ($templates) {
          return $split_content[0];
       }
 
+      function get_channel_filter ($channel, $keyword, $country, $data, $settings, $al) {
+
+         if (!empty($channel)) return $channel;
+
+         $channel = $this->get_channel(array_merge($settings, $data[$country]));
+         return $channel['ID'];
+      }
+
+      function get_tags_filter ($tag, $keyword, $country, $data, $settings, $al) {
+
+         if (!empty($tag)) return $tag;
+
+         $channel = $this->get_channel(array_merge($settings, $data[$country]));
+         return $channel['tag_'.$country];
+      }
+
+      function get_urls_filter ($url, $keyword, $country, $data, $settings, $al) {
+
+         if (!empty($url)) return $url;
+
+         $map = array( 'url' => 'A', 'rurl' => 'R', 'surl' => 'S');
+         $type = $map[$keyword];
+
+         $url = apply_filters('amazon_link_url', '', $type, $settings['asin'], $data[$settings['local_cc']]['search_text'], $data[$country], $settings, $al);
+         return $url;
+
+      }
+
+      function get_links_filter ($link, $keyword, $country, $data, $settings, $al) {
+
+         if (empty($this->temp_settings['multi_cc']) && !empty($link)) return $link;
+
+         $map = array( 'link_open' => 'A', 'rlink_open' => 'R', 'slink_open' => 'S');
+         $type = $map[$keyword];
+
+         return $this->make_link($settings, $data[$country], $type, array($data[$settings['local_cc']]['search_text'],$data[$settings['local_cc']]['search_text_s']));
+      }
+
+      function remap_data ($data, $indexes, &$output) {
+         foreach ($data as $key => $info) {
+            if (is_array($info) && !array_key_exists(0, $info)) {
+               /* Transpose data */
+               foreach ($info as $cc => $item) $output[$cc][$key] = $item;
+            } else {
+               /* Apply to all 'indexes' */
+               foreach($indexes as $cc) $output[$cc][$key] = $info;
+            }
+         }
+      }
+
+      /*
+       * This will perform differently to the usual parser as it does the keywords in the order
+       * found in the template - e.g. 'FOUND' will be done first!
+       * We need to run the regex twice to catch new template tags replacing old ones (LINK_OPEN)
+       */
+      function parse_template ($item) {
+
+         $start_time = microtime(true);
+
+         // Just get the country data, no local info yet
+         $data        = $this->get_country_data();
+         $countries_a = array_keys($data);
+
+         $keywords_data = $this->get_keywords();
+         $sep = $sepc = $keywords = $keywords_c = '';
+         foreach ($keywords_data as $keyword => $key_data) {
+            if (empty($key_data['Calculated'])) {
+               $keywords .= $sep.$keyword;
+               $sep = '|';
+            } else {
+               $keywords_c .= $sepc.$keyword;
+               $sepc= '|';
+            }
+         }
+
+         $local_country    = $this->get_country($item);
+         $default_country  = $item['default_cc'];
+         $item['home_cc']  = $default_country;
+         $item['local_cc'] = $local_country;
+         
+         if (empty($item['asin']) || !is_array($item['asin'])) $item['asin'] = array($default_country => !empty($item['asin']) ? $item['asin'] : '');
+
+         if ($item['global_over']) {
+            $this->remap_data($item, $countries_a, $data);
+         } else {
+            $this->remap_data($item, array($local_country), $data);
+         }
+
+         $input = htmlspecialchars_decode (stripslashes($item['template_content']));
+
+         $this->temp_settings = $item;
+         $this->temp_data     = $data;
+
+         $countries = implode('|',$countries_a);
+         do {
+            $input = preg_replace_callback( "!(?>%($keywords)%)(?:(?>($countries))?(?>(S))?([0-9]+)?#)?!i", array($this, 'parse_template_callback'), $input, -1, $count);
+         } while ($count);
+
+         $input = preg_replace_callback( "!(?>%($keywords_c)%)(?:(?>($countries))?(?>(S))?([0-9]+)?#)?!i", array($this, 'parse_template_callback'), $input);
+
+         $this->Settings['default_cc'] = $item['default_cc'];
+         $this->Settings['multi_cc'] = $item['multi_cc'];
+         $this->Settings['localise'] = $item['localise'];
+
+         $time = microtime(true) - $start_time;
+
+         if (!empty($item['debug'])) $input .="<!-- Time Taken: $time. -->";
+         
+         // Clear out local settings and data, no longer needed
+         unset($this->temp_settings, $this->temp_data);
+         
+         return $input;
+      }
+
+
+      function parse_template_callback ($args) {
+
+         $keyword  = strtolower($args[KEYWORD]);
+
+         $keywords = $this->get_keywords();
+         $settings = $this->temp_settings;
+
+         $default_country  = $settings['home_cc'];
+
+         $key_data  = $keywords[$keyword];
+
+         /*
+          * Process Modifiers
+          */
+         if (empty($args[CC])) {
+            $country     = $settings['local_cc'];
+         } else {
+            // Manually set country, hard code to not localised
+            $country = strtolower($args[CC]);
+            $settings['multi_cc']  = 0;
+            $settings['localise']  = 0;
+            $settings['default_cc'] = $country;
+         }
+         $escaped        = !empty($args[ESCAPE]);
+         $keyword_index  = (!empty($args[INDEX]) ? $args[INDEX] : 0);
+         $local_info = $this->temp_data[$country];
+
+         /*
+          * Select the most appropriate ASIN for the locale
+          */
+         if (empty($this->temp_data[$country]['asin'])) {
+            $this->temp_data[$country]['asin'] = isset($this->temp_data[$default_country]['asin']) ? $this->temp_data[$default_country]['asin'] : NULL;
+         }
+         $asin = $this->temp_data[$country]['asin'];
+
+         /*
+          * Prefetch product data if not already fetched and prefetch is enabled
+          */
+         if ($settings['live'] && $settings['prefetch'] && empty($this->temp_data[$country]['prefetched'])) {
+            $item_data = $this->cached_query($asin, $settings, True);
+
+            if ($item_data['found'] && empty($settings['asin'][$country])) {
+               $settings['asin'][$country] = $asin;
+               $this->temp_settings['asin'][$country] = $asin;
+            } else if (!empty($settings['localise']) && ($country != $default_country)) {
+               $settings['default_cc'] = $default_country;
+               $settings['localise']   = 0;
+               $item_data = $this->cached_query($asin, $settings, True);
+               $item_data['not_found'] = 1;
+            }
+            $this->temp_data[$country] = array_merge($item_data, (array)$this->temp_data[$country]);
+            $this->temp_data[$country]['prefetched'] = 1;
+         }
+
+         /*
+          * Apply any template_get filters for this keyword
+          */
+         $phrase = apply_filters( 'amazon_link_template_get_'. $keyword, isset($this->temp_data[$country][$keyword])?$this->temp_data[$country][$keyword]:NULL, $keyword, $country, $this->temp_data, $settings, $this);
+         if ($phrase !== NULL) $this->temp_data[$country][$keyword] = $phrase;
+   
+         /*
+          * If the keyword is not yet set then we need to populate it
+          */
+         if (!isset($this->temp_data[$country][$keyword])) {
+
+            /*
+             * If we can get it from Amazon then try and get it
+             */
+            if (!empty($key_data['Live']) && ($settings['live'])) {
+                  $item_data = $this->cached_query($asin, $settings, True);
+                  if ($item_data['found'] && empty($settings['asin'][$country])) {
+                     $settings['asin'][$country] = $asin;
+                     $this->temp_settings['asin'][$country] = $asin;
+                  } else if (!$item_data['found'] && $settings['localise'] && ($country != $settings['default_cc'])) {
+                     
+                     $settings['localise']   = 0;
+                     $item_data = $this->cached_query($asin, $settings, True);
+                     $item_data['not_found'] = 1;
+                  }
+                  
+                  if ($settings['debug'] && isset($item_data['Error'])) {
+                     echo "<!-- amazon-link ERROR: "; print_r($item_data); echo "-->";
+                  }
+                  
+                  $this->temp_data[$country] = array_merge($item_data, (array)$this->temp_data[$country]);
+
+            } else {
+               
+               /*
+                * We can't retreive it, so just use the default if set
+                */
+               $this->temp_data[$country][$keyword] = isset($key_data['Default']) ? ( is_array($key_data['Default']) ? $key_data['Default'][$country] : $key_data['Default'] ) : '-';
+            }
+         }
+
+         /*
+          * Run the 'process' filters to post process the keyword
+          */
+         $this->temp_data[$country][$keyword] = apply_filters( 'amazon_link_template_process_'. $keyword, isset($this->temp_data[$country][$keyword])?$this->temp_data[$country][$keyword]:NULL, $keyword, $country, $this->temp_data, $settings, $this);
+
+         /*
+          * If multiple results returned then select the one requested in the template
+          */
+         $phrase = $this->temp_data[$country][$keyword];
+         if (is_array($phrase)) {
+            $phrase = $phrase[$keyword_index];
+         }
+
+         /*
+          * This just needs to get the data through to the javascript, typical HTML looks like:
+          * <a onmouseover="Function( {'arg': '%KEYWORD%'} )">
+          * Need to ensure there are no unescaped ' or " characters or new lines
+          *
+          * It is up to the receiving javascript to ensure that the data is present correctly for the next stage
+          *  - in postedit -> strip out > and " and & and [ to ensure the shortcode is parsed correctly
+          *  - in popup (do nothing?).
+          */
+         if ($escaped) $phrase = str_ireplace(array( "'", '&'), array("\'", '%26'), $phrase);
+         if (!empty($key_data['Live']) && empty($key_data['Link'])) $phrase = str_ireplace(array( '"', "'", "\r", "\n"), array('&#34;', '&#39;','&#13;','&#10;'), $phrase);
+
+         /*
+          * Update unused_args to remove used keyword.
+          */
+         if (!empty($this->temp_data[$default_country]['unused_args'])) $this->temp_data[$default_country]['unused_args'] = preg_replace('!(&?)'.$keyword.'=[^&]*(\1?)&?!','\2', $this->temp_data[$default_country]['unused_args']);
+
+         return $phrase;
+      }
+      
 /*****************************************************************************************/
       /// Display Content, Widgets and Pages
 /*****************************************************************************************/
@@ -2061,7 +2349,7 @@ function alx_'.$slug.'_default_templates ($templates) {
          if (!empty($details))
          {
             foreach ($details as $item) {
-               $output .= $this->search->parse_template($item);
+               $output .= $this->parse_template($item);
             }
          }
          return $output;
@@ -2081,7 +2369,7 @@ function amazon_get_link($args)
    $settings = $awlfw->parseArgs($args);       // Get the default settings
    $settings['template_content'] = '%URL%';
    foreach ($settings['asin'] as $asin) {
-      $url = $awlfw->search->parse_template($settings);
+      $url = $awlfw->parse_template($settings);
       return $url;
    }
 }
@@ -2110,15 +2398,18 @@ function amazon_shortcode($args)
    $awlfw->parseArgs($args);       // Get the default settings
    $awlfw->Settings['in_post'] = False;
    if (isset($awlfw->Settings['cat']))
-      return $awlfw->showRecommendations($awlfw->Settings['cat'], (isset($awlfw->Settings['last'])? $awlfw->Settings['last']:NULL));
+      return $awlfw->showRecommendations();
    else
       return $awlfw->make_links($awlfw->Settings);
 }
 
 function amazon_recommends($categories='1', $last='30')
 {
-  global $awlfw;
-  return $awlfw->showRecommendations ($categories, $last);
+   global $awlfw;
+   $awlfw->getSettings();
+   $awlfw->Settings['cat'] = $categories;
+   $awlfw->Settings['last'] = $last;
+   return $awlfw->showRecommendations ();
 }
 
 function amazon_make_links($args)
