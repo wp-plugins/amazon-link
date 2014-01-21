@@ -119,13 +119,15 @@
             $template_data[] = $keyword;
       }
       $optionList['T_' . $templateName] = array( 'Id' => 'AmazonLinkTemplates', 'Type' => 'hidden', 'Value' => implode(',',$template_data));
-      $optionList['TC_' . $templateName] = array( 'Id' => 'AmazonLinkTemplates', 'Type' => 'hidden', 'Value' => htmlspecialchars($Details['Content']));
+      $optionList['TC_' . $templateName] = array( 'Id' => 'AmazonLinkTemplates', 'Type' => 'hidden', 'Value' => rawurlencode(htmlspecialchars_decode($Details['Content'])));
    }
 
    $optionList['chan']['Options'] = array(' ');
    $channels = $this->get_channels();
    foreach ($channels as $channel_id => $details) {
-      $optionList['chan']['Options'][$channel_id]['Name'] = $details['Name']. '  -  ' . $details['Description'];
+      if (empty($details['user_channel'])) {
+         $optionList['chan']['Options'][$channel_id]['Name'] = $details['Name']. '  -  ' . $details['Description'];
+      }
    }
 
    $live_data = array();

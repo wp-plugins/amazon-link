@@ -144,7 +144,6 @@ if (!class_exists('AmazonWishlist_ip2nation')) {
          if ($ip === FALSE)
             $ip = $_SERVER['REMOTE_ADDR'];
 
-
          $sql = "SHOW TABLE STATUS WHERE Name LIKE '". $this->db ."'";
          $db_info = $wpdb->get_row($sql);
          if ($db_info != NULL) {

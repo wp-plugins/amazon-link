@@ -3,34 +3,34 @@ var al_isIE = (!al_isOpera && navigator.userAgent.indexOf('MSIE') != -1);
 var al_isNav = (navigator.appName.indexOf("Netscape") !=-1);
 
 window.Object.defineProperty( Element.prototype, 'documentOffsetTop', {
-    get: function () { 
+    get: function () {
         return this.offsetTop + ( this.offsetParent ? this.offsetParent.documentOffsetTop : 0 );
     }
 } );
 
 window.Object.defineProperty( Element.prototype, 'documentOffsetLeft', {
-    get: function () { 
+    get: function () {
         return this.offsetLeft + ( this.offsetParent ? this.offsetParent.documentOffsetLeft : 0 );
     }
 } );
 
 function al_handlerMM(e){
-	if (!e) var e = window.event;
+   if (!e) var e = window.event;
 if (e.pageX || e.pageY)
-	{
-		al_x = e.pageX;
-		al_y = e.pageY;
-	}
+   {
+      al_x = e.pageX;
+      al_y = e.pageY;
+   }
 else if (e.clientX || e.clientY)
-	{
-		al_x = e.clientX;
-		al_y = e.clientY;
-		if (al_isIE)
-		{
-			al_x += document.body.scrollLeft;
-			al_y += document.body.scrollTop;
-		}
-	}
+   {
+      al_x = e.clientX;
+      al_y = e.clientY;
+      if (al_isIE)
+      {
+         al_x += document.body.scrollLeft;
+         al_y += document.body.scrollTop;
+      }
+   }
 }
 
 document.onmousemove = al_handlerMM;
@@ -59,7 +59,7 @@ function al_link_out () {
       if (al_timeout_ref == 0) al_timeout_ref = setTimeout('al_timeout()',1000);
       if (al_timeout_in_ref != 0) clearTimeout(al_timeout_in_ref);
       al_timeout_in_ref = 0;
-   } 
+   }
    al_overlink = 0;
 
 }
@@ -117,4 +117,27 @@ function al_show( id ) {
    } else {
       al_id = -1;
    }
+}
+
+function al_gen_multi (id, term, def, chan) {
+   var content = "";
+
+   for (var cc in AmazonLinkMulti.country_data) {
+      var type = term[cc].substr(0,1);
+      var arg  = term[cc].substr(2);
+      var tld  = AmazonLinkMulti.country_data[cc].tld;
+      var tag  = AmazonLinkMulti.channels[chan]['tag_'+cc];
+      
+      if (cc != def) {
+         url = AmazonLinkMulti.link_templates[type];
+         url = url.replace(/%CC%#/g, '');
+         url = url.replace(/%CC%/g, cc);
+         url = url.replace(/%MANUAL_CC%/g, cc);
+         url = url.replace(/%ARG%/g, arg);
+         url = url.replace(/%TLD%/g, tld);
+         url = url.replace(/%TAG%/g, tag);
+         content = content +'<a '+AmazonLinkMulti.target+' href="' + url + '"><img src="' + AmazonLinkMulti.country_data[cc].flag + '"></a>';
+      }
+   }
+   al_link_in (id, content);
 }

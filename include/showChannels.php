@@ -5,7 +5,7 @@
  * Channel Option Panel Processing
  *
  */
-   $channels = $this->get_channels(False, False);
+   $channels = $this->get_channels(False);
 
    $channel_opts = array( 
          'nonce'       => array ( 'Type' => 'nonce', 'Value' => 'update-AmazonLink-channels' ),
@@ -129,7 +129,7 @@
    // Now display the options editing screen
    foreach ($channels as $channel_id => $channel_details) {
       $channel_opts ['ID']['Default'] = $channel_id;
-      $channel_opts ['title']['Value'] = sprintf(__('<b>%s</b> - %s','amazon-link'), $channel_id, $channel_details['Description']);
+      $channel_opts ['title']['Value'] = sprintf(__('<b>%s</b> - %s','amazon-link'), $channel_id, isset($channel_details['Description'])?$channel_details['Description']:'User Channel');
       $this->form->displayForm($channel_opts , $channels[$channel_id]);
    }
 

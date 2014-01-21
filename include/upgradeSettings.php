@@ -135,4 +135,29 @@ if ($Opts['version'] == 6) {
    $this->saveOptions($Opts);
 }
 
+/*
+ * Upgrade from 7 to 8:
+ * Move Channel Data from User Options into Main Channels
+ */
+if ($Opts['version'] == 8) {
+   // Save Channel tags in global channel settings
+   $channels  = $this->get_channels();
+   $countries = array_keys($this->get_country_data());
+   $users = get_users(array('fields' => 'ID'));
+   foreach ($users as $user => $ID) {
+      $user_options = get_the_author_meta( 'amazonlinkoptions', $ID );
+      if (is_array($user_options)) {
+         $user_options = array_filter($user_options);
+         if (!empty($user_options)) {
+            $channels['al_user_' . $ID] = $user_options;
+            $channels['al_user_' . $ID]['user_channel'] = 1;
+         }
+         //update_usermeta( $ID, 'amazonlinkoptions',  NULL );
+      }
+   }
+   $this->save_channels($channels);
+   $Opts['version'] = 8;
+   $this->saveOptions($Opts);
+}
+   
 ?>

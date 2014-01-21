@@ -186,8 +186,11 @@ function alx_'.$slug.'_default_templates ($templates) {
 
    // **********************************************************
    // Now display the options editing screen
-
+   
+   $this->in_post = False;
+   $this->post_ID = 0;
    unset($templateOpts['Template']);
+   $settings = $this->getSettings();
    foreach ($Templates as $templateID => $templateDetails) {
       $templateOpts['ID']['Default'] = $templateID;
       $templateOpts['title']['Value'] = sprintf(__('<b>%s</b> - %s','amazon-link'), $templateID, (isset($templateDetails['Description'])?$templateDetails['Description']:''));
@@ -201,8 +204,8 @@ function alx_'.$slug.'_default_templates ($templates) {
          }
       }
 
-      $options = $this->getSettings();
-      unset($options['template']);
+
+      $options = array();
       $options['text1'] = 'User Text 1';
       $options['text2'] = 'User Text 2';
       $options['text3'] = 'User Text 3';
@@ -210,9 +213,9 @@ function alx_'.$slug.'_default_templates ($templates) {
       $options['text']  = 'Text Item';
 
       $options['template_type'] = isset($templateDetails['Type'])?$templateDetails['Type']:'Product';
-      $options['template_content'] = isset($templateDetails['Content'])?$templateDetails['Content']:'';
+      $options['template_content'] = htmlspecialchars_decode(isset($templateDetails['Content'])?$templateDetails['Content']:'');
 
-      $asins = explode(',',$options['template_asins']);
+      $asins = explode(',',$settings['template_asins']);
       if ( $templateDetails['Type'] == 'Multi' ) {
          $options['live'] = 0;
       } else if ( $templateDetails['Type'] == 'Product' ) {
@@ -222,9 +225,10 @@ function alx_'.$slug.'_default_templates ($templates) {
          $options['live'] = 0;
          $asins = array();
       }
-      $options['asin'] = $asins;
+      $options['asin'] = implode(',',$asins);
+
       if (empty($templateDetails['Preview_Off'])) {
-         $templateOpts['preview']['Value'] = $this->make_links($options). '<br style="clear:both"\>';
+         $templateOpts['preview']['Value'] = $this->shortcode_expand($options). '</br><br style="clear:both"\>';
       } else {
          $templateOpts['preview']['Value'] = '';
       }

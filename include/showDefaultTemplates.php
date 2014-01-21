@@ -33,6 +33,9 @@
    // **********************************************************
    // Now display the options editing screen
    unset($templateOpts['Template']);
+   $this->in_post = False;
+   $this->post_ID = 0;
+   $settings=$this->getSettings();
    foreach ($default_templates as $templateID => $templateDetails) {
       $templateOpts['ID']['Default'] = $templateID;
       $templateOpts['title']['Section_Class'] = 'al_subhead';
@@ -45,7 +48,7 @@
       $templateOpts['title']['Value'] = sprintf(__('<b>%s</b> - %s','amazon-link'), $templateID, $templateDetails['Description'] . ' (Version ' . $templateDetails['Version'] .')');
 
       if (!$templateDetails['Preview_Off']) {
-         $options = $this->getSettings();
+         $options = array();
          unset($options['template']);
          $options['text1'] = 'User Text 1';
          $options['text2'] = 'User Text 2';
@@ -53,9 +56,9 @@
          $options['text4'] = 'User Text 4';
          $options['text']  = 'Text Item';
          $options['template_type'] = $templateDetails['Type'];
-         $options['template_content'] = $templateDetails['Content'];
+         $options['template_content'] = htmlspecialchars_decode($templateDetails['Content']);
 
-         $asins = explode(',',$options['template_asins']);
+         $asins = explode(',',$settings['template_asins']);
          if ( $templateDetails['Type'] == 'Multi' ) {
             $options['live'] = 0;
          } else if ( $templateDetails['Type'] == 'Product' ) {
@@ -65,8 +68,9 @@
             $options['live'] = 0;
             $asins = array();
          }
-         $options['asin'] = $asins;
-         $templateOpts['preview']['Value'] = $this->make_links($options). '<br style="clear:both"\>';
+         $options['asin'] = implode(',',$asins);
+
+         $templateOpts['preview']['Value'] = $this->shortcode_expand($options) . '</br><br style="clear:both"\>';
       } else {
          $templateOpts['preview']['Value'] = '';
       }

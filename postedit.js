@@ -138,7 +138,7 @@ wpAmazonLinkAdmin.prototype = {
         var template = new String(this['shortcode']);
         var $this = this;
         jQuery.each(this['options'], function(name, value){
-         $this['options'][name] = value.replace(/"/g,'%22').replace(/\[/g, '&#91;').replace(/>/g,'%3E').replace(/&/g, '%26');
+         $this['options'][name] = value.replace(/"/g,'%22').replace(/\[/g, '%5B').replace(/\]/g, '%5D').replace(/>/g,'%3E').replace(/&/g, '%26');
         });
 
         args = this.generateArgs('');
@@ -193,7 +193,7 @@ wpAmazonLinkAdmin.prototype = {
         $this['template_user_keywords'] = jQuery(f).find('#amazonLinkID input[name="template_user_keywords"]').val();
         $this['template_live_keywords'] = jQuery(f).find('#amazonLinkID input[name="template_live_keywords"]').val();
         $this['template_keywords']      = jQuery(f).find('input[name="T_' + $this['options']['template'] + '"]').val();
-        $this['template_content']       = jQuery(f).find('input[name="TC_' + $this['options']['template'] + '"]').val();
+        $this['template_content']       = unescape(jQuery(f).find('input[name="TC_' + $this['options']['template'] + '"]').val());
        if ($this['template_user_keywords'] != undefined) {
            this['keywords'] = $this['template_user_keywords'].concat(',',$this['template_live_keywords']).split(',');
         }

@@ -53,11 +53,6 @@
  *    - %LINK_CLOSE%   - Must follow a LINK_OPEN (translates to '</a>').
  */
 
-define('KEYWORD',1);
-define('CC',2);
-define('ESCAPE',3);
-define('INDEX',4);
-
 if (!class_exists('AmazonLinkSearch')) {
    class AmazonLinkSearch {
 
@@ -105,14 +100,16 @@ if (!class_exists('AmazonLinkSearch')) {
          $Opts['localise'] = 0;
          $Opts['live'] = 1;
          $Opts['skip_slow'] = 1;
-         $Settings = array_merge($this->alink->getSettings(), $Opts);
+         $this->alink->parse_shortcode($Opts);
+         $Settings = $this->alink->settings;
 
-         if ( empty($Settings['s_title']) && empty($Settings['s_author']) ) {
-            $Items = $this->alink->cached_query($Settings['asin'], $Settings);
+         $cc = $Settings['local_cc'];
+         if ( empty($Settings[$cc]['s_title']) && empty($Settings[$cc]['s_author']) ) {
+            $Items = $this->alink->cached_query($Settings['asin'][0][$cc], $Settings[$cc]);
          } else {
-            $Settings['found'] = 1;
-            if (!empty($Settings['translate']) && !empty($Opts['s_title_trans'])) $Opts['s_title'] = $Opts['s_title_trans'];
-            $Items = $this->do_search($Settings);
+            $Settings[$cc]['found'] = 1;
+            if (!empty($Settings[$cc]['translate']) && !empty($Opts['s_title_trans'])) $Opts['s_title'] = $Opts['s_title_trans'];
+            $Items = $this->do_search($Settings[$cc]);
          }
 
          $results['message'] = 'No Error ';
@@ -121,10 +118,13 @@ if (!class_exists('AmazonLinkSearch')) {
             $results['message'] = 'Error: ' . (isset($Items['Error']['Message']) ? $Items['Error']['Message'] : 'No Error Message');
          } else if (is_array($Items) && (count($Items) >0)) {
             foreach($Items as $item) {
-               $item = array_merge($Settings,$item);
-               $results['items'][]['template'] = $this->parse_template($item);
+               $details = $Settings;
+               $details[$cc] = array_merge($item, $Settings[$cc]);
+               $details['asin'] = array( $cc => $Settings[$cc]['asin']);
+               $results['items'][]['template'] = $this->alink->parse_template($details);
             }
             $results['success'] = 1;
+            $results['message'] = '';
          }
 
          print json_encode($results);
@@ -303,22 +303,15 @@ if (!class_exists('AmazonLinkSearch')) {
 
       function grab_image ($ASIN, $post_id = 0) {
 
-         $ASIN = strtoupper($ASIN);
-
-         $settings = $this->alink->getSettings();
-         $data = $this->alink->cached_query($ASIN,NULL,True);
-
          if ( ! ( ( $uploads = wp_upload_dir() ) && false === $uploads['error'] ) )
             return new WP_Error($uploads['error']);
 
-         $filename = $ASIN. '.JPG';
-         $filename = '/' . wp_unique_filename( $uploads['path'], basename($filename));
-         $filename_full = $uploads['path'] . $filename;
+         $ASIN = strtoupper($ASIN);
 
-         $data['template_content'] = '%IMAGE%';
-         $data = array_merge($settings,$data);
-         $image_url = $this->parse_template($data);
-         
+
+         $settings = $this->alink->getSettings();
+         $data = $this->alink->cached_query($ASIN,$settings,True);
+         $image_url = $this->alink->shortcode_expand(array('asin'=>$ASIN, 'template_content'=>'%IMAGE%'));
          if (empty($image_url)) return new WP_Error(__('No Images Found for this ASIN', 'amazon-link'));
 
          $result = wp_remote_get($image_url);
@@ -326,6 +319,9 @@ if (!class_exists('AmazonLinkSearch')) {
             return $result; //new WP_Error(__('Could not retrieve remote image file','amazon-link'));
 
          // Save file to media library
+         $filename = $ASIN. '.JPG';
+         $filename = '/' . wp_unique_filename( $uploads['path'], basename($filename));
+         $filename_full = $uploads['path'] . $filename;
          $content = $result['body'];
          $size = file_put_contents ($filename_full, $content);
 

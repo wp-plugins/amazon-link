@@ -4,9 +4,10 @@
 /*
  * User Channel Option Panel Processing
  *
+ * Move User Channels into main Channel database (13/1/2014)
  */
-   $channel = $this->get_user_options($user->ID);
-   
+   $channels = $this->get_channels();
+   $channel  = !empty($channels['al_user_' . $user->ID]) ? $channels['al_user_' . $user->ID] : array();
    $channel_opts = $this->get_user_option_list();
 
 /*****************************************************************************************/
