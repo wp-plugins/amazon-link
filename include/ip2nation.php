@@ -38,7 +38,7 @@ if (!class_exists('AmazonWishlist_ip2nation')) {
             $uninstall = False;
          }
 
-         $result = wp_remote_head($this->remote_file, array('timeout' => 5));
+         $result = wp_remote_head($this->remote_file, array('timeout' => 1));
          if (is_wp_error($result))
          {
             $ip2nationfile_ts = False;

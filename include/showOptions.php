@@ -5,7 +5,7 @@
  * Admin Panel Processing
  *
  */
-   $Opts       = $this->getOptions();
+   $Opts       = $this->get_default_settings();
    $optionList = $this->get_option_list();
 
 /*****************************************************************************************/

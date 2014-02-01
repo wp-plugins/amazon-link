@@ -30,162 +30,150 @@
  * The values of the form input items are used to control the search, 'title', 'author' are used as search terms,
  * 'index' should be a valid amazon search index (e.g. Books). 'page' should be used to set which page of the results
  * is to be displayed.
- * 'template' can be used to get the search engine to populate a predefined html template with values - this should be htmlencoded.
- * the following terms are replaced with values relevant to the search results:
- *    - %ASIN%         - Item's unique ASIN
- *    - %TITLE%        - Item't Title
- *    - %TEXT1%        - User Defined Text string
- *    - %TEXT2%        - User Defined Text string
- *    - %TEXT3%        - User Defined Text string
- *    - %TEXT4%        - User Defined Text string
- *    - %ARTIST%       - Item's Author, Artist or Creator
- *    - %MANUFACTURER% - Item's Manufacturer
- *    - %THUMB%        - URL to Thumbnail Image
- *    - %IMAGE%        - URL to Full size Image
- *    - %IMAGE_CLASS%  - Class of Image as defined in settings
- *    - %URL%          - The URL returned from the Item Search (not localised!)
- *    - %RANK%         - Amazon Rank
- *    - %RATING%       - Numeric User Rating - (No longer Available)
- *    - %PRICE%        - Price of Item
- *    - %TAG%          - Default Amazon Associate Tag (not localised!)
- *    - %DOWNLOADED%   - (1 if Images are in the local Wordpress media library)
- *    - %LINK_OPEN%    - Create a Amazon link with user defined content, of the form %LINK_OPEN%My Content%LINK_CLOSE%
- *    - %LINK_CLOSE%   - Must follow a LINK_OPEN (translates to '</a>').
+ * 'template' can be used to get the search engine to populate a predefined html template with values - this 
+ * should be htmlencoded, and use the same Keywords as used in the normal Templates.
  */
 
-if (!class_exists('AmazonLinkSearch')) {
+if ( ! class_exists( 'AmazonLinkSearch' ) ) {
    class AmazonLinkSearch {
 
       var $data = array();
 
       function __construct() {
-         $this->URLRoot = plugins_url("", __FILE__);
-         $this->base_name  = plugin_basename( __FILE__ );
-         $this->plugin_dir = dirname( $this->base_name );
       }
 
       /*
        * Must be called by the client in its init function.
        */
-      function init($parent) {
+      function init( $parent ) {
 
-         if (is_admin()) {
+         if ( is_admin() ) {
+
+            // Register the Search javascript
+            $script = plugins_url( "amazon-link-search.js", __FILE__ );
+            wp_register_script( 'amazon-link-search', $script, array( 'jquery' ), $parent->plugin_version );
+
             // AJAX callbacks need to be registered early during init.
-            $script = plugins_url("amazon-link-search.js", __FILE__);
-            wp_register_script('amazon-link-search', $script, array('jquery'), '1.0.0');
-            add_action('wp_ajax_amazon-link-search', array($this, 'performSearch'));      // Handle ajax search requests
-            add_action('wp_ajax_amazon-link-get-image', array($this, 'grabImage'));       // Handle ajax image download
-            add_action('wp_ajax_amazon-link-remove-image', array($this, 'removeImage'));  // Handle ajax image removal
+            add_action( 'wp_ajax_amazon-link-search', array( $this, 'perform_search' ) );      // Handle ajax search requests
+            add_action( 'wp_ajax_amazon-link-get-image', array( $this, 'get_image' ) );        // Handle ajax image download
+            add_action( 'wp_ajax_amazon-link-remove-image', array( $this, 'remove_image' ) );  // Handle ajax image removal
          }
          
-         $settings = $parent->getSettings();
-         if (!empty($settings['media_library'])) {
+         $settings = $parent->get_default_settings();
+         if ( ! empty( $settings['media_library'] ) ) {
             // Standard Image Filter
-            add_filter('amazon_link_template_get_image', array($this, 'get_images_filter'), 12, 6);
-            add_filter('amazon_link_template_get_thumb', array($this, 'get_images_filter'), 12, 6);
+            add_filter( 'amazon_link_template_get_image', array( $this, 'get_images_filter' ), 12, 6 );
+            add_filter( 'amazon_link_template_get_thumb', array( $this, 'get_images_filter' ), 12, 6 );
          }
 
-         $this->alink    = $parent;
+         $this->alink = $parent;
       }
 
-/*****************************************************************************************/
+      /*****************************************************************************************/
       /// AJAX Call Handlers
-/*****************************************************************************************/
 
-      function performSearch($Opts='') {
+      function perform_search() {
          
-         if (!is_array($Opts)) $Opts = $_POST;
+         $opts = $_POST;
 
-         $Opts['multi_cc'] = '0';
-         $Opts['localise'] = 0;
-         $Opts['live'] = 1;
-         $Opts['skip_slow'] = 1;
-         $this->alink->parse_shortcode($Opts);
-         $Settings = $this->alink->settings;
+         $opts['multi_cc'] = 0;
+         $opts['localise'] = 0;
+         $opts['live'] = 1;
+         $opts['skip_slow'] = 1;
+         $Settings = $this->alink->parse_shortcode($opts);
 
          $cc = $Settings['local_cc'];
-         if ( empty($Settings[$cc]['s_title']) && empty($Settings[$cc]['s_author']) ) {
-            $Items = $this->alink->cached_query($Settings['asin'][0][$cc], $Settings[$cc]);
+         if ( ! empty( $Settings[$cc]['translate'] ) && ! empty( $Settings[$cc]['s_title_trans'] ) ) {
+            $Settings[$cc]['s_title'] = $Settings[$cc]['s_title_trans'];
+         }
+         
+         if ( empty( $Settings[$cc]['s_title'] ) && empty( $Settings[$cc]['s_author'] ) ) {
+            $Items = $this->alink->cached_query( $Settings['asin'][0][$cc], $Settings[$cc] );
          } else {
             $Settings[$cc]['found'] = 1;
-            if (!empty($Settings[$cc]['translate']) && !empty($Opts['s_title_trans'])) $Opts['s_title'] = $Opts['s_title_trans'];
-            $Items = $this->do_search($Settings[$cc]);
+            $Items = $this->do_search( $Settings[$cc] );
          }
 
          $results['message'] = 'No Error ';
          $results['success'] = 0;
-         if (isset($Items['Error'])) {
-            $results['message'] = 'Error: ' . (isset($Items['Error']['Message']) ? $Items['Error']['Message'] : 'No Error Message');
-         } else if (is_array($Items) && (count($Items) >0)) {
-            foreach($Items as $item) {
-               $details = $Settings;
-               $details[$cc] = array_merge($item, $Settings[$cc]);
-               $details['asin'] = array( $cc => $Settings[$cc]['asin']);
-               $results['items'][]['template'] = $this->alink->parse_template($details);
+         if ( isset( $Items['Error'] ) ) {
+            
+            // Query Failed, report Error Message
+            $results['message'] = 'Error: ' . ( isset( $Items['Error']['Message'] ) ? $Items['Error']['Message'] : 'No Error Message' );
+            
+         } else if ( is_array( $Items ) && ( count( $Items ) > 0 ) ) {
+            
+            // Query successful output results using template
+            $details = $Settings;
+            foreach( $Items as $item ) {
+               $details[$cc] = array_merge( $item, $Settings[$cc] );
+               $details['asin'] = array( $cc => $item['asin'] );
+               $results['items'][]['template'] = $this->alink->parse_template( $details );
             }
             $results['success'] = 1;
             $results['message'] = '';
          }
 
-         print json_encode($results);
+         print json_encode( $results );
          exit();
       }
 
-      function removeImage() {
-         $Opts = $_POST;
+      function remove_image() {
+         
+         $opts = $_POST;
 
          /* Do we have this image? */
-         $media_ids = $this->find_attachments( $Opts['asin'] );
+         $media_ids = $this->find_attachments( $opts['asin'] );
 
-         if (is_wp_error($media_ids)) {
-            $results = array('in_library' => false, 'asin' => $Opts['asin'], 'error' => __('No matching image found', 'amazon-link'));
+         if ( is_wp_error( $media_ids ) ) {
+            $results = array( 'in_library' => false, 'asin' => $opts['asin'], 'error' => __( 'No matching image found', 'amazon-link' ) );
          } else {
 
-            $results = array('in_library' => false, 'asin' => $Opts['asin'], 'error' => __('Images deleted','amazon-link'));
+            $results = array( 'in_library' => false, 'asin' => $opts['asin'], 'error' => __( 'Images deleted','amazon-link' ) );
 
             /* Only remove images attached to this post */
-            foreach ($media_ids as $id => $media_id) {
-               if ($media_id->post_parent == $Opts['post']) {
+            foreach ( $media_ids as $id => $media_id ) {
+               if ( $media_id->post_parent == $opts['post'] ) {
                   /* Remove attachment */
-                  wp_delete_attachment($media_id->ID);
+                  wp_delete_attachment( $media_id->ID );
                } else {
                   $results['in_library'] = true;
                   $results['id'] = $media_id->ID;
                }
             }
          }
-         print json_encode($results);
+
+         print json_encode( $results );
          exit();         
       }
 
-      function grabImage() {
-         $Opts = $_POST;
+      function get_image() {
+         
+         $opts = $_POST;
 
          /* Do not upload if we already have this image */
-         $media_ids = $this->find_attachments( $Opts['asin'] );
+         $media_ids = $this->find_attachments( $opts['asin'] );
 
-         if (!is_wp_error($media_ids)) {
-            $results = array('in_library' => true, 'asin' => $Opts['asin'], 'id' => $media_ids[0]->ID);
+         if ( ! is_wp_error( $media_ids ) ) {
+            $results = array( 'in_library' => true, 'asin' => $opts['asin'], 'id' => $media_ids[0]->ID );
          } else {
 
             /* Attempt to download the image */
-            $result = $this->grab_image($Opts['asin'], $Opts['post']);
-            if (is_wp_error($result))
+            $result = $this->grab_image( $opts['asin'], $opts['post'] );
+            if ( is_wp_error( $result ) )
             {
-               $results = array('in_library' => false, 'asin' => $Opts['asin'], 'error' => $result->get_error_code());
+               $results = array( 'in_library' => false, 'success' => 0, 'asin' => $opts['asin'], 'error' => $result->get_error_code());
             } else {
-               $results = array('in_library' => true, 'asin' => $Opts['asin'], 'id' => $result);
+               $results = array( 'in_library' => true, 'asin' => $opts['asin'], 'id' => $result);
             }
          }
+         
          print json_encode($results);
          exit();         
       }
 
-
-/*****************************************************************************************/
+      /*****************************************************************************************/
       /// Helper Functions
-/*****************************************************************************************/
-
 
       function get_aws_info() {
 
@@ -226,7 +214,7 @@ if (!class_exists('AmazonLinkSearch')) {
          return array('SearchIndexByLocale' => $search_index_by_locale);
       }
 
-      function create_search_query($Settings) {
+      function create_search_query( $Settings ) {
          
          // Not working: Baby, MusicalInstruments
          $Creator = array( 'Author' => array( 'Books', 'ForeignBooks', 'MobileApps', 'MP3Downloads'),
@@ -276,10 +264,10 @@ if (!class_exists('AmazonLinkSearch')) {
          return $request;
       }
             
-      function do_search($Settings) {
+      function do_search( $settings ) {
          
-         $request = $this->create_search_query($Settings);
-         $items = $this->alink->cached_query($request, $Settings);
+         $request = $this->create_search_query( $settings );
+         $items = $this->alink->cached_query( $request, $settings );
 
          return $items;
       }
@@ -287,39 +275,40 @@ if (!class_exists('AmazonLinkSearch')) {
 
 /*****************************************************************************************/
 
-      function find_attachments ($asin) {
+      function find_attachments ( $asin ) {
 
          // Do we already have a local image ? 
          $args = array( 'post_type' => 'attachment', 'numberposts' => -1, 'post_status' => 'all', 'suppress_filters' => true,
-                        'meta_query' => array(array('key' => 'amazon-link-ASIN', 'value' => $asin)));
+                        'meta_query' => array( array( 'key' => 'amazon-link-ASIN', 'value' => $asin ) ) );
          $query = new WP_Query( $args );
          $media_ids = $query->posts;
-         if ($media_ids) {
+         if ( $media_ids ) {
             return $media_ids;
          } else {
-            return new WP_Error(__('No images found','amazon-link'));
+            return new WP_Error( __('No images found','amazon-link') );
          }
       }
 
-      function grab_image ($ASIN, $post_id = 0) {
+      function grab_image ( $asin, $post_id = 0) {
 
          if ( ! ( ( $uploads = wp_upload_dir() ) && false === $uploads['error'] ) )
-            return new WP_Error($uploads['error']);
+            return new WP_Error( $uploads['error'] );
 
-         $ASIN = strtoupper($ASIN);
+         $asin = strtoupper($asin);
 
-
-         $settings = $this->alink->getSettings();
-         $data = $this->alink->cached_query($ASIN,$settings,True);
-         $image_url = $this->alink->shortcode_expand(array('asin'=>$ASIN, 'template_content'=>'%IMAGE%'));
+         $settings = $this->alink->get_default_settings();
+         $data = $this->alink->cached_query( $asin, $settings, True );
+         $data['asin'] = $asin;
+         $data['template_content'] = '%IMAGE%';
+         $image_url = $this->alink->shortcode_expand( $data );
          if (empty($image_url)) return new WP_Error(__('No Images Found for this ASIN', 'amazon-link'));
 
-         $result = wp_remote_get($image_url);
+         $result = wp_remote_get( $image_url );
          if (is_wp_error($result))
             return $result; //new WP_Error(__('Could not retrieve remote image file','amazon-link'));
 
          // Save file to media library
-         $filename = $ASIN. '.JPG';
+         $filename = $asin. '.JPG';
          $filename = '/' . wp_unique_filename( $uploads['path'], basename($filename));
          $filename_full = $uploads['path'] . $filename;
          $content = $result['body'];
@@ -338,7 +327,7 @@ if (!class_exists('AmazonLinkSearch')) {
             $attach_id = wp_insert_attachment( $attachment, $filename_full, $post_id);
             // you must first include the image.php file
             // for the function wp_generate_attachment_metadata() to work
-            update_post_meta($attach_id , 'amazon-link-ASIN', $ASIN);
+            update_post_meta($attach_id , 'amazon-link-ASIN', $asin);
             require_once(ABSPATH . "wp-admin" . '/includes/image.php');
             $attach_data = wp_generate_attachment_metadata( $attach_id, $filename_full );
             wp_update_attachment_metadata( $attach_id,  $attach_data );

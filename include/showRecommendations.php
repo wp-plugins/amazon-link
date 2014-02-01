@@ -1,16 +1,16 @@
 <?php
 
-   $cc = $this->settings['local_cc'];
+   $cc = $settings['local_cc'];
 
    // Search Query
-   if (!empty($this->settings[$cc]['s_index'])) {
+   if (!empty($settings[$cc]['s_index'])) {
       if (empty($this->search)) {
          include ('amazonSearch.php');
          $this->search = new AmazonLinkSearch;
       }
-      $request = $this->search->create_search_query($this->settings[$cc]);
+      $request = $this->search->create_search_query($settings[$cc]);
       $request['ResponseGroup'] = 'ItemAttributes';
-      $pxml = $this->doQuery($request);
+      $pxml = $this->doQuery( $request, $settings[$cc] );
       if (!empty($pxml['Items']['Item']))
       {
          $Items=$pxml['Items']['Item'];
@@ -18,7 +18,7 @@
             $Items = array('0'=> $Items);
          }
       } else {
-         $output .= '<!--' . __('Amazon query failed to return any results - Have you configured the AWS settings?', 'amazon-link').'-->';
+         $output  = '<!--' . __('Amazon query failed to return any results - Have you configured the AWS settings?', 'amazon-link').'-->';
          $output .= '<!-- '. print_r($request, true) . '-->';
          $Items=array();
       }
@@ -28,30 +28,30 @@
          $ASINs[] = array( $cc => $Details['ASIN']);
       $saved_tags = $this->tags;
       $this->tags = $ASINs;
-      $this->settings[$cc]['wishlist_type'] = 'multi';
+      $settings[$cc]['wishlist_type'] = 'multi';
+      // Force to non-localised as the search results are from this locale not the default one
+      $settings[$cc]['default_cc'] = $cc;
+      $settings[$cc]['home_cc'] = $cc;
 
    // If using local tags then just process the ones on this page otherwise search categories.
-   } else if (strcasecmp($this->settings[$cc]['cat'], 'local') != 0) {
+   } else if (strcasecmp($settings[$cc]['cat'], 'local') != 0) {
       // First process all post content for the selected categories
       $content = '';
       $get_posts = new WP_Query;
-      if (preg_match('!^[0-9,]*$!', $this->settings[$cc]['cat'])) {
-         $lastposts = $get_posts->query(array('numberposts'=>$this->settings[$cc]['last'], 'cat'=> $this->settings[$cc]['cat']));
+      if (preg_match('!^[0-9,]*$!', $settings[$cc]['cat'])) {
+         $lastposts = $get_posts->query(array('numberposts'=>$settings[$cc]['last'], 'cat'=> $settings[$cc]['cat']));
       } else {
-         $lastposts = $get_posts->query(array('numberposts'=>$this->settings[$cc]['last'], 'category_name' => $this->settings[$cc]['cat']));
+         $lastposts = $get_posts->query(array('numberposts'=>$settings[$cc]['last'], 'category_name' => $settings[$cc]['cat']));
       }
       foreach ($lastposts as $id => $post) {
          $content .= $post->post_content;
       }
       unset($lastposts);
       $saved_tags = $this->tags;
-      $settings = $this->settings;
       $this->tags = array();
       $this->content_filter($content, FALSE);
       unset($content);
-      $this->settings = $settings;                   // Reset settings as content filter will overwrite them
-      $this->Settings = &$this->settings['global'];
-      unset($settings);
+      $this->Settings = &$settings['global'];
 
    }
 
@@ -60,7 +60,7 @@
    if ((count($this->tags) != 0) && is_array($this->tags))
    {
       $output .= '<div class="amazon_container">';
-      if (strcasecmp($this->settings[$cc]['wishlist_type'],'similar') == 0) {
+      if (strcasecmp($settings[$cc]['wishlist_type'],'similar') == 0) {
  
          $request = array("Operation" => "CartCreate",
                           "MergeCart" => "True",
@@ -73,7 +73,7 @@
 
          foreach ($this->tags as $asins)
          {
-             $asin = isset($asins[$cc]) ? $asins[$cc] : (isset($asins[$this->settings['default_cc']]) ? $asins[$this->settings['default_cc']] : '');
+             $asin = isset($asins[$cc]) ? $asins[$cc] : (isset($asins[$settings['default_cc']]) ? $asins[$settings['default_cc']] : '');
 
              if ((strlen($asin) > 8) && !in_array($asin,$unique_asins)) {
                 $request["Item." . $counter . ".ASIN"] = $asin;
@@ -83,7 +83,7 @@
              }
          }
 
-         $pxml = $this->doQuery($request);
+         $pxml = $this->doQuery( $request, $settings[$cc] );
          if (!empty($pxml['Cart']['SimilarProducts']['SimilarProduct']))
          {
             $Items=$pxml['Cart']['SimilarProducts']['SimilarProduct'];
@@ -101,15 +101,15 @@
             $ASINs[] = $Details['ASIN'];
 
       } else {
-         if (strcasecmp($this->settings[$cc]['wishlist_type'],'random') == 0) {
+         if (strcasecmp($settings[$cc]['wishlist_type'],'random') == 0) {
             shuffle($this->tags);
             $ASINs = $this->tags;
-         } else if (strcasecmp($this->settings[$cc]['wishlist_type'],'multi') == 0) {
+         } else if (strcasecmp($settings[$cc]['wishlist_type'],'multi') == 0) {
             $ASINs = $this->tags;
          }
          $unique_asins = array();
          for ($index=0; $index < count($ASINs); $index++) {
-            $asin = isset($ASINs[$index][$cc]) ? $ASINs[$index][$cc] : (isset($ASINs[$index][$this->settings['default_cc']]) ? $ASINs[$index][$this->settings['default_cc']] : '');
+            $asin = isset($ASINs[$index][$cc]) ? $ASINs[$index][$cc] : (isset($ASINs[$index][$settings['default_cc']]) ? $ASINs[$index][$settings['default_cc']] : '');
             if (in_array($asin, $unique_asins)) {
                unset($ASINs[$index]);
             } else {
@@ -119,18 +119,18 @@
       }
       
       if ( is_array($ASINs) && !empty($ASINs)) {
-         $this->settings[$cc]['live'] = 1;
-         $this->settings['asin'] = array_slice($ASINs,0,$this->settings[$cc]['wishlist_items']);
+         $settings[$cc]['live'] = 1;
+         $settings['asin'] = array_slice($ASINs,0,$settings[$cc]['wishlist_items']);
 
-         if (!isset($this->settings[$cc]['template'])) $this->settings[$cc]['template'] = $this->settings[$cc]['wishlist_template'];
+         if (!isset($settings[$cc]['template'])) $settings[$cc]['template'] = $settings[$cc]['wishlist_template'];
 
-         $output .= $this->make_links($this->settings);
+         $output .= $this->make_links($settings);
 
       }
       $output .= "</div>";
 
    } else {
-      $output .= "<!--". sprintf(__('No [amazon] tags found in the last %1$s posts in categories %2$s', 'amazon-link'), $this->settings[$cc]['last'], $this->settings[$cc]['cat']). "--!>";
+      $output .= "<!--". sprintf(__('No [amazon] tags found in the last %1$s posts in categories %2$s', 'amazon-link'), $settings[$cc]['last'], $settings[$cc]['cat']). "--!>";
    }
    if (isset($saved_tags)) {
       $this->tags = $saved_tags;

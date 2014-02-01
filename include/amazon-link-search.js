@@ -14,13 +14,13 @@ wpAmazonLinkSearcher.prototype = {
 
     incPage : function(event) {
       var page = jQuery(event).find("#amazon-link-search[name='s_page']");
-	if( !this['sendingAmazonRequest'] ) {
+   if( !this['sendingAmazonRequest'] ) {
           this.searchAmazon(event,parseInt(jQuery(page).val())+1);
         }
     },
 
     decPage : function(event) {
-	if( !this['sendingAmazonRequest'] ) {
+   if( !this['sendingAmazonRequest'] ) {
           var page = jQuery(event).find("#amazon-link-search[name='s_page']");
           var p = parseInt(jQuery(page).val())-1;
           this.searchAmazon(event,p);
@@ -45,7 +45,7 @@ wpAmazonLinkSearcher.prototype = {
         jQuery('#upload-button-'+options['asin']).attr("disabled", true);
         jQuery('#upload-progress-'+options['asin']).removeClass('ajax-feedback');
         jQuery.post('admin-ajax.php', $ths['options'] , $ths.mediaDone, 'json');
-	}
+   }
    },
 
    removeMedia: function(event, options) {
@@ -62,7 +62,7 @@ wpAmazonLinkSearcher.prototype = {
         jQuery('#uploaded-button-'+options['asin']).attr("disabled", true);
         jQuery('#upload-progress-'+options['asin']).removeClass('ajax-feedback');
         jQuery.post('admin-ajax.php', $ths['options'] , $ths.mediaDone, 'json');
-	}
+   }
    },
 
    mediaDone: function (response, status){
@@ -81,6 +81,12 @@ wpAmazonLinkSearcher.prototype = {
          jQuery('#uploaded-button-'+response['asin']).attr("disabled", false);
          jQuery('#uploaded-button-'+response['asin']).removeClass('al_show-0');
       }
+      if( response["success"] == 0 ) {
+         jQuery('#amazon-link-error').show();
+         jQuery('#amazon-link-error').text((response['error']));
+      } else {
+         jQuery('#amazon-link-error').hide();
+      }
    },
 
    searchAmazon : function(event, page) {
@@ -88,7 +94,7 @@ wpAmazonLinkSearcher.prototype = {
         var $ths = this;
         page = (page ? page : 1);
         jQuery(event).find("#amazon-link-search[name='s_page']").val(page);
-	if( !this['sendingAmazonRequest'] ) {
+   if( !this['sendingAmazonRequest'] ) {
            this['sendingAmazonRequest'] = true;
            collection.each(function () {
               if (this.type == 'checkbox') {
@@ -105,7 +111,7 @@ wpAmazonLinkSearcher.prototype = {
            jQuery('#amazon-link-results').show();
            jQuery('#amazon-link-status').removeClass('ajax-feedback');
            jQuery.post('admin-ajax.php', $ths['search_options'] , $ths.showResults, 'json');
-	}
+   }
    },
 
    showResults : function (response, status){

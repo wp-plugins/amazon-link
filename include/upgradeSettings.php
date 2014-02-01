@@ -1,7 +1,8 @@
 <?php
 
-// Options structure changed so need to update the 'version' option and upgrade as appropriate...
-
+ // Options structure changed so need to update the 'version' option and upgrade as appropriate...
+ $Opts = get_option(self::optionName, array());
+   
 /*
  * Move from version 1.2 to 1.3 of the plugin (Option Version Null => 1)
  */
