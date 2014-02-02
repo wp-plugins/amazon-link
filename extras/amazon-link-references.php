@@ -4,7 +4,7 @@
 Plugin Name: Amazon Link Extra - References
 Plugin URI: http://www.houseindorset.co.uk/plugins/amazon-link/
 Description: !!!BETA!!! This plugin adds the ability to pre-define shortcodes and save them in the database with a unique reference that can be re-used many times across your site from within multiple shortcodes, updating the single item in the database will change all the links that use that reference. Create the named reference on the 'Reference' settings page and then in the shortcode simply add the argument 'ref=XXX'
-Version: 1.3.6
+Version: 1.3.7
 Author: Paul Stuttard
 Author URI: http://www.houseindorset.co.uk
 */
@@ -193,11 +193,14 @@ function alx_reference_show_panel ($post, $args) {
    /*
     * Display the preview
     */
-   $opts['shortcode'] .= '&live=1';
-   $settings = $ths->parseArgs($opts['shortcode']);
-
-   echo $ths->make_links($settings['asin'], $settings['text'], $settings);
-   $ths->footer_scripts();
+   if (!empty($opts['shortcode'])) {
+      $opts['shortcode'] .= '&live=1';
+      //$settings = $ths->parseArgs($opts['shortcode']);
+      $ths->in_post = 0;
+      $ths->post_ID = '';
+      echo $ths->shortcode_expand( array( 'args'=>$opts['shortcode'] ) );
+      $ths->footer_scripts();
+   }
 }
 
 /*
@@ -375,12 +378,11 @@ function alx_reference_options ($options) {
 function alx_reference_lookup ($args, $al) {
    global $wpdb;
    $refs_table = $wpdb->prefix . refs_table;
-   if (isset($args['ref'])) {
-      $sql = "SELECT * FROM $refs_table WHERE `ref` LIKE '".$args['ref']."';";
+   if ( ! empty ($args['global']['ref'])) {
+      $sql = "SELECT * FROM $refs_table WHERE `ref` LIKE '".$args['global']['ref']."';";
       $data = $wpdb->get_row($sql, ARRAY_A);
       if ($data) {
-         parse_str($data['shortcode'], $ref_args);
-         $args = array_merge($ref_args, $args);
+         $al->parse_str($data['shortcode'], $args);
       }
    }
    return $args;
@@ -398,7 +400,7 @@ function alx_reference_lookup ($args, $al) {
 add_filter('amazon_link_admin_menus', 'alx_reference_menus',12,2);
 add_filter('amazon_link_process_args', 'alx_reference_lookup',12,2);
 add_filter('amazon_link_keywords', 'alx_reference_keywords',12,1);
-add_filter('amazon_link_option_list', 'alx_reference_options',12,1);
+   //add_filter('amazon_link_option_list', 'alx_reference_options',12,1);
 add_filter('amazon_link_search_form', 'alx_reference_search_form',12,2);
 register_activation_hook( __FILE__, 'alx_reference_install');
 ?>

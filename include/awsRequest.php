@@ -1,27 +1,5 @@
 <?php
 
-if (!function_exists('unserialize_xml')) {
-
-   function unserialize_xml($input, $recurse = false)
-   /* bool/array unserialize_xml ( string $input )
-    * Unserializes an XML string, returning a multi-dimensional associative array, optionally runs a callback on all non-array data
-    * Returns false on all failure
-    * Notes:
-    *    Root XML tags are stripped
-    *    Due to its recursive nature, unserialize_xml() will also support SimpleXMLElement objects and arrays as input
-    *    Uses simplexml_load_string() for XML parsing, see SimpleXML documentation for more info
-    */
-   {
-       // Get input, loading an xml string with simplexml if its the top level of recursion
-       $data = ((!$recurse) && is_string($input))? simplexml_load_string($input, 'SimpleXMLElement', LIBXML_NOWARNING | LIBXML_NOERROR): $input;
-
-       // Convert SimpleXMLElements to array
-       if ($data instanceof SimpleXMLElement) $data = (array) $data;
-
-       // Remove local recursion and use encode/decode method
-       return json_decode(json_encode($data), 1);
-   }
-}
     /*
     Copyright (c) 2009 Ulrich Mierendorff
 
@@ -52,7 +30,6 @@ if (!function_exists('unserialize_xml')) {
         $public_key - your "Access Key ID"
         $private_key - your "Secret Access Key"
     */
-    if ($region == 'jp') $region = 'co.jp';
 
     // some paramters
     $method = "GET";
@@ -97,24 +74,24 @@ if (!function_exists('unserialize_xml')) {
     $result = wp_remote_request( $request ); 
 //   echo "<!--RESP:"; print_r($result); echo "-->";
 
-
     if ($result instanceof WP_Error )
     {
         return False;
     }
     else
     {
-        $response=$result['body'];
-        // parse XML
-        $pxml = unserialize_xml($response);
-        if ($pxml === False)
-        {
-            return False; // no xml
-        }
-        else
-        {
- //  echo "<PRE>RESP:"; print_r($pxml); echo "</PRE>";
-            return $pxml;
-        }
+       $response=$result['body'];
+       // parse XML
+       $response = simplexml_load_string( $response, 'SimpleXMLElement', LIBXML_NOWARNING | LIBXML_NOERROR );
+       if ( $response === False )
+       {
+          return False; // no xml
+       }
+       else
+       {
+          $response = json_decode( json_encode( $response ), 1 );
+          //  echo "<PRE>RESP:"; print_r($response); echo "</PRE>";
+          return $response;
+       }
     }
 ?>

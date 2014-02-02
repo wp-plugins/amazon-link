@@ -3,8 +3,8 @@
 /*
 Plugin Name: Amazon Link Extra - Redirect
 Plugin URI: http://www.houseindorset.co.uk/plugins/amazon-link/
-Description: Adds the ability to redirect to any Amazon Link product using a URL of the format www.mydomain.com/go/&lt;ASIN>/&lt;LINK TYPE S,R or A>/&lt;Domain ca,cn,de, etc.>/?args. Note if using these type of links it is recommended that you clearly indicate on your site that the link is to Amazon otherwise you might be in breach of the terms and conditions of your associates account.
-Version: 1.2.1
+Description: Adds the ability to redirect to any Amazon Link product using a URL of the format www.mydomain.com/go/<ASIN>/<LINK TYPE S,R or A>/<Domain ca,cn,de, etc.>/?args. Note if using these type of links it is recommended that you clearly indicate on your site that the link is to Amazon otherwise you might be in breach of the terms and conditions of your associates account.
+Version: 1.2.4
 Author: Paul Stuttard
 Author URI: http://www.houseindorset.co.uk
 */
@@ -32,56 +32,66 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 function alx_redirect($settings, $al) {
 
-   $type_map = array ( 'A' => 'product', 'S' => 'search', 'R' => 'review');
-
+   $url = NULL;
    $uri = $_SERVER['REQUEST_URI'];
-   $match = preg_match( '!^/'.$settings['redirect_word'].'(?:/(?P<asin>[A-Z0-9]{10})|/(?P<ref>[^/]{2,}))?(?:/(?P<type>A|S|R))?(?:/(?P<default_cc>ca|cn|de|fr|it|es|jp|uk|us))?!', $uri, $args);
+   parse_url(home_url(),$url);
+   $match = preg_match( '!'.$url['path'].'/'.$settings['redirect_word'].'(?:/(?P<asin>[A-Z0-9]{10})|/(?P<ref>[^/]{2,}))?(?:/(?P<type>A|S|R))?(?:/(?P<default_cc>ca|cn|de|fr|it|es|jp|uk|us))?!', $uri, $args);
    if ( $match ) {
       $arg_position = strpos($uri,'?');
-      if ($arg_position > 0) $parameters = substr($uri,$arg_position+1);
-      $home_cc = $settings['default_cc'];
+      $opts = array();
+      if ($arg_position > 0) $opts['args'] = substr($uri,$arg_position+1);
 
       // Get all named args
-      $opts = array();
-      foreach ($args as $arg => $data)
+      foreach ($args as $arg => $data) {
          if (!is_int($arg) && !empty($data)) $opts[$arg] = $data;
+      }
 
       // Extract the Hard coded Type if set
-      $type = !empty($opts['type']) ? $opts['type'] : 'A';
-      $type = $type_map[$type];
+      $type = !empty($opts['type']) ? $opts['type'] : '';
+
       unset($opts['type']);
 
       // If hard coded to a specific locale then disable localisation
       if (isset($opts['default_cc'])) {
+         $asin = $opts['asin'];
+         unset($opts['asin']);
+         $opts['asin'] = $asin;
          $opts['localise']=0;
       }
 
-      // Convert to a shortcode args string
-      $settings = $sep = '';
-      foreach ($opts as $opt => $data) {
-         $settings .= $sep. $opt .'='. $data;
-         $sep = '&';
-      }
-      
-      $settings   = $al->parseArgs($settings.'&'. $parameters);
+      $opts['template_content'] = '%'.$type.'URL%';
 
-      $settings['asin'] = $settings['asin'][0];
-      $settings['template_content'] = $settings['search_text'];
-      $settings['home_cc'] = $home_cc;
-
-      $url = $al->get_url('',$type, $settings['asin'], rawurlencode($al->search->parse_template($settings)), $al->get_local_info($settings), $settings);
-//echo "<PRE>URL:"; print_r($url); echo "</PRE>";
-      if ($url) {
+      $url = $al->shortcode_expand($opts);
+      $url_bits = explode('?', $url, 2);
+      $url_bits[1] = str_replace(array(' ','|','\''), array('+','%7c','%27'), $url_bits[1]);
+      $url = $url_bits[0].'?'.$url_bits[1];
+      if (!empty($url)) {
          wp_redirect($url, '302');
          die();
       }
    }
 
    if ($settings['redirect_url']) {
-      add_filter('amazon_link_url', 'alx_redirect_url', 10, 7);
+      add_filter('amazon_link_multi_link_templates', 'alx_redirect_multi_link_templates',10,2);
    }
+   
+   if ($settings['redirect_shortcode']) {
+      add_filter('amazon_link_regex', 'alx_redirect_regex',10,2);
+      add_filter('amazon_link_shortcode_template', 'alx_redirect_shortcode_template',10,2);
+   }
+
 }
 
+function alx_redirect_multi_link_templates($templates, $al) {
+   
+   // TODO: Handle 'ref'
+   $settings = $al->getSettings();
+   $templates['A'] = get_option('home'). '/'. $settings['redirect_word']. '/%ARG%/%MANUAL_CC%/';
+   $templates['S'] = get_option('home'). '/'. $settings['redirect_word']. '/search/S/%MANUAL_CC%?search_text=%ARG%';
+   $templates['R'] = get_option('home'). '/'. $settings['redirect_word']. '/%ARG%/R/%MANUAL_CC%/';
+   return $templates;
+}
+   
 /*
  * Create a redirection style URL - OPTIONAL!
  */
@@ -95,10 +105,10 @@ function alx_redirect_url($url, $type, $asin, $search, $local_info, $settings, $
    } else if (!empty($asin[$local_info['cc']])) {
       // User Specified ASIN always use
       $asin = $asin[$local_info['cc']].'/';
-   } else if ($settings['search_link'] && ($type == 'product') && !empty($asin[$settings['home_cc']])) {
+   } else if ($settings['search_link'] && ($type == 'A') && !empty($asin[$settings['home_cc']])) {
 
       // User wants search links for non-local domains
-      $type = 'search';
+      $type = 'S';
       $asin = $asin[$settings['home_cc']].'/';
    } else if (empty($asin[$settings['home_cc']]) && !empty($settings['url'])){
       return $settings['url'][$local_info['cc']];
@@ -109,7 +119,7 @@ function alx_redirect_url($url, $type, $asin, $search, $local_info, $settings, $
    }
 
    // If search links are enabled then pass the search text as an argument
-   if (($type == 'search') || ($settings['search_link'] && ($options['search_text'] != $search))) {
+   if (($type == 'S') || ($settings['search_link'] && ($options['search_text'] != $search))) {
       $search = '?search_text='. $search;
    } else {
       $search = '';
@@ -119,11 +129,13 @@ function alx_redirect_url($url, $type, $asin, $search, $local_info, $settings, $
    if (!$settings['localise']) {
       $cc = $local_info['cc'] . '/';
       // For country specific links that aren't search links don't need this
-      if ($type != 'search') $search = '';
+      if ($type != 'S') $search = '';
+   } else {
+      $cc = '';
    }
 
-   $type_map = array( /*default: 'product' => 'A/',*/ 'search' => 'S/', 'review' => 'R/');
-   $text= get_option('home'). '/'. $settings['redirect_word']. '/'. $asin . $type_map[$type]. $cc . $search;
+   $type_map = array( 'product' => '', 'search' => 'S/', 'review' => 'R/');
+   $text= get_option('home'). '/'. $settings['redirect_word']. '/'. $asin . $type. '/' . $cc . $search;
    return $text;
 }
 
@@ -183,6 +195,11 @@ function alx_redirect_options ($options_list) {
                                             'Type' => 'checkbox',
                                             'Default' => '1',
                                             'Class' => 'al_border');
+   $options_list['redirect_shortcode'] = array ( 'Name' => __('Link Style Shortcode', 'amazon-link'),
+                                            'Description' => __('Amazon Links in Posts are of the form &lta href="/&ltREDIRECT WORD>/ASIN/...".', 'amazon-link'),
+                                            'Type' => 'checkbox',
+                                            'Default' => '0',
+                                            'Class' => 'al_border');
    return $options_list;
 }
 
@@ -192,14 +209,12 @@ function alx_redirect_options ($options_list) {
  * Modifies the following Functions:
  *  - On Init checks to see if the URI is a redirect link - if it is then redirect to Amazon (redirect)
  *    - [Optionally: When dynamically creating links on the Page generate them in the form <a href="/al/ASIN/..."> (redirect_url) ]
- *
- *  - Add two extra options to control the redirect links (redirect_options)
- *  - When processing the Content search for <a class="amazon-link" href="/al/ASIN/..."> to replace with amazon-link templates (redirect_regex)
- *  - On creating links using the Post/Page Edit helper, create links of the from <a class="amazon-link" href="/al/ASIN/..."> (shortcode_template)
+ *    - [Optionally: When processing the Content search for <a class="amazon-link" href="/al/ASIN/..."> to replace with amazon-link templates (redirect_regex)]
+ *    - [Optionally: On creating links using the Post/Page Edit helper, create links of the from <a class="amazon-link" href="/al/ASIN/..."> (shortcode_template)]
+ *  - Add three extra options to control the redirect links (redirect_options)
  */
 add_action('amazon_link_init', 'alx_redirect',12,2);
 add_filter('amazon_link_option_list', 'alx_redirect_options');
-add_filter('amazon_link_regex', 'alx_redirect_regex',10,2);
 add_filter('amazon_link_impexp_expressions', 'alx_redirect_impexp_expression',10,2);
-add_filter('amazon_link_shortcode_template', 'alx_redirect_shortcode_template',10,2);
+
 ?>

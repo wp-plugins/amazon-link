@@ -1,6 +1,45 @@
 <?php
 /*****************************************************************************************/
 
+
+   function export_templates($filename, $templates) {
+
+      $slug = str_replace('-', '_', sanitize_title(get_bloginfo()));
+      $content = '<?php
+/*
+Plugin Name: Amazon Link Extra - Exported Templates
+Plugin URI: http://www.houseindorset.co.uk/plugins/amazon-link/
+Description: Templates Exported from Amazon Link on ' . date("F j, Y, g:i a") . '
+Version: 1.0
+Author: Amazon Link User
+Author URI: ' . get_site_url() .'
+*/
+
+function alx_'.$slug.'_default_templates ($templates) {
+';
+      foreach($templates as $id => $data) {
+         if (!isset($data['Version'])) $data['Version'] = 1;
+         if (!isset($data['Notice'])) $data['Notice'] = 'New Template';
+         unset($data['nonce'], $data['nonce1'], $data['nonce2']);
+         $content .= " \$templates['$id'] = \n  array(";
+         foreach ($data as $item => $details) {
+            if ($item == 'Content') {
+               $content .= "   '$item' => htmlspecialchars (". var_export(htmlspecialchars_decode($details), true) . "),\n";
+            } else {
+               $content .= "   '$item' => ". var_export($details, true) . ",\n";
+            }
+         }
+         $content .= "  );\n";
+      }
+      $content .= "  return \$templates;\n}\nadd_filter( 'amazon_link_default_templates', 'alx_${slug}_default_templates');\n?>";
+      $result = file_put_contents( $filename, $content);
+      if ($result === FALSE) {
+         return array ( 'Success' => 0, 'Message' => "Export Failed could not write to: <em>$filename</em>" );
+      } else {
+         return array ( 'Success' => 1, 'Message' => "Templates exported to file: <em>$filename</em>, <em>$result</em> bytes written." );
+      }
+   }
+   
 /*
  * Template Panel Processing
  *
@@ -106,7 +145,7 @@
       $NotifyUpdate = True;
       $UpdateMessage = sprintf (__('Template "%s" overwritten with default version.','amazon-link'), $templateID);
    } else if (($Action == __('Export', 'amazon-link') )) {
-      $result= $this->export_templates($this->extras_dir . 'amazon-link-exported-templates.php');
+      $result= export_templates($this->extras_dir . 'amazon-link-exported-templates.php', $Templates);
       $NotifyUpdate = True;
       $UpdateMessage = $result['Message'];
    }
@@ -116,12 +155,12 @@
    /*
     * If first run need to create a default templates
     */
-   if(!isset($Templates['wishlist'])) {
+   if(count($Templates) == 0) {
       foreach ($default_templates as $templateName => $templateDetails) {
          if(!isset($Templates[$templateName])) {
             $Templates[$templateName] = $templateDetails;
             $NotifyUpdate = True;
-            $UpdateMessage = sprintf (__('Default Templates Created - Note: \'wishlist\' template must exist.','amazon-link'));
+            $UpdateMessage = sprintf (__('Default Templates Created - Must have at least one Template.','amazon-link'));
          }
       }
    }
@@ -147,8 +186,11 @@
 
    // **********************************************************
    // Now display the options editing screen
-
+   
+   $this->in_post = False;
+   $this->post_ID = 0;
    unset($templateOpts['Template']);
+   $settings = $this->getSettings();
    foreach ($Templates as $templateID => $templateDetails) {
       $templateOpts['ID']['Default'] = $templateID;
       $templateOpts['title']['Value'] = sprintf(__('<b>%s</b> - %s','amazon-link'), $templateID, (isset($templateDetails['Description'])?$templateDetails['Description']:''));
@@ -162,17 +204,18 @@
          }
       }
 
-      $options = $this->getSettings();
-      unset($options['template']);
+
+      $options = array();
       $options['text1'] = 'User Text 1';
       $options['text2'] = 'User Text 2';
       $options['text3'] = 'User Text 3';
       $options['text4'] = 'User Text 4';
+      $options['text']  = 'Text Item';
 
       $options['template_type'] = isset($templateDetails['Type'])?$templateDetails['Type']:'Product';
-      $options['template_content'] = isset($templateDetails['Content'])?$templateDetails['Content']:'';
+      $options['template_content'] = htmlspecialchars_decode(isset($templateDetails['Content'])?$templateDetails['Content']:'');
 
-      $asins = explode(',',$options['template_asins']);
+      $asins = explode(',',$settings['template_asins']);
       if ( $templateDetails['Type'] == 'Multi' ) {
          $options['live'] = 0;
       } else if ( $templateDetails['Type'] == 'Product' ) {
@@ -182,8 +225,10 @@
          $options['live'] = 0;
          $asins = array();
       }
+      $options['asin'] = implode(',',$asins);
+
       if (empty($templateDetails['Preview_Off'])) {
-         $templateOpts['preview']['Value'] = $this->make_links( $asins,'Text Item', $options). '<br style="clear:both"\>';
+         $templateOpts['preview']['Value'] = $this->shortcode_expand($options). '</br><br style="clear:both"\>';
       } else {
          $templateOpts['preview']['Value'] = '';
       }

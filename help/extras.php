@@ -209,10 +209,8 @@ If this template should not be previewed on the Options page, e.g. it is javascr
     'content' => '
 <p><strong>amazon_link_regex</strong> - Use this filter to change the regular expression that the plugin uses to find the Amazon Link shortcodes. See the <a href="/manual/en/book.pcre.php" title="PCRE Documenation">PHP documentation</a> on Regular Expressions for more info.</p>
 <p>The regular expression must return named items for the key elements of the \'shortcode\'. The default Regular Expression \'<code>/[amazon +(?&lt;args>(?:[^[]]*(?:[[a-z]*]){0,1})*)]/</code>\' returns the shortcode \'args\' as a named item.</p>
-<p>The following named items are currently processed by the plugin:</p>
+<p>All other named items are passed as extra arguments as if they are part of the shortcode:</p>
 <p><strong>args</strong> - The shortcode arguments in the form of setting=value&setting=value...</p>
-<p><strong>text</strong> - The text argument (can be overridden by the value returned in \'args\').</p>
-<p><strong>asin</strong> - The main ASIN for this link (can be overridden by the value returned in \'args\').</p>
 ',
   ),
   'link url filter' => 
@@ -224,10 +222,10 @@ If this template should not be previewed on the Options page, e.g. it is javascr
 <p><strong>amazon_link_url</strong> - Use this filter to change the way in which the actual Links to the Amazon pages are created.</p>
 <p>This filter is passed 6 arguments to help create the Links:</p>
 <p><strong>URL</strong> - The current URL to be used.</p>
-<p><strong>Type</strong> - The type of link required - \'product\', \'search\' or \'review\'.</p>
-<p><strong>ASIN</strong> - The product ASIN in the form of a country specific array e.g. (\'us\' => \'ASIN\', \'uk\' => \'ASIN2\', ...).</p>
-<p><strong>search</strong> - Search string to use if this is a search link.</p>
-<p><strong>Local Info</strong> - The Local Info Data Array containing localised data such as \'tld\', \'tag\', etc.</p>
+<p><strong>Type</strong> - The type of link required - \'A\' = product, \'S\' = search or \'R\' = review.</p>
+<p><strong>Data</strong> - The product datain the form of a country specific array e.g. (\'us\' => (\'ASIN\',\'Title\',...) \'uk\' => (\'ASIN\', \'Title\',...).</p>
+<p><strong>search [depreciated]</strong> - Search string to use if this is a search link.</p>
+<p><strong>Country</strong> - The Localised Country Code (\'us\', \'uk\', \'ca\', etc.)</p>
 <p><strong>settings</strong> - The Amazon Link settings incorporating any shortcode arguments.</p>
 ',
   ),

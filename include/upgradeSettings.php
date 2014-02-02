@@ -1,7 +1,8 @@
 <?php
 
-// Options structure changed so need to update the 'version' option and upgrade as appropriate...
-
+ // Options structure changed so need to update the 'version' option and upgrade as appropriate...
+ $Opts = get_option(self::optionName, array());
+   
 /*
  * Move from version 1.2 to 1.3 of the plugin (Option Version Null => 1)
  */
@@ -135,4 +136,30 @@ if ($Opts['version'] == 6) {
    $this->saveOptions($Opts);
 }
 
+/*
+ * Upgrade from 7 to 8:
+ * Move Channel Data from User Options into Main Channels Option
+ */
+if ($Opts['version'] == 8) {
+   // Save User Channel tags in global channel settings
+   $channels  = $this->get_channels();
+   $countries = array_keys($this->get_country_data());
+   $users = get_users(array('fields' => 'ID'));
+   foreach ($users as $user => $ID) {
+      $user_options = get_the_author_meta( 'amazonlinkoptions', $ID );
+      if (is_array($user_options)) {
+         $user_options = array_filter($user_options);
+         if (!empty($user_options)) {
+            $channels['al_user_' . $ID] = $user_options;
+            $channels['al_user_' . $ID]['user_channel'] = 1;
+         }
+         // Hold off removal from user options in case some users want to downgrade.
+         //update_usermeta( $ID, 'amazonlinkoptions',  NULL );
+      }
+   }
+   $this->save_channels($channels);
+   $Opts['version'] = 8;
+   $this->saveOptions($Opts);
+}
+   
 ?>

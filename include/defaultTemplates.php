@@ -19,24 +19,25 @@ $wishlist_template = htmlspecialchars ('
 <img src="http://www.assoc-amazon.%TLD%/e/ir?t=%TAG%&l=as2&o=%MPLACE_ID%&a=%ASIN%" width="1" height="1" border="0" alt="" style="border:none !important; margin:0px !important;" />
 </div>');
 
-$multinational_template = htmlspecialchars (' <div class="amazon_prod">
-  <div class="amazon_img_container">
-   %LINK_OPEN%<img class="%IMAGE_CLASS%" src="%THUMB%">%LINK_CLOSE%
-  </div>
-  <div class="amazon_text_container">
-   <p>%LINK_OPEN%%TITLE%%LINK_CLOSE%</p>
-   <div class="amazon_details">
-     <p>by %ARTIST% [%MANUFACTURER%]<br />
-     <b>Price: <span class="amazon_price">
-<span class="al_found%FOUND%uk#">%LINK_OPEN%uk# <img height=10px src="%FLAG%uk#"> %PRICE%uk#%LINK_CLOSE%</span>
-<span class="al_found%FOUND%fr#">%LINK_OPEN%FR# <img height=10px src="%FLAG%fr#"> %PRICE%FR#%LINK_CLOSE%</span>
-<span class="al_found%FOUND%de#">%LINK_OPEN%de# <img height=10px src="%FLAG%de#"> %PRICE%DE#%LINK_CLOSE%</span>
-<span class="al_found%FOUND%es#">%LINK_OPEN%es# <img height=10px src="%FLAG%es#"> %PRICE%es#%LINK_CLOSE%</span>
-</span></b>
-    </p>
-   </div>
+$multinational_template = htmlspecialchars ('
+<div class="amazon_prod">
+ <div class="amazon_img_container">
+  %LINK_OPEN%<img class="%IMAGE_CLASS%" src="%THUMB%">%LINK_CLOSE%
+ </div>
+ <div class="amazon_text_container">
+  <p>%LINK_OPEN%%TITLE%%LINK_CLOSE%</p>
+  <div class="amazon_details">
+   <p>by %ARTIST% [%MANUFACTURER%]<br />
+    <b>Price: <span class="amazon_price">
+     <span class="al_found%FOUND%uk#">%LINK_OPEN%uk# <img style="height:10px" src="%FLAG%uk#"> %PRICE%uk#%LINK_CLOSE%</span>
+     <span class="al_found%FOUND%fr#">%LINK_OPEN%FR# <img style="height:10px" src="%FLAG%fr#"> %PRICE%FR#%LINK_CLOSE%</span>
+     <span class="al_found%FOUND%de#">%LINK_OPEN%de# <img style="height:10px" src="%FLAG%de#"> %PRICE%DE#%LINK_CLOSE%</span>
+     <span class="al_found%FOUND%es#">%LINK_OPEN%es# <img style="height:10px" src="%FLAG%es#"> %PRICE%es#%LINK_CLOSE%</span>
+    </b>
+   </p>
   </div>
  </div>
+</div>
 <img src="http://www.assoc-amazon.%TLD%/e/ir?t=%TAG%&l=as2&o=%MPLACE_ID%&a=%ASIN%" width="1" height="1" border="0" alt="" style="border:none !important; margin:0px !important;" />
 ');
 
@@ -154,7 +155,7 @@ $add_to_cart_template = htmlspecialchars ('
             'wishlist' => array ( 'Name' => 'Wishlist', 'Description' => __('Used to generate the wishlist', 'amazon-link'), 
                                   'Content' => $wishlist_template, 'Type' => 'Product', 'Version' => '2', 'Notice' => 'Add impression tracking', 'Preview_Off' => 0),
             'multinational' => array ( 'Name' => 'Multinational', 'Description' => __('Example Multinational Template', 'amazon-link'), 
-                                  'Content' => $multinational_template, 'Type' => 'Product', 'Version' => '1', 'Notice' => 'New Template', 'Preview_Off' => 0)
+                                  'Content' => $multinational_template, 'Type' => 'Product', 'Version' => '3', 'Notice' => 'Use style to modify height', 'Preview_Off' => 0)
 
          );
 
