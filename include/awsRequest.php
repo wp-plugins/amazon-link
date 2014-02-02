@@ -30,7 +30,6 @@
         $public_key - your "Access Key ID"
         $private_key - your "Secret Access Key"
     */
-    if ($region == 'jp') $region = 'co.jp';
 
     // some paramters
     $method = "GET";
@@ -75,25 +74,24 @@
     $result = wp_remote_request( $request ); 
 //   echo "<!--RESP:"; print_r($result); echo "-->";
 
-
     if ($result instanceof WP_Error )
     {
         return False;
     }
     else
     {
-        $response=$result['body'];
-        // parse XML
-       	$pxml = simplexml_load_string( $response, 'SimpleXMLElement', LIBXML_NOWARNING | LIBXML_NOERROR );
-        $pxml = json_decode(json_encode($pxml), 1);
-        if ($pxml === False)
-        {
-            return False; // no xml
-        }
-        else
-        {
- //  echo "<PRE>RESP:"; print_r($pxml); echo "</PRE>";
-            return $pxml;
-        }
+       $response=$result['body'];
+       // parse XML
+       $response = simplexml_load_string( $response, 'SimpleXMLElement', LIBXML_NOWARNING | LIBXML_NOERROR );
+       if ( $response === False )
+       {
+          return False; // no xml
+       }
+       else
+       {
+          $response = json_decode( json_encode( $response ), 1 );
+          //  echo "<PRE>RESP:"; print_r($response); echo "</PRE>";
+          return $response;
+       }
     }
 ?>

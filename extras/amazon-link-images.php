@@ -4,7 +4,7 @@
 Plugin Name: Amazon Link Extra - Images
 Plugin URI: http://www.houseindorset.co.uk/
 Description: Update the Amazon Link plugin to improve the processing of Images, allows setting the Image and Thumbnail size per shortcode as well as grabbing all possible images from the Amazon site.
-Version: 1.2.1
+Version: 1.2.2
 Author: Paul Stuttard
 Author URI: http://www.houseindorset.co.uk
 */
@@ -31,30 +31,31 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 /*
  * Filter to show thumbs/images in an array
  */
-function alx_images_display_images($images, $keyword, $country, $data, $settings, $al) {
+function alx_images_display_images( $images, $keyword, $country, $data, $settings, $al ) {
 
    // If already populated then skip
-   if (!empty($images)) return $images;
+   if ( ! empty( $images ) ) return $images;
 
    /* Grab the Image/Thumb array limiting to the configured maximum */
-   if ($keyword == 'thumbs') {
+   if ( $keyword == 'thumbs' ) {
       $key = '%THUMB%';
-      $images = min(count((array) $data[$country]['thumb']),$settings['max_images']);
+      $images = min( count( (array)$data[$country]['thumb'] ),$settings['max_images'] );
    } else {
       $key = '%IMAGE%';
-      $images = min(count((array) $data[$country]['image']),$settings['max_images']);
+      $images = min( count( (array)$data[$country]['image'] ),$settings['max_images'] );
    }
 
    $input  = $settings[$keyword.'_template'];
    $output='';
-   for ($index=0; $index < $images; $index++) {
+   for ( $index=0; $index < $images; $index++ ) {
       /*
        * Put each image into our custom HTML, we can use any of the usual template keywords here.
        */
-      $output .= str_replace( array('%IMAGE%', '%THUMB%', '%IMAGE_INDEX%'), 
-                              array($data[$country]['image'][$index],
-                                    $data[$country]['thumb'][$index], 
-                                    $index+1), $input);
+      $output .= str_replace( array( '%IMAGE%', '%THUMB%', '%IMAGE_INDEX%' ), 
+                              array( $data[$country]['image'][$index],
+                                     $data[$country]['thumb'][$index], 
+                                     $index+1 ), 
+                              $input );
    }
 
    return $output;
@@ -63,30 +64,30 @@ function alx_images_display_images($images, $keyword, $country, $data, $settings
 /*
  * Filter to process the image array
  */
-function alx_images_process_images ($images, $keyword_info, $al) {
+function alx_images_process_images ( $images, $keyword_info, $al ) {
 
-   if (!is_array($images)) return $images;
+   if ( ! is_array( $images ) ) return $images;
 
-   $keyword = '%'. strtoupper($keyword_info['Keyword']). '_SIZE%';
+   $keyword = '%'. strtoupper( $keyword_info['Keyword'] ). '_SIZE%';
 
    $data = array();
-   if (!empty($images['ImageSet'])) {
-      $images = isset($images['ImageSet'][0]) ? $images['ImageSet'] :array($images['ImageSet']);
-      foreach ($images as $index => $image) {
+   if ( ! empty( $images['ImageSet'] ) ) {
+      $images = isset( $images['ImageSet'][0] ) ? $images['ImageSet'] : array( $images['ImageSet'] );
+      foreach ( $images as $index => $image ) {
 
          $url = $image['SmallImage']['URL'];
       
          // URL of the form: 'http://ecx.images-amazon.com/images/I/518FFDVWNQL._SL160_.jpg
-         $data[] = preg_replace('!(http://(?:[^/]*/)+(?:[^.]*)).*$!', '\1._SL'.$keyword.'_.jpg', $url);
+         $data[] = preg_replace( '!(http://(?:[^/]*/)+(?:[^.]*)).*$!', '\1._SL'.$keyword.'_.jpg', $url );
       }
-   } else if (!empty($images['URL'])){
+   } else if (! empty( $images['URL'] ) ){
       $url = $images['URL'];
       
       // URL of the form: 'http://ecx.images-amazon.com/images/I/518FFDVWNQL._SL160_.jpg
-      $data[] = preg_replace('!(http://(?:[^/]*/)+(?:[^.]*)).*$!', '\1._SL'.$keyword.'_.jpg', $url);
+      $data[] = preg_replace( '!(http://(?:[^/]*/)+(?:[^.]*)).*$!', '\1._SL'.$keyword.'_.jpg', $url );
 
    }
-   return array_values(array_unique($data));
+   return array_values( array_unique( $data ) );
 }
 
 
@@ -102,17 +103,19 @@ function alx_images_keywords ($keywords) {
    $keywords['image']['Position']          = array(array('ImageSets'), array('SmallImage'));
 
    $keywords['images'] = array( 'Description' => __('Images Array', 'amazon-link'),
-                                'Live' => 1, 'Link' => 1,
+                                'Live' => 1, // Force plugin to retrieve image & thumb(s)
+                                'Link' => 1, // Prevent plugin from encoding ' & " 
                                 'Default' => '' );
    $keywords['thumbs'] = array( 'Description' => __('Thumbs Array', 'amazon-link'),
-                                'Live' => 1, 'Link' => 1,
+                                'Live' => 1, // Force plugin to retrieve image(s) & thumb(s)
+                                'Link' => 1, // Prevent plugin from encoding ' & "
                                 'Default' => '' );
 
-   $keywords['image_size'] = array( 'Description' => __('Size of Images', 'amazon-link'));
-   $keywords['thumb_size'] = array( 'Description' => __('Size of Thumbnails', 'amazon-link'));
+   $keywords['image_size'] = array( 'Description' => __('Size of Images', 'amazon-link') );
+   $keywords['thumb_size'] = array( 'Description' => __('Size of Thumbnails', 'amazon-link') );
 
-   add_filter('amazon_link_template_process_thumbs', 'alx_images_display_images',11,6);
-   add_filter('amazon_link_template_process_images', 'alx_images_display_images',11,6);
+   add_filter( 'amazon_link_template_process_thumbs', 'alx_images_display_images',11,6 );
+   add_filter( 'amazon_link_template_process_images', 'alx_images_display_images',11,6 );
 
    return $keywords;
 }
@@ -154,6 +157,6 @@ function alx_images_option_list ($options_list) {
 /*
  * Install the image size keyword, data filter and options
  */
-add_filter('amazon_link_keywords', 'alx_images_keywords',11,1);
-add_filter('amazon_link_option_list', 'alx_images_option_list',11,1);
+add_filter( 'amazon_link_keywords', 'alx_images_keywords', 11, 1 );
+add_filter( 'amazon_link_option_list', 'alx_images_option_list', 11, 1 );
 ?>

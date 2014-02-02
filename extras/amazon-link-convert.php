@@ -4,7 +4,7 @@
 Plugin Name: Amazon Link Extra - Convert
 Plugin URI: http://www.houseindorset.co.uk/plugins/amazon-link/
 Description: <strong>!!!BETA!!!</strong> This plugin adds the ability to search for Amazon Link shortcodes and convert them into static content or links of a different format and vice versa.</br>
-Version: 1.5
+Version: 1.6
 Author: Paul Stuttard
 Author URI: http://www.houseindorset.co.uk
 */
@@ -220,16 +220,20 @@ function alx_convert_do_shortcode($match) {
    }
    $args .= $extra_args;
 
-   remove_all_filters ('amazon_link_process_args');
+   $sc = array( 'args' => $args );
+   $awlfw->in_post = False;
+   $awlfw->post_ID = '0';
+   $static = $awlfw->shortcode_expand( $sc );
 
-   $settings = $awlfw->parseArgs($args);
-   $asin = $settings['asin'];
+   //   remove_all_filters ('amazon_link_process_args');
 
-   $settings['static'] = $awlfw->make_links($settings);
-   $settings['args'] = $args;
-   $settings['unused_args'] = $args;
-   $settings['asin'] = $asin[0];
-   $settings['template_content'] = $alx_convert['Template'];
+   $settings = $awlfw->parse_shortcode ( $sc );
+
+   $settings[$settings['local_cc']]['static'] = $static;
+   $settings[$settings['local_cc']]['args'] = $args;
+   $settings[$settings['local_cc']]['unused_args'] = $args;
+   $settings['asin'] = isset( $settings['asin'][0] ) ? $settings['asin'][0] : NULL;
+   $settings[$settings['local_cc']]['template_content'] = $alx_convert['Template'];
    $alx_convert['Count']++;
 
    return preg_replace( '![\s]+!', ' ',$awlfw->parse_template($settings));

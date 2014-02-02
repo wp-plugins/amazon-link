@@ -72,6 +72,21 @@ This is created by either putting the line `amazon_recommends(<Category>,<Number
 * Other - Rework Channel selection to use live product data
 
 
+= Development Version =
+
+
+
+* New Feature - Experimental 'live search', use a shortcode using s_title, s_index, s_author to create a wishlist of search results.
+* Bug Fix - Improve separation of backend and frontend functionality
+* Bug Fix - Fix bug with Template Export encoding function
+* Bug Fix - Ensure 'Extra' plugins are Deactivated before Uninstalling
+* Bug Fix - Improve performance of User Channel lookups
+* Bug Fix - Rework parsing of shortcode arguments and settings
+* Other - Updates to match WordPress coding standard
+
+
+
+
 == Installation ==
 
 
@@ -850,10 +865,11 @@ Features I will be adding to the plugin in the future:
 * Allow the wishlist to search for legacy Amazon links not just ones embedded in the shortcode.
 * Have static data for displaying the template previews, for users without AWS keys
 * Source Widgets not working on new install - Template ASINs has no default?
-* Add diagnostics submenu
-* 1 Column options screen not showing help or about
+* Add diagnostics submenu, get cache cron task working, display 'not found' items in cache page
+* Add 'Walk Through' to setup plugin
 * Kindle items not showing list price, add format?
-* Add redirection facility base on 'args' or 'reference' or 'ASIN'
+* Combine 'convert' and 'alternates' extras plugins
+* Add flush to sc cache on any admin change, settings, template post/page edit.
 
 == Upgrade Notice ==
 

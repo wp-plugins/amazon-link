@@ -4,7 +4,7 @@
 Plugin Name: Amazon Link Extra - Translate
 Plugin URI: http://www.houseindorset.co.uk/
 Description: Provides a WordPress filter 'translate' that uses the Bing Translate facility to translate text from one language to another.
-Version: 1.0
+Version: 1.1
 Author: Paul Stuttard
 Author URI: http://www.houseindorset.co.uk
 */
@@ -42,14 +42,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 if (!class_exists('bing_translate')) {
    class bing_translate {
 
-      function bing_translate() {
-         $this->__construct();
-      }
-
       function __construct() {
-         $this->URLRoot = plugins_url("", __FILE__);
-         $this->base_name  = plugin_basename( __FILE__ );
-         $this->plugin_dir = dirname( $this->base_name );
          $this->translate_url = "https://api.datamarket.azure.com/Data.ashx/Bing/MicrosoftTranslator/v1/Translate";
       }
 
@@ -58,7 +51,9 @@ if (!class_exists('bing_translate')) {
        */
       function init($settings, $parent) {
 
-         add_action('wp_ajax_amazon-link-translate', array($this, 'do_translate'));      // Handle ajax translate requests
+         if (is_admin()) {
+            add_action('wp_ajax_amazon-link-translate', array($this, 'do_translate'));      // Handle ajax translate requests
+         }
          add_filter('translate', array($this, 'translate'), 10, 3);                      // Add a filter to translate text
          $this->set_id($settings['windows_live_id']);
       }

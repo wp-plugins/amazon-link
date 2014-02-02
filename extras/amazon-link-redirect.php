@@ -4,7 +4,7 @@
 Plugin Name: Amazon Link Extra - Redirect
 Plugin URI: http://www.houseindorset.co.uk/plugins/amazon-link/
 Description: Adds the ability to redirect to any Amazon Link product using a URL of the format www.mydomain.com/go/<ASIN>/<LINK TYPE S,R or A>/<Domain ca,cn,de, etc.>/?args. Note if using these type of links it is recommended that you clearly indicate on your site that the link is to Amazon otherwise you might be in breach of the terms and conditions of your associates account.
-Version: 1.2.3
+Version: 1.2.4
 Author: Paul Stuttard
 Author URI: http://www.houseindorset.co.uk
 */
@@ -38,13 +38,13 @@ function alx_redirect($settings, $al) {
    $match = preg_match( '!'.$url['path'].'/'.$settings['redirect_word'].'(?:/(?P<asin>[A-Z0-9]{10})|/(?P<ref>[^/]{2,}))?(?:/(?P<type>A|S|R))?(?:/(?P<default_cc>ca|cn|de|fr|it|es|jp|uk|us))?!', $uri, $args);
    if ( $match ) {
       $arg_position = strpos($uri,'?');
-      if ($arg_position > 0) $parameters = substr($uri,$arg_position+1);
-      $home_cc = $settings['default_cc'];
+      $opts = array();
+      if ($arg_position > 0) $opts['args'] = substr($uri,$arg_position+1);
 
       // Get all named args
-      $opts = array();
-      foreach ($args as $arg => $data)
+      foreach ($args as $arg => $data) {
          if (!is_int($arg) && !empty($data)) $opts[$arg] = $data;
+      }
 
       // Extract the Hard coded Type if set
       $type = !empty($opts['type']) ? $opts['type'] : '';
@@ -53,22 +53,15 @@ function alx_redirect($settings, $al) {
 
       // If hard coded to a specific locale then disable localisation
       if (isset($opts['default_cc'])) {
+         $asin = $opts['asin'];
+         unset($opts['asin']);
+         $opts['asin'] = $asin;
          $opts['localise']=0;
       }
 
-      // Convert to a shortcode args string
-      $settings = $sep = '';
-      foreach ($opts as $opt => $data) {
-         $settings .= $sep. $opt .'='. $data;
-         $sep = '&';
-      }
-      
-      $settings   = $al->parseArgs($settings.'&'. $parameters);
+      $opts['template_content'] = '%'.$type.'URL%';
 
-      $settings['asin'] = $settings['asin'][0];
-      $settings['template_content'] = '%'.$type.'URL%';
-      $settings['home_cc'] = $home_cc;
-      $url = $al->parse_template($settings);
+      $url = $al->shortcode_expand($opts);
       $url_bits = explode('?', $url, 2);
       $url_bits[1] = str_replace(array(' ','|','\''), array('+','%7c','%27'), $url_bits[1]);
       $url = $url_bits[0].'?'.$url_bits[1];
@@ -79,7 +72,6 @@ function alx_redirect($settings, $al) {
    }
 
    if ($settings['redirect_url']) {
-      //add_filter('amazon_link_url', 'alx_redirect_url', 10, 7);
       add_filter('amazon_link_multi_link_templates', 'alx_redirect_multi_link_templates',10,2);
    }
    
@@ -92,9 +84,10 @@ function alx_redirect($settings, $al) {
 
 function alx_redirect_multi_link_templates($templates, $al) {
    
+   // TODO: Handle 'ref'
    $settings = $al->getSettings();
    $templates['A'] = get_option('home'). '/'. $settings['redirect_word']. '/%ARG%/%MANUAL_CC%/';
-   $templates['S'] = get_option('home'). '/'. $settings['redirect_word']. '/0000000000/S/%MANUAL_CC%?search_text=%ARG%';
+   $templates['S'] = get_option('home'). '/'. $settings['redirect_word']. '/search/S/%MANUAL_CC%?search_text=%ARG%';
    $templates['R'] = get_option('home'). '/'. $settings['redirect_word']. '/%ARG%/R/%MANUAL_CC%/';
    return $templates;
 }
@@ -205,7 +198,7 @@ function alx_redirect_options ($options_list) {
    $options_list['redirect_shortcode'] = array ( 'Name' => __('Link Style Shortcode', 'amazon-link'),
                                             'Description' => __('Amazon Links in Posts are of the form &lta href="/&ltREDIRECT WORD>/ASIN/...".', 'amazon-link'),
                                             'Type' => 'checkbox',
-                                            'Default' => '1',
+                                            'Default' => '0',
                                             'Class' => 'al_border');
    return $options_list;
 }

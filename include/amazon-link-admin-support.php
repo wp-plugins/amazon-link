@@ -222,6 +222,7 @@ if ( ! class_exists ( 'Amazon_Link_Admin_Support' ) ) {
          }
          $j_data['template_live_keywords'] = implode(',',$live_data);
          $j_data['template_user_keywords'] = implode(',',$user_data);
+         $j_data[' '] = array( 'keywords' => '', 'content' => '');
          $j_data['shortcode_template'] = apply_filters( 'amazon_link_shortcode_template', '[amazon %ARGS%]', $this);
          wp_localize_script( 'amazon-link-edit-script', 'AmazonLinkData', $j_data);
       }

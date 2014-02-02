@@ -298,11 +298,14 @@ if ( ! class_exists( 'AmazonLinkSearch' ) ) {
 
          $settings = $this->alink->get_default_settings();
          $data = $this->alink->cached_query( $asin, $settings, True );
+         if ( is_array($data['image']) ) {
+            $data['image'] = $data['image'][0];
+         } 
          $data['asin'] = $asin;
          $data['template_content'] = '%IMAGE%';
          $image_url = $this->alink->shortcode_expand( $data );
          if (empty($image_url)) return new WP_Error(__('No Images Found for this ASIN', 'amazon-link'));
-
+                              
          $result = wp_remote_get( $image_url );
          if (is_wp_error($result))
             return $result; //new WP_Error(__('Could not retrieve remote image file','amazon-link'));

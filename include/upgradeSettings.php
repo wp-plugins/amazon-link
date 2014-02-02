@@ -138,10 +138,10 @@ if ($Opts['version'] == 6) {
 
 /*
  * Upgrade from 7 to 8:
- * Move Channel Data from User Options into Main Channels
+ * Move Channel Data from User Options into Main Channels Option
  */
 if ($Opts['version'] == 8) {
-   // Save Channel tags in global channel settings
+   // Save User Channel tags in global channel settings
    $channels  = $this->get_channels();
    $countries = array_keys($this->get_country_data());
    $users = get_users(array('fields' => 'ID'));
@@ -153,6 +153,7 @@ if ($Opts['version'] == 8) {
             $channels['al_user_' . $ID] = $user_options;
             $channels['al_user_' . $ID]['user_channel'] = 1;
          }
+         // Hold off removal from user options in case some users want to downgrade.
          //update_usermeta( $ID, 'amazonlinkoptions',  NULL );
       }
    }

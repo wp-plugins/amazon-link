@@ -67,11 +67,11 @@
    if(  ($action == __('Install', 'amazon-link') ) || ( $action == __('Update','amazon-link'))) {
       $result = copy ($this->extras_dir . $plugin_ID, WP_PLUGIN_DIR .'/'. $plugin_ID);
       if ($result) {
-         $update = __('Plugin ' . $avail_plugins[$plugin_ID]['Name']. ' - has been Installed', 'amazon-link');
+         $update = sprintf( __('Plugin %1$s - has been Installed', 'amazon-link'), $avail_plugins[$plugin_ID]['Name'] );
          $installed_plugins[$plugin_ID] = $avail_plugins[$plugin_ID];
          $action = __('Activate','amazon-link');
       } else {
-         $error = __('Plugin ' . $avail_plugins[$plugin_ID]['Name']. ' - failed to Install', 'amazon-link');
+         $error = sprintf( __('Plugin %1$s - failed to Install', 'amazon-link'), $avail_plugins[$plugin_ID]['Name'] );
       }
    } 
 
@@ -84,7 +84,7 @@
          if ($update !== False) {
             $update .= __(' and Activated', 'amazon-link');
          } else {
-            $update = __('Plugin ' . $installed_plugins[$plugin_ID]['Name']. ' - has been Activated', 'amazon-link');
+            $update = sprintf( __('Plugin %1$s - has been Activated', 'amazon-link'), $installed_plugins[$plugin_ID]['Name'] );
          }
          $installed_plugins[$plugin_ID]['Activated'] = True;
       } else {
@@ -103,7 +103,7 @@
    if ( $action == __('Deactivate', 'amazon-link') || ( $action == __('Uninstall', 'amazon-link'))) {
       $result = deactivate_plugins($plugin_ID);
       if (!is_wp_error($result)) {
-         $update = __('Plugin ' . $installed_plugins[$plugin_ID]['Name']. ' - has been Deactivated', 'amazon-link');
+         $update = sprintf( __('Plugin %1$s - has been Deactivated', 'amazon-link'), $installed_plugins[$plugin_ID]['Name'] );
          if (isset($installed_plugins[$plugin_ID])) $installed_plugins[$plugin_ID]['Activated'] = False;
       } else {
          $error = $result->get_error_message();
@@ -116,7 +116,7 @@
          if ($update !== False) {
             $update .= __(' and Uninstalled', 'amazon-link');
          } else {
-            $update = __('Plugin ' . $installed_plugins[$plugin_ID]['Name']. ' - has been Uninstalled', 'amazon-link');
+            $update = sprintf( __('Plugin %1$s - has been Uninstalled', 'amazon-link'), $installed_plugins[$plugin_ID]['Name'] );
          }
          unset($installed_plugins[$plugin_ID]);
       } else {
@@ -178,10 +178,10 @@
       if (array_key_exists($plugin,$avail_plugins)) {
          $available = $avail_plugins[$plugin]['Version'];
       }
-      $version = '( Installed: ' . $installed . ' / Available: ' . $available . ' )';
+      $version = sprintf( __( '( Version installed: %1$s / available: %2$s )', 'amazon-link' ), $installed, $available );
       $plugin_opts['ID']['Default'] = $plugin;
-      $plugin_opts['title']['Value'] = sprintf(__('<b>%s</b>','amazon-link'), $plugin_data['Name']);
-      $plugin_opts['title']['Description'] = sprintf(__('%s - %s','amazon-link'),  $plugin_data['Description'], $version);
+      $plugin_opts['title']['Value'] = '<b>'. $plugin_data['Name'] .'</b>';
+      $plugin_opts['title']['Description'] = $plugin_data['Description'] .' - '. $version;
 
       $plugin_opts['title']['Class'] =  'al_section';
       if (!$installed) {
@@ -201,7 +201,6 @@
             $plugin_opts['title']['Buttons'][__('Uninstall', 'amazon-link')] = array( 'Action' => 'ALExtrasAction', 'Hint' => __( 'Uninstall this plugin - delete the plugin file', 'amazon-link'), 'Class' => 'button-secondary');
          }
       }
-
 
       $this->form->displayForm($plugin_opts, array());
    }
