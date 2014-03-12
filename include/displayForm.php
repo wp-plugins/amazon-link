@@ -55,6 +55,8 @@ if (!class_exists('AmazonWishlist_Options')) {
 
             // Loop through the options table, display a row for each.
             foreach ($optionList as $optName => $optDetails) {
+
+               $option_id = ' id="'.$optName.'" ';
                if (!isset($Opts[$optName]))
                    $Opts[$optName] = isset($optDetails['Default']) ? $optDetails['Default'] : '';
 
@@ -69,10 +71,10 @@ if (!class_exists('AmazonWishlist_Options')) {
                   $script = isset($optDetails['Script']) ? ' onClick="'.$optDetails['Script'].'" ' : '';
                   $readonly = isset($optDetails['Read_Only']) ? 'readonly disabled ' : '';
 ?>
-   <dl <?php echo $class ?>>
+   <dl <?php echo $option_id.$class ?>>
     <dt class="al_label"><label for="<?php echo $optName; ?>"><?php echo $optDetails['Name']; ?></label></dt>
     <dd class="al_opt_details">
-      <input style="float:left" <?php echo $readonly . $id. ' '. $script ?> name="<?php echo $optName; ?>" title="<?php echo stripslashes($hint); ?>" type="checkbox" value="<?php echo ($Opts[$optName] >=1)+1 ?>" <?php checked($Opts[$optName] >= 1) ?>/>&nbsp;
+      <input style="margin-top:2px;float:left" <?php echo $readonly . $id. ' '. $script ?> name="<?php echo $optName; ?>" title="<?php echo stripslashes($hint); ?>" type="checkbox" value="<?php echo ($Opts[$optName] >=1)+1 ?>" <?php checked($Opts[$optName] >= 1) ?>/>&nbsp;
       <?php if (isset($optDetails['Input'])) $this->displayInput($optionList[$Details['Input']], $Details['Input'], $Opts); ?>
       <?php if (isset($optDetails['Buttons'])) displayButtons($optDetails['Buttons']); ?>
       <?php if (isset($optDetails['Description'])) echo '<div class="al_description">'.$optDetails['Description'].'</div>'; ?>
@@ -89,7 +91,7 @@ if (!class_exists('AmazonWishlist_Options')) {
                   $hint   = isset($optDetails['Hint']) ? ' title = "'.$optDetails['Hint'].'"' : '';
                   $readonly = isset($optDetails['Read_Only']) ? 'readonly disabled ' : '';
 ?>
-   <dl <?php echo $class ?>>
+   <dl <?php echo $option_id.$class ?>>
     <dt class="al_label"><label for="<?php echo $optName; ?>"><?php echo $optDetails['Name']; ?></label></dt>
     <dd class="al_opt_details">
      <div class="al_input">
@@ -126,7 +128,7 @@ if (!class_exists('AmazonWishlist_Options')) {
                   $readonly = isset($optDetails['Read_Only']) ? 'readonly ' : '';
                   $readonly .= isset($optDetails['Disabled']) ? 'disabled ' : '';
 ?>
-   <dl <?php echo $class ?>>
+   <dl <?php echo $option_id.$class ?>>
     <dt class="al_label"><label for="<?php echo $optName; ?>"><?php echo $optDetails['Name']; ?></label></dt>
     <dd class="al_opt_details">
      <div class="al_input">
@@ -146,7 +148,7 @@ if (!class_exists('AmazonWishlist_Options')) {
                   $class  = isset($optDetails['Class']) ? 'class="'.$optDetails['Class'].' al_opt_container"' : 'class="al_opt_container"';
                   $readonly = isset($optDetails['Read_Only']) ? 'readonly disabled ' : '';
 ?>
-   <dl <?php echo $class ?>>
+   <dl <?php echo $option_id.$class ?>>
     <dt class="al_label"><label for="<?php echo $optName; ?>"><?php echo $optDetails['Name']; ?></label>
     <dd class="al_opt_details">
        <div class="al_input">
@@ -161,7 +163,7 @@ if (!class_exists('AmazonWishlist_Options')) {
                $Value= $Details;
                $id = '';
             }
-            echo "<li><input ". $readonly .$id." name='$optName' type='radio' value='$Value' ". checked( $Opts[$optName], $Value, False). " >" . $Name;
+            echo "<li><input style='margin-top:2px' ". $readonly .$id." name='$optName' type='radio' value='$Value' ". checked( $Opts[$optName], $Value, False). " >" . $Name;
             if (isset($Details['Input'])) $this->displayInput($optionList[$Details['Input']], $Details['Input'], $Opts);
             echo "</li>\n";
          }
@@ -184,7 +186,7 @@ if (!class_exists('AmazonWishlist_Options')) {
                   $class  = isset($optDetails['Class']) ? 'class="'.$optDetails['Class'].' al_opt_container"' : 'class="al_opt_container"';
 
 ?>
-    <div <?php echo $class ?>>
+    <div <?php echo $option_id.$class ?>>
        <?php $this->displayButtons($optDetails['Buttons']); ?><br />
       <?php if (isset($optDetails['Description'])) echo '<div style="font-size:80%;clear:both">'.$optDetails['Description'].'</div>'; ?>
     </div>
@@ -215,7 +217,7 @@ if (!class_exists('AmazonWishlist_Options')) {
                   $readonly .= isset($optDetails['Disabled']) ? 'disabled ' : '';
                   if ($NoTable) {
 ?>
-   <dl <?php echo $class ?>>
+   <dl <?php echo $option_id.$class ?>>
     <dt class="al_label"><span><label for="<?php  echo $optName; ?>"> <?php echo $optDetails['Name']; ?></label></span></dt>
     <dd class="al_opt_details">
      <div class="al_input">
@@ -270,7 +272,7 @@ if (!class_exists('AmazonWishlist_Options')) {
                      $Title = '<h2 '.$id.'>'. $optDetails['Value'] . '</h2>';
                   }
 ?>
-    <div <?php echo $class ?>>
+    <div <?php echo $option_id.$class ?>>
       <?php if (isset($optDetails['Icon'])) screen_icon($optDetails['Icon']); ?>
       <?php echo $Title ?>
       <?php if (isset($optDetails['Description'])) echo '<div class="al_description">'.$optDetails['Description'].'</div>'; ?>
@@ -291,7 +293,7 @@ if (!class_exists('AmazonWishlist_Options')) {
                      $Title = '<h3 '.$id.'>'. $optDetails['Value'] . '</h3>';
                   }
 ?>
-    <div <?php echo $class ?>>
+    <div <?php echo $option_id.$class ?>>
       <?php if (isset($optDetails['Icon'])) screen_icon($optDetails['Icon']); ?>
       <?php echo $Title ?>
       <?php if (isset($optDetails['Description'])) echo '<div class="al_description">'.$optDetails['Description'].'</div>'; ?>
@@ -312,7 +314,7 @@ if (!class_exists('AmazonWishlist_Options')) {
                   $class  = isset($optDetails['Class']) ? 'class="'.$optDetails['Class'].' al_options"' : 'class="al_options"';
 
 ?>
-    <div class="al_section">
+    <div <?php echo $option_id; ?> class="al_section">
      <div class="<?php echo $optDetails['Section_Class']; ?>">
       <?php echo $Title;
             if (isset($optDetails['Description'])) echo '<div class="al_description">'.$optDetails['Description'].'</div>';

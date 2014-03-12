@@ -8,15 +8,22 @@
 
 /*****************************************************************************************/
 
-   $Settings = $this->getOptions();
-   if (isset($args['Options'])) $Settings = array_merge($Settings, $args['Options']);
+   $Settings = $this->get_default_settings();
+   
+   /* If called from an extras plugin then merge in the Options */
+   if (isset($args['Options'])) {
+      $Settings = array_merge($Settings, $args['Options']);
+   } 
 
-   $post_ID = (isset($post->ID)?$post->ID : NULL);
+   $post_ID = ( isset( $post->ID ) ? $post->ID : NULL );
 
    $results_html = __('Results: ', 'amazon-link'). 
                   '<img style="float:right" alt="" title="" id="amazon-link-status" class="ajax-feedback " src="images/wpspin_light.gif" />'.
                   '<div style="clear:both" id="amazon-link-result-list"></div>';
 
+   /*
+    * Create list of Product Item Keywords for the Template below
+    */
    $item_details = '';
    foreach ($this->get_keywords() as $keyword => $details) {
       if (isset($details['Live']) && isset($details['Position'])) {
@@ -28,11 +35,7 @@
       }
    }
 
-   $aws_api_info = $this->search->get_aws_info();
-   $search_indexes = $aws_api_info['SearchIndexByLocale'][$Settings['default_cc']];
-
    /* This is the template used for generating each line of the search results */
-   
    $results_template = isset($args['results_template']) ? $args['results_template'] : htmlspecialchars ('
 <div class="al_found%FOUND%">
  <div class="amazon_prod">
@@ -45,9 +48,10 @@
       <div style="float:right">
        <div style="width:100%" id="al_buttons">
         <input style="float:left" type="button" title="'. __('Add ASIN to list of ASINs above','amazon-link'). '"onClick="return wpAmazonLinkAd.addASIN(this.form, {asin: \'%ASIN%\'} );" value="'.__('+', 'amazon-link').'" class="button-secondary">
-        <input style="float:left" type="button" title="'. __('Insert a link into the post, based on the selected template','amazon-link'). '"onClick="return wpAmazonLinkAd.sendToEditor(this.form, { '. $item_details.' } );" value="'.__('Insert', 'amazon-link').'" class="button-secondary">
-        <input style="float:right" id="upload-button-%ASIN%" type="button" title="'. __('Upload cover image into media library','amazon-link'). '"onClick="return wpAmazonLinkSearch.grabMedia(this.form, {asin: \'%ASIN%\'} );" value="'.__('Upload', 'amazon-link').'" class="button-secondary al_hide-%DOWNLOADED%">
-        <input style="float:right" id="uploaded-button-%ASIN%" type="button" title="'. __('Remove image from media library','amazon-link'). '"onClick="return wpAmazonLinkSearch.removeMedia(this.form, {asin: \'%ASIN%\'} );" value="'.__('Delete', 'amazon-link').'" class="button-secondary al_show-%DOWNLOADED%">
+        <input style="float:left" type="button" title="'. __('Insert a link into the post, based on the selected template','amazon-link'). '"onClick="return wpAmazonLinkAd.sendToEditor(this.form, { '. $item_details.' } );" value="'.__('Insert', 'amazon-link').'" class="button-secondary">'.
+      (!empty($Settings['media_library']) ? 
+'        <input style="float:right" id="upload-button-%ASIN%" type="button" title="'. __('Upload cover image into media library','amazon-link'). '"onClick="return wpAmazonLinkSearch.grabMedia(this.form, {asin: \'%ASIN%\'} );" value="'.__('Upload', 'amazon-link').'" class="button-secondary al_hide-%DOWNLOADED%">
+         <input style="float:right" id="uploaded-button-%ASIN%" type="button" title="'. __('Remove image from media library','amazon-link'). '"onClick="return wpAmazonLinkSearch.removeMedia(this.form, {asin: \'%ASIN%\'} );" value="'.__('Delete', 'amazon-link').'" class="button-secondary al_show-%DOWNLOADED%">' : '').'
        </div>
       </div>
    
@@ -63,7 +67,7 @@
  </div>
 </div>');
 
-   /* This defines the options table shown in the Amazon link widget */
+   /* This defines the options table shown in the Amazon link Meta Box */
    $optionList = array(
          'subhd1' => array ( 'Type' => 'title', 'Value' => __('Enter the following settings for a simple Amazon Link', 'amazon-link'), 'Title_Class' => 'sub-head'),
          'asin' => array( 'Id' => 'AmazonLinkOpt', 'Name' => __('ASIN', 'amazon-link'), 'Default' => '', 'Type' => 'text', 'Hint' => __('Amazon product ASIN', 'amazon-link'), 'Size' => '30', 
@@ -72,8 +76,15 @@
          'template' => array( 'Id' => 'AmazonLinkOpt', 'Name' => __('Template', 'amazon-link'), 'Hint' => __('Choose which template is used to display the item.', 'amazon-link'), 'Default' => ' ', 'Type' => 'selection'),
          'chan' => array( 'Id' => 'AmazonLinkOpt', 'Name' => __('Channel', 'amazon-link'), 'Hint' => __('Choose which set of Amazon Tracking IDs to use.', 'amazon-link'), 'Default' => ' ', 'Type' => 'selection'));
 
-   if ( $Settings['aws_valid'])
+   if ( $Settings['aws_valid'] )
    {
+
+      /*
+       * User has Valid AWS keys, so they can do live product searches.
+       */
+      $aws_api_info = $this->search->get_aws_info();
+      $search_indexes = $aws_api_info['SearchIndexByLocale'][$Settings['default_cc']];
+
       $optionList = array_merge($optionList,array(
          'subhd2' => array ( 'Type' => 'title', 'Value' => __('Search Amazon for Products', 'amazon-link'), 'Title_Class' => 'sub-head'),
          'template_content' => array( 'Id' => 'amazon-link-search', 'Default' => $results_template, 'Type' => 'hidden'),
@@ -105,46 +116,38 @@
          'live' => array( 'Id' => 'AmazonLinkOpt', 'Name' => __('Live Data', 'amazon-link'), 'Hint' => __('When displaying the link, use live data from amazon to populate the template', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox', 'Class' => 'hide-if-js'))
          );
 
+   /*
+    * Need to populate the selection items options:
+    *   - template: ID => [Name, Hint]
+    *   - chan:     ID => [Name]
+    *
+    * Include a ' ' setting to allow not setting this item.
+    */
+   
+   // Channel Options
+   $optionList['chan']['Options'] = array(' ');
+   $channels = $this->get_channels();
+   foreach ($channels as $channel_id => $details) {
+      if (empty($details['user_channel'])) {
+         $optionList['chan']['Options'][$channel_id]['Name'] = $details['Name']. '  -  ' . $details['Description'];
+      }
+   }
+
+   // Template Options
    $optionList['template']['Options'] = array(' ');
-   $optionList['T_' . ' '] = array( 'Id' => 'AmazonLinkTemplates', 'Type' => 'hidden', 'Value' => 'text');
    $Templates = $this->getTemplates();
    foreach ($Templates as $templateName => $Details) {
       $optionList['template']['Options'][$templateName]['Name'] = $Details['Name']. '  -  ' . $Details['Description'];
       $optionList['template']['Options'][$templateName]['Hint'] = $Details['Description'];
- 
-      $template_data = array();
-      foreach ($this->get_keywords() as $keyword => $details) {
-         if ((isset($details['Live']) || isset($details['User'])) && (stripos($Details['Content'], '%'.$keyword.'%')!==FALSE))
-            $template_data[] = $keyword;
-      }
-      $optionList['T_' . $templateName] = array( 'Id' => 'AmazonLinkTemplates', 'Type' => 'hidden', 'Value' => implode(',',$template_data));
    }
 
-   $optionList['chan']['Options'] = array(' ');
-   $channels = $this->get_channels();
-   foreach ($channels as $channel_id => $details) {
-      $optionList['chan']['Options'][$channel_id]['Name'] = $details['Name']. '  -  ' . $details['Description'];
-   }
-
-   $live_data = array();
-   $user_data = array();
-   foreach ($this->get_keywords() as $keyword => $details) {
-      if (isset($details['Live']))
-         $live_data[] = $keyword;
-       if (isset($details['User']))
-         $user_data[] = $keyword;
-   }
-   $optionList['template_live_keywords'] = array( 'Id' => 'AmazonLinkTemplates', 'Type' => 'hidden', 'Value' => implode(',',$live_data ));
-   $optionList['template_user_keywords'] = array( 'Id' => 'AmazonLinkTemplates', 'Type' => 'hidden', 'Value' => implode(',',$user_data ));
-   $optionList['shortcode_template'] = array( 'Id' => 'AmazonLinkOpt', 'Type' => 'hidden', 'Value' => htmlspecialchars (apply_filters( 'amazon_link_shortcode_template', '[amazon %ARGS%]', $this)));
-
+        
    $optionList = apply_filters('amazon_link_search_form', $optionList, $this);
 
 /*****************************************************************************************/
 
    // **********************************************************
    // Now display the options editing screen
-//   $Settings['asin'] = (isset($Settings['asin']) && is_array($Settings['asin'])) ? implode(',', $Settings['asin']): $Settings['asin'];
    $this->form->displayForm($optionList, $Settings, True, True);
 
 ?>

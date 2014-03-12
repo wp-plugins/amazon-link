@@ -3,13 +3,13 @@ Contributors: paulstuttard
 Donate link: http://www.houseindorset.co.uk/plugins
 Tags: Amazon, links, wishlist, recommendations, , shortcode, ip2nation, localise, images, media library, affiliate, product, template
 Requires at least: 3.3
-Tested up to: 3.6.1
-Stable tag: 3.1.0
+Tested up to: 3.8.1
+Stable tag: 3.1.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
 
-This plugin enables you to put Amazon product links, images, thumbnails and bespoke templates into your site's Pages, Posts, Widgets and Templates.
+This plugin enables you to put Amazon product links, images and bespoke templates into your site's Pages, Posts, Widgets and Templates.
 
 == Description ==
 
@@ -56,25 +56,20 @@ To generate a list of products relevant to the content of your site use the 'cat
 
 This is created by either putting the line `amazon_recommends(<Category>,<Number of Posts>)` in your template. Or putting the line `[amazon cat=<Category>&last=<Number of Posts>]` within a post or page. Where 'Category' is a list of category ids to search within (e.g. as expected by the 'cat' argument of [query_posts](http://codex.wordpress.org/Class_Reference/WP_Query#Parameters) function. The 'last' parameter is the number of posts to search through.
 
-= Latest Version - 3.1.0 =
+= Latest Version - 3.1.3 =
 
-	* New Feature - Re-organised Settings pages and update Contextual Help
-	* New Plugin (BETA) - Add 'Redirect links' an 'Extras' plugin to create links in the form `www.domain.com/al/0123456789` that auto redirect to the appropriate Amazon site.
-	* New Plugin (BETA) - Add a database of predefined shortcodes accessed using a unique References ID
-	* New Plugin (BETA) - Add a facility to search for and replace shortcodes in post content
-	* New Plugin (BETA) - Add a facility to change the size of the images retrieved from Amazon 
-	* New Feature - Ability to Export existing templates to a plugin file
-	* New Feature - Add new keywords PUB_KEY, BUY_BUTTON
-	* New Feature - Add new Amazon Link type 'URL' so can manually specify the link destination
-	* New Feature - Add simple Rules to Channels
-	* New Feature - Option to disable User specific Affiliate IDs
-	* New Template - 'Add To Cart' Template added
-	* Bug Fix - Change the way templates are processed, to improve page performance
-	* Bug Fix - Update settings page to correctly handle 1 or 2 column mode
-	* Bug Fix - Update multinational 'popup' to reposition itself if not in correct screen location.
-	* Bug Fix - Remove various warnings when DEBUG enabled, and some CSS errors
-	* Bug Fix - Conditionally add contextual help based on WordPress version
-	* Other - Rework plugin to allow more customisation of the data retrieved and how it is displayed.
+
+
+
+* New Feature - Experimental 'live search', use a shortcode using s_title, s_index, s_author to create a wishlist of search results.
+* Bug Fix - Improve separation of backend and frontend functionality
+* Bug Fix - Fix bug with Template Export encoding function
+* Bug Fix - Ensure 'Extra' plugins are Deactivated before Uninstalling
+* Bug Fix - Improve performance of User Channel lookups
+* Bug Fix - Rework parsing of shortcode arguments and settings
+* Other - Updates to match WordPress coding standard
+* Other - Update Amazon Java based Templates to match new subdomains
+* Compliance - Improve visibility of use of plugins own affiliate IDs
 
 
 
@@ -119,7 +114,38 @@ To upgrade use the built in WordPress update option on the Plugins Admin page.
 
 == Changelog ==
 
-**3.1.0**
+= 3.1.3 - 12th March 2014 =
+
+
+
+
+* New Feature - Experimental 'live search', use a shortcode using s_title, s_index, s_author to create a wishlist of search results.
+* Bug Fix - Improve separation of backend and frontend functionality
+* Bug Fix - Fix bug with Template Export encoding function
+* Bug Fix - Ensure 'Extra' plugins are Deactivated before Uninstalling
+* Bug Fix - Improve performance of User Channel lookups
+* Bug Fix - Rework parsing of shortcode arguments and settings
+* Other - Updates to match WordPress coding standard
+* Other - Update Amazon Java based Templates to match new subdomains
+* Compliance - Improve visibility of use of plugins own affiliate IDs
+
+**3.1.2 - 16th December 2013**
+
+
+
+* New Feature - Add keyword for URL, RURL & SURL as per LINK_OPEN but just the URL.
+* New Feature - Experimental 'Shortcode Cache' to attempt to reduce load on high traffic sites
+* Bug Fix - Make Media Library Image Search Optional to reduce server overhead
+* Bug Fix - Ensure Image Upload works when 'images' extra installed.
+* Bug Fix - Update 'wishlist' styles to allow variable height items.
+* Bug Fix - Fix Wishlist selection of post categories
+* Bug Fix - Update ip2nation to use WP functions to get & extract the database
+* Bug Fix - Fix clash with other plugins and Amazon Link Settings Menus
+* Bug Fix - Fix clash with 'Category Sticky Posts'
+* Other - Rework Channel selection to use live product data
+
+
+**3.1.0**
 
 This release of the plugin is a major rework of the internals to make it simpler to customise the behaviour of the plugin. Please take the usual precautions when upgrading (backup Database, etc.). Please read the [Upgrade Guide](http://www.houseindorset.co.uk/plugins/amazon-link/upgrading/).
 
@@ -301,13 +327,13 @@ If you think the plugin doesn't work, please try contacting me and I will endeav
 **Where do I enter my Amazon Affiliate/Associate IDs?**
 The site owner can enter their Affiliate IDs on the Amazon Link > Associate IDs page in the 'Amazon Tracking ID Channels' section. Select the 'Default' Channel and enter your IDs for all the locales in which you have registered.
 
-Optionally any user of your site (including the owner/administrator) can also add their Affiliate IDs to their User Profile.However it is recommended that the Affiliate IDs in the default channel as set up, as some sections of the site (e.g. shortcodes inserted in sidebar widgets) do not have an 'author'.
+Optionally any user of your site (including the owner/administrator) can also add their Affiliate IDs to their User Profile. However it is recommended that the Affiliate IDs in the default channel as set up, as some sections of the site (e.g. shortcodes inserted in sidebar widgets) do not have an 'author'.
 
 If some of the IDs are not supplied in a User's profile, or in a particular Channel, then the ones in the default channel will be used instead. Only if no IDs exist for a particular locale then the plugin will use its own default IDs.
 
 **How do I insert product links into my posts?**
 
-The plugin adds a helper tool to the Post and Page administrative pages of your Wordpress site that can be used to generate shortcodes easily and quickly. 
+The plugin adds a helper tool to the Post and Page administrative pages of your WordPress site that can be used to generate shortcodes easily and quickly. 
 
 If you already know the ASIN then simply enter it into the ASIN input and click on 'Send To Editor', this can be used to generate simple text links to products. 
 
@@ -326,7 +352,7 @@ On the Amazon-Link / Templates Settings page:
 
 * Find the template you wish to use (e.g. thumbnail),
 * Create a copy of that template and rename it appropriately (e.g. thumbnail left)
-* In the template content find the first element e.g. inside the `<div>` or `<iframe>`, either add or update the existing `style="..."` section to include either '`alignleft`', '`alignright`' or '`aligncenter`' (e.g. `<div style="alignleft">`).
+* In the template content find the first element e.g. inside the `<div>` or `<iframe>`, either add or update the existing `class="..."` section to include either '`alignleft`', '`alignright`' or '`aligncenter`' (e.g. `<div class="alignleft">`).
 * Save the new template and use it for your Amazon Links.
 
 
@@ -610,6 +636,10 @@ If this option is enabled then when generating links, the plugin will ensure tha
 
 This is the text that will appear in the link 'title' attribute for the Amazon links, it may contain any of the usual template keywords e.g. %TITLE% or %TEXT%. Leave blank to not have a title attribute.
 
+**Use Media Library**
+
+This option adds the ability to upload images for products from the Amazon site to your local WordPress media library. Once uploaded the plugin will always use these local images for all shortcodes for that product.
+
 = Localisation Options =
 
 
@@ -684,14 +714,20 @@ Change the condition of the items returned when making Amazon Web Service reques
 ItemSearch returns up to ten search results at a time. When condition equals "All," ItemSearch returns up to three offers per condition (if they exist), for example, three new, three used, three refurbished, and three collectible items. Or, for example, if there are no collectible or refurbished offers, ItemSearch returns three new and three used offers. 
 
 
+**Prefetch Data**
+
+Normally the plugin will not fetch data from the Product cache or via AWS unless it needs to populate a keyword. This means that for simple text links the plugin is much faster. However if all your shortcodes are complex and require data retrieved from the AWS then enable this option to improve template parsing.
+
 **User Affiliate IDs**
 
 This options enables all users of the WordPress site to have their own set of Affiliate IDs. This allows each post author to collect Amazon commission on posts for which they are the Author. The IDs (one for each locale) are accessible on the User's profile page.
 
-= Amazon Data Cache =
+= Amazon Caches =
 
 
-If you use the plugin to its full extent and display alot of content retrieved from the Amazon Web Service it is recommended that you enable the Amazon Data Cache.
+**Amazon Product Cache**
+
+If you use the plugin to its full extent and display a lot of content retrieved from the Amazon Web Service it is recommended that you enable the Amazon Product Cache.
 
 This will improve page load times for pages that retrieve live data from the Amazon Web Service by keeping a local copy of the data.
 
@@ -700,6 +736,16 @@ At the bottom of this section are buttons to Enable, Disable (and remove) and Fl
 **Cache Data Age**
 
 Amazon recommend that data is not stored in caches for too long, especially price and availability information. Adjust this setting depending on the volatility of the data you display (e.g. Titles, List Prices and Artist information rarely change, however Offer prices may change more frequently).
+
+**Shortcode Cache**
+
+If you have a site with high levels of traffic, then it may be worth while enabling the 'Shortcode cache'. This stores the expanded template in the site database rather than evaluating it for every visitor. You are trading off extra Database access and storage against Server CPU load. This option is currently experimental and has not been properly evaluated to see if it does actually reduce server load.
+
+If you are already using some other form of WordPress content cache then this will add no additional benefit.
+
+**SC Cache Data Age**
+
+The number of hours data is kept in the shortcode cache without being refreshed. Keep this low to ensure that the latest product details are always displayed.
 
 = Advanced Options =
 
@@ -817,18 +863,26 @@ There are a number of things I want to update the plugin to do, some of which ha
 
 Features I will be adding to the plugin in the future:
 
-
 * Allow the wishlist to search for legacy Amazon links not just ones embedded in the shortcode.
 * Have static data for displaying the template previews, for users without AWS keys
 * Source Widgets not working on new install - Template ASINs has no default?
-* Add diagnostics submenu
-* 1 Column options screen not showing help or about
+* Add diagnostics submenu, get cache cron task working, display 'not found' items in cache page
+* Add 'Walk Through' to setup plugin
 * Kindle items not showing list price, add format?
-* Add redirection facility base on 'args' or 'reference' or 'ASIN'
+* Combine 'convert' and 'alternates' extras plugins
+* Add flush to sc cache on any admin change, settings, template post/page edit.
 
 == Upgrade Notice ==
 
-**3.1.0**
+**3.1.3 - 12th March 2014**
+
+Upgrade to improve frontend performance, including User Channels.
+
+**3.1.2 - 16th December 2013**
+
+Upgrade to help improve performance and fix a number of bugs in version 3.1.0.
+
+**3.1.0**
 
 Upgrade to this version to allow much greater flexibility and features to the plugin. Some significant changes please see the [Changelog](http://wordpress.org/extend/plugins/amazon-link/changelog/) for details and follow the [Upgrade Guide](http://www.houseindorset.co.uk/plugins/amazon-link/upgrading/). *Please double check your Associate IDs and links after upgrading!*
 

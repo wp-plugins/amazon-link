@@ -3,8 +3,8 @@
 /*
 Plugin Name: Amazon Link Extra - Spoof Locale
 Plugin URI: http://www.houseindorset.co.uk/plugins/amazon-link/
-Description: Used for testing the appearance of your site when viewed from another country (needs ip2nation installed & localise Amazon Link option enabled to have any affect).  To change the locale, update the 'Spoof Locale' option in the Amazon Link settings page, or append `?spoof_locale=&lt;country code>` to the page URL. You must Deactivate/Un-install this plugin to disable the spoofing.
-Version: 1.1
+Description: Used for testing the appearance of your site when viewed from another country (needs ip2nation installed & localise Amazon Link option enabled to have any affect).  To change the locale, update the 'Spoof Locale' option in the Amazon Link settings page, or append `?spoof_locale=<country code>` to the page URL. You must Deactivate/Un-install this plugin to disable the spoofing.
+Version: 1.2
 Author: Paul Stuttard
 Author URI: http://www.houseindorset.co.uk
 */
@@ -32,13 +32,20 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  * Add the Spoof Locale option to the Amazon Link Settings Page
  */
 function alx_spoof_locale_options ($options_list) {
-   $options_list['spoof_locale'] = array ( 'Name' => __('Spoof Locale', 'amazon-link'),
-                                       'Description' => __('Force the localisation to this country code, for testing how your site will appear from another country.', 'amazon-link'),
-                                       'Type' => 'selection', 
-                                       'Default' => '', 
-                                       'Class' => 'al_border');
+   
+   if (is_admin()) {
+      $options_list['spoof_locale'] = array ( 'Name' => __('Spoof Locale', 'amazon-link'),
+                                              'Description' => __('Force the localisation to this country code, for testing how your site will appear from another country.', 'amazon-link'),
+                                              'Type' => 'selection', 
+                                              'Default' => '', 
+                                              'Class' => 'al_border');
 
-   $options_list['spoof_locale']['Options'] = array_merge(array('' => array('Name' => 'Disabled')),$options_list['default_cc']['Options']);
+
+      $options_list['spoof_locale']['Options'] = array_merge(array('' => array('Name' => 'Disabled')),$options_list['default_cc']['Options']);
+   } else {
+      $option_list['spoof_locale'] = array('Default' => '');
+   }
+  
    return $options_list;
 }
 
@@ -50,7 +57,7 @@ function alx_spoof_locale ($s, $al) {
    global $wpdb, $_SERVER, $_REQUEST;
    $db = 'ip2nation';
 
-   $settings = $al->getSettings();
+   $settings = $al->get_default_settings();
 
    // Check Database is installed
    $sql = "SHOW TABLE STATUS WHERE Name LIKE '". $db ."'";
