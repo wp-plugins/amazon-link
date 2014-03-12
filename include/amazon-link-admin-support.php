@@ -372,7 +372,7 @@ if ( ! class_exists ( 'Amazon_Link_Admin_Support' ) ) {
 
       function get_user_option_list() {
         $option_list = array( 
-            'title'       => array ( 'Type' => 'subhead', 'Value' => __('Amazon Link Affiliate IDs', 'amazon-link'), 'Description' => __('Valid affiliate IDs from all Amazon locales can be obtained from the relevant Amazon sites: ', 'amazon-link'), 'Class' => 'al_pad al_border'),
+            'title'       => array ( 'Type' => 'subhead', 'Value' => __('Amazon Link Associate IDs', 'amazon-link'), 'Description' => __('Valid associate IDs from all Amazon locales can be obtained from the relevant Amazon sites: ', 'amazon-link'), 'Class' => 'al_pad al_border'),
          );
 
          $country_data = $this->get_country_data();
@@ -380,7 +380,7 @@ if ( ! class_exists ( 'Amazon_Link_Admin_Support' ) ) {
          foreach ($country_data as $cc => $data) {
             $option_list ['tag_' . $cc] = array('Type' => 'text', 'Default' => '',
                                                 'Name' => '<img style="height:14px;" src="'. $data['flag'] . '"> ' . $data['country_name'],
-                                                'Hint' => sprintf(__('Enter your affiliate tag for %1$s.', 'amazon-link'), $data['country_name'] ));
+                                                'Hint' => sprintf(__('Enter your associate tag for %1$s.', 'amazon-link'), $data['country_name'] ));
             $option_list ['title']['Description'] .= '<a href="' . $data['site']. '">'. $data['country_name']. '</a>, ';
          }
          $option_list = apply_filters('amazon_link_user_option_list', $option_list, $this);
@@ -442,6 +442,8 @@ if ( ! class_exists ( 'Amazon_Link_Admin_Support' ) ) {
                'ip2n_message'  => array( 'Type' => 'title', 'Title_Class' => 'al_para', 'Class' => 'al_pad al_border'),
                'default_cc'    => array( 'Name' => __('Default Country', 'amazon-link'), 'Hint' => __('The Amazon Associate Tags should be entered in the \'Associate IDs\' settings page.', 'amazon-link'),'Description' => __('Which country\'s Amazon site to use by default', 'amazon-link'), 'Type' => 'selection', 'Class' => 'alternate al_border' ),
                'localise'      => array( 'Name' => __('Localise Amazon Link', 'amazon-link'), 'Description' => __('Make the link point to the user\'s local Amazon website, (you must have ip2nation installed for this to work).', 'amazon-link'), 'Type' => 'checkbox', 'Class' => 'al_border' ),
+
+               'plugin_ids'   => array( 'Name' => __('Plugin Associate IDs', 'amazon-link'), 'Description' => __('Support future plugin development by using the plugin\'s own associate IDs for locales for which you have not registered. This gives back to the developer and is free to you!', 'amazon-link'), 'Type' => 'checkbox', 'Class' => 'alternate al_border' ),
                'global_over'   => array( 'Name' => __('Global Defaults', 'amazon-link'), 'Description' => __('Default values in the shortcode "title=xxxx" affect all locales, if not set only override the default locale.', 'amazon-link'), 'Type' => 'checkbox', 'Class' => 'alternate al_border' ),
                'search_link'   => array( 'Name' => __('Create Search Links', 'amazon-link'), 'Description' => __('Generate links to search for the items by "Artist Title" for non local links, rather than direct links to the product by ASIN.', 'amazon-link'), 'Type' => 'checkbox', 'Class' => 'al_border' ),
                'search_text'   => array( 'Name' => __('Default Search String', 'amazon-link'), 'Description' => __('Default items to search for with "Search Links", uses the same system as the Templates below.', 'amazon-link'), 'Type' => 'text', 'Size' => '40', 'Class' => 'alternate al_border' ),
@@ -459,7 +461,7 @@ if ( ! class_exists ( 'Amazon_Link_Admin_Support' ) ) {
                                          'Options' => array( '' => array('Name' => 'Use Default'), 'All' => array ('Name' => 'All'), 'New' => array('Name' => 'New'),'Used' => array('Name' => 'Used'),'Collectible' => array('Name' => 'Collectible'),'Refurbished' => array('Name' => 'Refurbished')),
                                          'Class' => 'alternate al_border' ),
                'prefetch'      => array( 'Name' => __('Prefetch Data', 'amazon-link'), 'Description' => __('For every product link, prefetch the data from the Amazon Site - use of the cache essential for this option! <em>* <a href="#aws_notes" title="AWS Access keys required for full functionality">AWS</a> *</em>', 'amazon-link'), 'Type' => 'checkbox', 'Class' => '' ),
-               'user_ids'      => array( 'Name' => __('User Affiliate IDs', 'amazon-link'), 'Description' => __('Allow all users to have their own Affiliate IDs accessible from their profile page', 'amazon-link'), 'Type' => 'checkbox', 'Class' => 'alternate' ),
+               'user_ids'      => array( 'Name' => __('User Associate IDs', 'amazon-link'), 'Description' => __('Allow all users to have their own Associate IDs accessible from their profile page', 'amazon-link'), 'Type' => 'checkbox', 'Class' => 'alternate' ),
                'hd3e'          => array( 'Type' => 'end'),
                
                'hd4s'          => array( 'Type' => 'section', 'Value' => __('Amazon Caches','amazon-link'), 'Title_Class' => 'al_section_head', 'Description' => __('Improve page performance by caching Amazon product data and shortcode output.','amazon-link'), 'Section_Class' => 'al_subhead1'),
@@ -558,7 +560,9 @@ if ( ! class_exists ( 'Amazon_Link_Admin_Support' ) ) {
              'pub_key'      => array( 'Description' => __('Amazon Web Service Public Access Key ID', 'amazon-link') ),
              'mplace'       => array( 'Description' => __('Localised Amazon Marketplace Code (US, GB, etc.)', 'amazon-link') ),
              'mplace_id'    => array( 'Description' => __('Localised Numeric Amazon Marketplace Code (2=uk, 8=fr, etc.)', 'amazon-link') ),
-             'rcm'          => array( 'Description' => __('Localised RCM site host domain (rcm.amazon.com, rcm-uk.amazon.co.uk, etc.)', 'amazon-link') ),
+             'rcm'          => array( 'Description' => __('Localised RCM site host domain (rcm.amazon.com, rcm-uk.amazon.co.uk, etc.) DEPRECIATED', 'amazon-link') ),
+             'region'       => array( 'Description' => __('Localised Amazon subdomain region for serving adverts, banners, and iframes ( eu, na, fe, cn, etc. )', 'amazon-link') ),
+             'imp'          => array( 'Description' => __('Localised Amazon subdomain for processing impression tracking ( ir-uk, ir-na, etc. )', 'amazon-link') ),
              'buy_button'   => array( 'Description' => __('Localised Buy from Amazon Button URL', 'amazon-link') ),
              'language'     => array( 'Description' => __('Localised language (English,  etc.)', 'amazon-link') ),
                                                                                

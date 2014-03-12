@@ -127,15 +127,15 @@ $add_to_cart_template = htmlspecialchars ('
 <form method="GET" action="http://www.amazon.%TLD%/gp/aws/cart/add.html">
  <input type="hidden" name="AssociateTag" value="%TAG%"/>
  <input type="hidden" name="SubscriptionId" value="%PUB_KEY%"/>
- <input type="hidden" name="ASIN.1" value="%ASIN%"/><br>
- <input type="hidden" name="Quantity.1" value="1"/><br>
+ <input type="hidden" name="ASIN.1" value="%ASIN%"/>
+ <input type="hidden" name="Quantity.1" value="1"/>
  <input type="image" name="add" value="Buy from Amazon.%TLD%" border="0" alt="Buy from Amazon.%TLD%" src="%BUY_BUTTON%">
 </form>');
 
 
          $this->default_templates = array (
             'add to cart' => array ( 'Name' => 'Add To Cart', 'Description' => __('Buy From Amazon Button', 'amazon-link'), 
-                                 'Content' => $add_to_cart_template, 'Version' => '1', 'Notice' => '', 'Type' => 'Product', 'Preview_Off' => 0 ),
+                                 'Content' => $add_to_cart_template, 'Version' => '2', 'Notice' => 'Remove line breaks', 'Type' => 'Product', 'Preview_Off' => 0 ),
             'banner easy' => array ( 'Name' => 'Banner Easy', 'Description' => __('Easy Banner (468x60)', 'amazon-link'), 
                                  'Content' => $easy_banner_template, 'Version' => '1', 'Notice' => '', 'Type' => 'No ASIN', 'Preview_Off' => 0 ),
             'carousel' => array ( 'Name' => 'Carousel', 'Description' => __('Amazon Carousel Widget (limited locales)', 'amazon-link'), 

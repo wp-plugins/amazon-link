@@ -50,8 +50,8 @@ wpAmazonLinkAdmin.prototype = {
 
         $ths['options']['action'] = 'amazon-link-translate';
         $ths['options']['Text'] = s_title;
-        $ths['options']['To'] = AmazonLinkData[default_cc]['lang'];
-        $ths['options']['From'] = AmazonLinkData[home_cc]['lang'];
+        $ths['options']['To'] = AmazonLinkData['lang'][default_cc];
+        $ths['options']['From'] = AmazonLinkData['lang'][home_cc];
 
         if (options != undefined) {
            jQuery.extend($ths['options'], options); 
@@ -66,7 +66,7 @@ wpAmazonLinkAdmin.prototype = {
         var list_options = this['list_options'];
         var d_options = this['default_options'];
 
-        var live_keywords = new String(this['template_live_keywords']);
+        var live_keywords = new String(AmazonLinkData['template_live_keywords']);
         var template_keywords = new String(this['template_keywords']);
 
         delete this['options']['content'];
@@ -189,13 +189,13 @@ wpAmazonLinkAdmin.prototype = {
             }
         });
 
-        $this['shortcode']              = jQuery(f).find('#amazonLinkID input[name="shortcode_template"]').val();
-        $this['template_user_keywords'] = jQuery(f).find('#amazonLinkID input[name="template_user_keywords"]').val();
-        $this['template_live_keywords'] = jQuery(f).find('#amazonLinkID input[name="template_live_keywords"]').val();
-        $this['template_keywords']      = jQuery(f).find('input[name="T_' + $this['options']['template'] + '"]').val();
-        $this['template_content']       = unescape(jQuery(f).find('input[name="TC_' + $this['options']['template'] + '"]').val());
-       if ($this['template_user_keywords'] != undefined) {
-           this['keywords'] = $this['template_user_keywords'].concat(',',$this['template_live_keywords']).split(',');
+        $this['shortcode']              = AmazonLinkData['shortcode_template'];
+        $this['template_user_keywords'] = AmazonLinkData['template_user_keywords'];
+        $this['template_live_keywords'] = AmazonLinkData['template_live_keywords'];
+        $this['template_keywords']      = AmazonLinkData[$this['options']['template']]['keywords'];
+        $this['template_content']       = AmazonLinkData[$this['options']['template']]['content'];
+        if ($this['template_user_keywords'] != undefined) {
+           this['keywords'] = AmazonLinkData['template_user_keywords'].concat(',',AmazonLinkData['template_live_keywords']).split(',');
         }
 
         if (options != undefined) {
@@ -206,7 +206,7 @@ wpAmazonLinkAdmin.prototype = {
 
     addShortcode: function(f, options) {
 
-        var shortcode = jQuery("input[name='Shortcode']");
+        var shortcode = AmazonLinkData['shortcode_template'];
         this.grabSettings(f,options);
         shortcode.val(escape(this.generateArgs('['+this['options']['default_cc']+']')));
         return false;
@@ -221,11 +221,3 @@ wpAmazonLinkAdmin.prototype = {
 }
 
 var wpAmazonLinkAd = new wpAmazonLinkAdmin();
-
-jQuery(document).ready( function() {
-    jQuery('.mypostbox h3').prepend('<a class="togbox">+</a> ');
-    jQuery('.mypostbox').prepend('<div class="handlediv myhandle"><br></div> ');
-    jQuery('.myhandle').click( function() {
-        jQuery(jQuery(this).parent().get(0)).toggle();
-    });
-});

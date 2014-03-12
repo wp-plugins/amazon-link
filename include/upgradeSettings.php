@@ -140,7 +140,7 @@ if ($Opts['version'] == 6) {
  * Upgrade from 7 to 8:
  * Move Channel Data from User Options into Main Channels Option
  */
-if ($Opts['version'] == 8) {
+if ($Opts['version'] == 7) {
    // Save User Channel tags in global channel settings
    $channels  = $this->get_channels();
    $countries = array_keys($this->get_country_data());

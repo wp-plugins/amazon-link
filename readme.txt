@@ -3,8 +3,8 @@ Contributors: paulstuttard
 Donate link: http://www.houseindorset.co.uk/plugins
 Tags: Amazon, links, wishlist, recommendations, , shortcode, ip2nation, localise, images, media library, affiliate, product, template
 Requires at least: 3.3
-Tested up to: 3.8.0
-Stable tag: 3.1.2
+Tested up to: 3.8.1
+Stable tag: 3.1.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -56,23 +56,8 @@ To generate a list of products relevant to the content of your site use the 'cat
 
 This is created by either putting the line `amazon_recommends(<Category>,<Number of Posts>)` in your template. Or putting the line `[amazon cat=<Category>&last=<Number of Posts>]` within a post or page. Where 'Category' is a list of category ids to search within (e.g. as expected by the 'cat' argument of [query_posts](http://codex.wordpress.org/Class_Reference/WP_Query#Parameters) function. The 'last' parameter is the number of posts to search through.
 
-= Latest Version - 3.1.2 =
+= Latest Version - 3.1.3 =
 
-
-
-* New Feature - Add keyword for URL, RURL & SURL as per LINK_OPEN but just the URL.
-* New Feature - Experimental 'Shortcode Cache' to attempt to reduce load on high traffic sites
-* Bug Fix - Make Media Library Image Search Optional to reduce server overhead
-* Bug Fix - Ensure Image Upload works when 'images' extra installed.
-* Bug Fix - Update 'wishlist' styles to allow variable height items.
-* Bug Fix - Fix Wishlist selection of post categories
-* Bug Fix - Update ip2nation to use WP functions to get & extract the database
-* Bug Fix - Fix clash with other plugins and Amazon Link Settings Menus
-* Bug Fix - Fix clash with 'Category Sticky Posts'
-* Other - Rework Channel selection to use live product data
-
-
-= Development Version =
 
 
 
@@ -83,6 +68,8 @@ This is created by either putting the line `amazon_recommends(<Category>,<Number
 * Bug Fix - Improve performance of User Channel lookups
 * Bug Fix - Rework parsing of shortcode arguments and settings
 * Other - Updates to match WordPress coding standard
+* Other - Update Amazon Java based Templates to match new subdomains
+* Compliance - Improve visibility of use of plugins own affiliate IDs
 
 
 
@@ -127,7 +114,22 @@ To upgrade use the built in WordPress update option on the Plugins Admin page.
 
 == Changelog ==
 
-**3.1.2 - 16th December 2013**
+= 3.1.3 - 12th March 2014 =
+
+
+
+
+* New Feature - Experimental 'live search', use a shortcode using s_title, s_index, s_author to create a wishlist of search results.
+* Bug Fix - Improve separation of backend and frontend functionality
+* Bug Fix - Fix bug with Template Export encoding function
+* Bug Fix - Ensure 'Extra' plugins are Deactivated before Uninstalling
+* Bug Fix - Improve performance of User Channel lookups
+* Bug Fix - Rework parsing of shortcode arguments and settings
+* Other - Updates to match WordPress coding standard
+* Other - Update Amazon Java based Templates to match new subdomains
+* Compliance - Improve visibility of use of plugins own affiliate IDs
+
+**3.1.2 - 16th December 2013**
 
 
 
@@ -861,7 +863,6 @@ There are a number of things I want to update the plugin to do, some of which ha
 
 Features I will be adding to the plugin in the future:
 
-
 * Allow the wishlist to search for legacy Amazon links not just ones embedded in the shortcode.
 * Have static data for displaying the template previews, for users without AWS keys
 * Source Widgets not working on new install - Template ASINs has no default?
@@ -873,7 +874,11 @@ Features I will be adding to the plugin in the future:
 
 == Upgrade Notice ==
 
-**3.1.2 - 16th December 2013**
+**3.1.3 - 12th March 2014**
+
+Upgrade to improve frontend performance, including User Channels.
+
+**3.1.2 - 16th December 2013**
 
 Upgrade to help improve performance and fix a number of bugs in version 3.1.0.
 
