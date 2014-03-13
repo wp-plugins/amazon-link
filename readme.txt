@@ -1,10 +1,10 @@
 === Amazon Link ===
 Contributors: paulstuttard
 Donate link: http://www.houseindorset.co.uk/plugins
-Tags: Amazon, links, wishlist, recommendations, , shortcode, ip2nation, localise, images, media library, affiliate, product, template
+Tags: Amazon, links, wishlist, recommendations,, shortcode, ip2nation, localise, images, media library, affiliate, product, template
 Requires at least: 3.3
 Tested up to: 3.8.1
-Stable tag: 3.1.3
+Stable tag: 3.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -56,7 +56,7 @@ To generate a list of products relevant to the content of your site use the 'cat
 
 This is created by either putting the line `amazon_recommends(<Category>,<Number of Posts>)` in your template. Or putting the line `[amazon cat=<Category>&last=<Number of Posts>]` within a post or page. Where 'Category' is a list of category ids to search within (e.g. as expected by the 'cat' argument of [query_posts](http://codex.wordpress.org/Class_Reference/WP_Query#Parameters) function. The 'last' parameter is the number of posts to search through.
 
-= Latest Version - 3.1.3 =
+= Latest Version - 3.2 =
 
 
 
@@ -114,7 +114,7 @@ To upgrade use the built in WordPress update option on the Plugins Admin page.
 
 == Changelog ==
 
-= 3.1.3 - 12th March 2014 =
+= 3.2 - 12th March 2014 =
 
 
 
@@ -874,7 +874,7 @@ Features I will be adding to the plugin in the future:
 
 == Upgrade Notice ==
 
-**3.1.3 - 12th March 2014**
+**3.2 - 12th March 2014**
 
 Upgrade to improve frontend performance, including User Channels.
 
