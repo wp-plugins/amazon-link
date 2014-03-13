@@ -155,11 +155,11 @@
           * if no associate ID is provided for a locale.
           */
          if ( $channel_id == 'default' ) {
+            $link = '<a href="admin.php?page=amazon-link-settings#plugin_ids">Plugin Associate IDs</a>';
             if ($settings['plugin_ids']) {
-               $link = '<a href="admin.php?page=amazon-link-settings#plugin_ids">Plugin Associate IDs</a>';
-               $channel_opts['plugin_ids']['Value'] = '<b>Note: For locales that you do not provide an associate ID you will not earn commission. However the plugin will provide its own valid ID which goes a small way towards supporting the development of the plugin. Disable this behaviour by changing the '.$link.' setting.</b>';
+               $channel_opts['plugin_ids']['Value'] = '<b>Thankyou for helping to support this plugin by allowing it to provide Associate IDs for locales for which you are not affiliated. You can disable this behaviour by changing the '.$link.' setting.</b>';
             } else {
-               $channel_opts['plugin_ids']['Value'] = '<b>Note: For locales that you do not provide an associate ID you will not earn commission.</b>';
+               $channel_opts['plugin_ids']['Value'] = '<b>Note: For locales that do not have an associate ID you will not earn commission. However if you would like to help support future developments at no cost to you, the plugin can insert its own IDs for those locales. You can enable this behaviour by changing the '.$link.' setting.</b>';
             }
          } else {
             $channel_opts['plugin_ids']['Value'] = '';

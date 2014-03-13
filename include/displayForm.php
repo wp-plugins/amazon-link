@@ -71,7 +71,8 @@ if (!class_exists('AmazonWishlist_Options')) {
                   $script = isset($optDetails['Script']) ? ' onClick="'.$optDetails['Script'].'" ' : '';
                   $readonly = isset($optDetails['Read_Only']) ? 'readonly disabled ' : '';
 ?>
-   <dl <?php echo $option_id.$class ?>>
+   <div style="position:absolute"><span <?php echo $option_id;?>></span> </div>
+   <dl <?php echo $class ?>>
     <dt class="al_label"><label for="<?php echo $optName; ?>"><?php echo $optDetails['Name']; ?></label></dt>
     <dd class="al_opt_details">
       <input style="margin-top:2px;float:left" <?php echo $readonly . $id. ' '. $script ?> name="<?php echo $optName; ?>" title="<?php echo stripslashes($hint); ?>" type="checkbox" value="<?php echo ($Opts[$optName] >=1)+1 ?>" <?php checked($Opts[$optName] >= 1) ?>/>&nbsp;

@@ -442,7 +442,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
             $this->option_list['wishlist_items']['Default'] = 5;
             $this->option_list['wishlist_type']['Default'] = 'Similar';
             $this->option_list['default_cc']['Default'] = 'uk';
-            $this->option_list['plugin_ids']['Default'] = '1';
+            $this->option_list['plugin_ids']['Default'] = '0';
             $this->option_list['localise']['Default'] = '1';
             $this->option_list['global_over']['Default'] = '1';
             $this->option_list['search_text']['Default'] = '%ARTIST% | %TITLE%';
@@ -547,7 +547,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
 
             if ( ! $override ) return $channels;
 
-            if ($settings['plugin_ids']) {
+            if (!empty($settings['plugin_ids'])) {
                /*
                 * Only use the plugin ids for unpopulated locales if it has
                 * been explicitly enabled by the user option.
