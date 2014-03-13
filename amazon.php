@@ -4,7 +4,7 @@
 Plugin Name: Amazon Link
 Plugin URI: http://www.houseindorset.co.uk/plugins/amazon-link
 Description: A plugin that provides a facility to insert Amazon product links directly into your site's Pages, Posts, Widgets and Templates.
-Version: 3.1.3
+Version: 3.2
 Text Domain: amazon-link
 Author: Paul Stuttard
 Author URI: http://www.houseindorset.co.uk
@@ -122,7 +122,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
       const channels_name    = 'AmazonLinkChannels';
 
       var $option_version    = 8;
-      var $plugin_version    = '3.1.3-rc2';
+      var $plugin_version    = '3.2';
       var $menu_slug         = 'amazon-link-settings';
       var $plugin_home       = 'http://www.houseindorset.co.uk/plugins/amazon-link/';
 
