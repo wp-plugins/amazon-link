@@ -386,22 +386,32 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
              * - language     -> Language of each locale.
              */
             $this->country_data = array(
-               'uk' => array( 'cc' => 'uk', 'mplace' => 'GB', 'mplace_id' => '2',  'lang' => 'en',     'flag' => $this->URLRoot. '/'. 'images/flag_uk.gif', 'tld' => 'co.uk', 'language' => 'English',  'region' => 'eu', 'imp' => 'ir-uk', 'rcm' => 'rcm-eu.amazon-adsystem.com',   'site' => 'https://affiliate-program.amazon.co.uk', 'buy_button' => 'https://images-na.ssl-images-amazon.com/images/G/02/buttons/buy-from-tan.gif', 'country_name' => 'United Kingdom'),
-               'us' => array( 'cc' => 'us', 'mplace' => 'US', 'mplace_id' => '1',  'lang' => 'en',     'flag' => $this->URLRoot. '/'. 'images/flag_us.gif', 'tld' => 'com',   'language' => 'English',  'region' => 'na', 'imp' => 'ir-na', 'rcm' => 'rcm-na.amazon-adsystem.com',   'site' => 'https://affiliate-program.amazon.com', 'buy_button' => 'https://images-na.ssl-images-amazon.com/images/G/01/buttons/buy-from-tan.gif', 'country_name' => 'United States'),
-               'de' => array( 'cc' => 'de', 'mplace' => 'DE', 'mplace_id' => '3',  'lang' => 'de',     'flag' => $this->URLRoot. '/'. 'images/flag_de.gif', 'tld' => 'de',    'language' => 'Deutsch',  'region' => 'eu', 'imp' => 'ir-de', 'rcm' => 'rcm-de.amazon-adsystem.de',    'site' => 'https://partnernet.amazon.de', 'buy_button' => 'https://images-na.ssl-images-amazon.com/images/G/03/buttons/buy-from-tan.gif', 'country_name' => 'Germany'),
-               'es' => array( 'cc' => 'es', 'mplace' => 'ES', 'mplace_id' => '30', 'lang' => 'es',     'flag' => $this->URLRoot. '/'. 'images/flag_es.gif', 'tld' => 'es',    'language' => 'Español',  'region' => 'eu', 'imp' => 'ir-es', 'rcm' => 'rcm-es.amazon-adsystem.es',    'site' => 'https://afiliados.amazon.es', 'buy_button' => 'https://images-na.ssl-images-amazon.com/images/G/30/buttons/buy-from-tan.gif', 'country_name' => 'Spain'),
-               'fr' => array( 'cc' => 'fr', 'mplace' => 'FR', 'mplace_id' => '8',  'lang' => 'fr',     'flag' => $this->URLRoot. '/'. 'images/flag_fr.gif', 'tld' => 'fr',    'language' => 'Français', 'region' => 'eu', 'imp' => 'ir-fr', 'rcm' => 'rcm-fr.amazon-adsystem.fr',    'site' => 'https://partenaires.amazon.fr', 'buy_button' => 'https://images-na.ssl-images-amazon.com/images/G/08/buttons/buy-from-tan.gif', 'country_name' => 'France'),
-               'jp' => array( 'cc' => 'jp', 'mplace' => 'JP', 'mplace_id' => '9',  'lang' => 'ja',     'flag' => $this->URLRoot. '/'. 'images/flag_jp.gif', 'tld' => 'co.jp',    'language' => '日本語',    'region' => 'fe', 'imp' => 'ir-jp', 'rcm' => 'rcm-jp.amazon-adsystem.co.jp', 'site' => 'https://affiliate.amazon.co.jp', 'buy_button' => 'https://images-na.ssl-images-amazon.com/images/G/09/buttons/buy-from-tan.gif', 'country_name' => 'Japan'),
-               'it' => array( 'cc' => 'it', 'mplace' => 'IT', 'mplace_id' => '29', 'lang' => 'it',     'flag' => $this->URLRoot. '/'. 'images/flag_it.gif', 'tld' => 'it',    'language' => 'Italiano', 'region' => 'eu', 'imp' => 'ir-it', 'rcm' => 'rcm-it.amazon-adsystem.it',    'site' => 'https://programma-affiliazione.amazon.it', 'buy_button' => 'https://images-na.ssl-images-amazon.com/images/G/29/buttons/buy-from-tan.gif', 'country_name' => 'Italy'),
-               'cn' => array( 'cc' => 'cn', 'mplace' => 'CN', 'mplace_id' => '28', 'lang' => 'zh-CHS', 'flag' => $this->URLRoot. '/'. 'images/flag_cn.gif', 'tld' => 'cn',    'language' => '简体中文',   'region' => 'cn', 'imp' => 'ir-cn', 'rcm' => 'rcm-cn.amazon-adsystem.cn',    'site' => 'https://associates.amazon.cn', 'buy_button' => 'https://images-na.ssl-images-amazon.com/images/G/28/buttons/buy-from-tan.gif', 'country_name' => 'China'),
-               'in' => array( 'cc' => 'in', 'mplace' => 'IN', 'mplace_id' => '31', 'lang' => 'hi',     'flag' => $this->URLRoot. '/'. 'images/flag_in.gif', 'tld' => 'in',    'language' => 'Hindi',    'region' => 'in', 'imp' => 'ir-in', 'rcm' => 'ws-in.amazon-adsystem.com',    'site' => 'https://associates.amazon.in', 'buy_button' => 'https://images-na.ssl-images-amazon.com/images/G/31/buttons/buy-from-tan.gif', 'country_name' => 'India'),
-               'ca' => array( 'cc' => 'ca', 'mplace' => 'CA', 'mplace_id' => '15', 'lang' => 'en',     'flag' => $this->URLRoot. '/'. 'images/flag_ca.gif', 'tld' => 'ca',    'language' => 'English',  'region' => 'na', 'imp' => 'ir-ca', 'rcm' => 'rcm-ca.amazon-adsystem.ca',    'site' => 'https://associates.amazon.ca', 'buy_button' => 'https://images-na.ssl-images-amazon.com/images/G/15/buttons/buy-from-tan.gif', 'country_name' => 'Canada'));
+               'uk' => array( 'cc' => 'uk', 'mplace' => 'GB', 'mplace_id' => '2',  'lang' => 'en',     'flag' => $this->URLRoot. '/'. 'images/flag_uk.gif', 'tld' => 'co.uk', 'language' => 'English',    'region' => 'eu', 'imp' => 'ir-uk', 'rcm' => 'rcm-eu.amazon-adsystem.com',   'site' => 'https://affiliate-program.amazon.co.uk', 'buy_button' => 'https://images-na.ssl-images-amazon.com/images/G/02/buttons/buy-from-tan.gif', 'country_name' => 'United Kingdom'),
+               'us' => array( 'cc' => 'us', 'mplace' => 'US', 'mplace_id' => '1',  'lang' => 'en',     'flag' => $this->URLRoot. '/'. 'images/flag_us.gif', 'tld' => 'com',   'language' => 'English',    'region' => 'na', 'imp' => 'ir-na', 'rcm' => 'rcm-na.amazon-adsystem.com',   'site' => 'https://affiliate-program.amazon.com', 'buy_button' => 'https://images-na.ssl-images-amazon.com/images/G/01/buttons/buy-from-tan.gif', 'country_name' => 'United States'),
+               'de' => array( 'cc' => 'de', 'mplace' => 'DE', 'mplace_id' => '3',  'lang' => 'de',     'flag' => $this->URLRoot. '/'. 'images/flag_de.gif', 'tld' => 'de',    'language' => 'Deutsch',    'region' => 'eu', 'imp' => 'ir-de', 'rcm' => 'rcm-de.amazon-adsystem.de',    'site' => 'https://partnernet.amazon.de', 'buy_button' => 'https://images-na.ssl-images-amazon.com/images/G/03/buttons/buy-from-tan.gif', 'country_name' => 'Germany'),
+               'es' => array( 'cc' => 'es', 'mplace' => 'ES', 'mplace_id' => '30', 'lang' => 'es',     'flag' => $this->URLRoot. '/'. 'images/flag_es.gif', 'tld' => 'es',    'language' => 'Español',    'region' => 'eu', 'imp' => 'ir-es', 'rcm' => 'rcm-es.amazon-adsystem.es',    'site' => 'https://afiliados.amazon.es', 'buy_button' => 'https://images-na.ssl-images-amazon.com/images/G/30/buttons/buy-from-tan.gif', 'country_name' => 'Spain'),
+               'fr' => array( 'cc' => 'fr', 'mplace' => 'FR', 'mplace_id' => '8',  'lang' => 'fr',     'flag' => $this->URLRoot. '/'. 'images/flag_fr.gif', 'tld' => 'fr',    'language' => 'Français',   'region' => 'eu', 'imp' => 'ir-fr', 'rcm' => 'rcm-fr.amazon-adsystem.fr',    'site' => 'https://partenaires.amazon.fr', 'buy_button' => 'https://images-na.ssl-images-amazon.com/images/G/08/buttons/buy-from-tan.gif', 'country_name' => 'France'),
+               'jp' => array( 'cc' => 'jp', 'mplace' => 'JP', 'mplace_id' => '9',  'lang' => 'ja',     'flag' => $this->URLRoot. '/'. 'images/flag_jp.gif', 'tld' => 'co.jp', 'language' => '日本語',      'region' => 'fe', 'imp' => 'ir-jp', 'rcm' => 'rcm-jp.amazon-adsystem.co.jp', 'site' => 'https://affiliate.amazon.co.jp', 'buy_button' => 'https://images-na.ssl-images-amazon.com/images/G/09/buttons/buy-from-tan.gif', 'country_name' => 'Japan'),
+               'it' => array( 'cc' => 'it', 'mplace' => 'IT', 'mplace_id' => '29', 'lang' => 'it',     'flag' => $this->URLRoot. '/'. 'images/flag_it.gif', 'tld' => 'it',    'language' => 'Italiano',   'region' => 'eu', 'imp' => 'ir-it', 'rcm' => 'rcm-it.amazon-adsystem.it',    'site' => 'https://programma-affiliazione.amazon.it', 'buy_button' => 'https://images-na.ssl-images-amazon.com/images/G/29/buttons/buy-from-tan.gif', 'country_name' => 'Italy'),
+               'cn' => array( 'cc' => 'cn', 'mplace' => 'CN', 'mplace_id' => '28', 'lang' => 'zh-CHS', 'flag' => $this->URLRoot. '/'. 'images/flag_cn.gif', 'tld' => 'cn',    'language' => '简体中文',     'region' => 'cn', 'imp' => 'ir-cn', 'rcm' => 'rcm-cn.amazon-adsystem.cn',    'site' => 'https://associates.amazon.cn', 'buy_button' => 'https://images-na.ssl-images-amazon.com/images/G/28/buttons/buy-from-tan.gif', 'country_name' => 'China'),
+               'in' => array( 'cc' => 'in', 'mplace' => 'IN', 'mplace_id' => '31', 'lang' => 'hi',     'flag' => $this->URLRoot. '/'. 'images/flag_in.gif', 'tld' => 'in',    'language' => 'Hindi',      'region' => 'in', 'imp' => 'ir-in', 'rcm' => 'ws-in.amazon-adsystem.com',    'site' => 'https://associates.amazon.in', 'buy_button' => 'https://images-na.ssl-images-amazon.com/images/G/31/buttons/buy-from-tan.gif', 'country_name' => 'India'),
+               'ca' => array( 'cc' => 'ca', 'mplace' => 'CA', 'mplace_id' => '15', 'lang' => 'en',     'flag' => $this->URLRoot. '/'. 'images/flag_ca.gif', 'tld' => 'ca',    'language' => 'English',    'region' => 'na', 'imp' => 'ir-ca', 'rcm' => 'rcm-ca.amazon-adsystem.ca',    'site' => 'https://associates.amazon.ca', 'buy_button' => 'https://images-na.ssl-images-amazon.com/images/G/15/buttons/buy-from-tan.gif', 'country_name' => 'Canada'),
+               'br' => array( 'cc' => 'br', 'mplace' => 'BR', 'mplace_id' => '33', 'lang' => 'pt-br',  'flag' => $this->URLRoot. '/'. 'images/flag_br.gif', 'tld' => 'com.br','language' => 'Portuguese', 'region' => 'na', 'imp' => 'ir-br', 'rcm' => 'rcm-br.amazon-adsystem.br',    'site' => 'https://associados.amazon.com.br/', 'buy_button' => 'https://images-na.ssl-images-amazon.com/images/G/33/buttons/buy-from-tan.gif', 'country_name' => 'Brazil'),
+            );
          }
          if ( empty( $cc ) ) {
             return $this->country_data;
          } else {
             return $this->country_data[$cc];
          }
+         /*
+          * To add a new locale:
+          * - Add line in the above array
+          * - Add default tag in get_channels
+          * - Add line in get_country
+          * - Add icon to images directory
+          * - Update amazon-search.php to support Searches
+          */
       }
 
       function get_link_templates() {
@@ -552,7 +562,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
                 * Only use the plugin ids for unpopulated locales if it has
                 * been explicitly enabled by the user option.
                 */
-               $default_tags = array( 'tag_uk' => 'al-uk-21', 'tag_us' => 'al-us-20', 'tag_de' => 'al-de-21', 'tag_es' => 'al-es-21', 'tag_fr' => 'al-fr-21', 'tag_jp' => 'al-jp-22', 'tag_it' => 'al-it-21', 'tag_cn' => 'al-cn-23', 'tag_in' => 'al-in-21', 'tag_ca' => 'al-ca-20');
+               $default_tags = array( 'tag_uk' => 'al-uk-21', 'tag_us' => 'al-us-20', 'tag_de' => 'al-de-21', 'tag_es' => 'al-es-21', 'tag_fr' => 'al-fr-21', 'tag_jp' => 'al-jp-22', 'tag_it' => 'al-it-21', 'tag_cn' => 'al-cn-23', 'tag_in' => 'al-in-21', 'tag_ca' => 'al-ca-20', 'tag_br' => 'al-br-20');
             } else {
                $default_tags = array();
             }
@@ -780,7 +790,8 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
                                      'cn' => array('cn'),
                                      'ca' => array('ca', 'pm'),
                                      'jp' => array('jp'),
-                                     'in' => array('in')
+                                     'in' => array('in'),
+                                     'br' => array('br')
                                     );
 
                $cc = $this->ip2n->get_cc();

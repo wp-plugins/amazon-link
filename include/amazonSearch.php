@@ -209,7 +209,8 @@ if ( ! class_exists( 'AmazonLinkSearch' ) ) {
 'Grocery', 'MP3Downloads', 'DVD', 'Electronics', 'HealthPersonalCare', 'HomeGarden', 'Industrial', 'Jewelry', 'KindleStore',
 'Kitchen', 'Magazines', 'Merchants', 'Miscellaneous', 'MobileApps', 'Music', 'MusicalInstruments', 'MusicTracks',
 'OfficeProducts', 'OutdoorLiving', 'PCHardware', 'PetSupplies', 'Photo', 'Shoes', 'Software', 'SportingGoods', 'Tools', 'Toys',
-'UnboxVideo', 'VHS', 'Video', 'VideoGames', 'Watches', 'Wireless', 'WirelessAccessories'));
+'UnboxVideo', 'VHS', 'Video', 'VideoGames', 'Watches', 'Wireless', 'WirelessAccessories'),
+            'br' => array('KindleStore'));
 
          return array('SearchIndexByLocale' => $search_index_by_locale);
       }
@@ -217,7 +218,7 @@ if ( ! class_exists( 'AmazonLinkSearch' ) ) {
       function create_search_query( $Settings ) {
          
          // Not working: Baby, MusicalInstruments
-         $Creator = array( 'Author' => array( 'Books', 'ForeignBooks', 'MobileApps', 'MP3Downloads'),
+         $Creator = array( 'Author' => array( 'Books', 'ForeignBooks', 'MobileApps', 'MP3Downloads', 'KindleStore'),
                            'Actor' => array( 'DigitalMusic' ),
                            'Artist' => array('Music'),
                            'Director' => array('DVD', 'UnboxVideo', 'VHS', 'Video'),

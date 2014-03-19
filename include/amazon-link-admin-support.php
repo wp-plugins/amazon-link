@@ -1,7 +1,7 @@
 <?php
 
 /*
-Copyright 2012-2013 Paul Stuttard (email : wordpress_amazonlink@ redtom.co.uk)
+Copyright 2013-2014 Paul Stuttard (email : wordpress_amazonlink@ redtom.co.uk)
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -251,14 +251,12 @@ if ( ! class_exists ( 'Amazon_Link_Admin_Support' ) ) {
          $data        = $this->pages[$page];
          $title       = $data['Title'];
          $description = $data['Description'];
-         $icon        = isset( $data['Icon'] ) ? $data['Icon'] : 'options-general';
 
          wp_nonce_field( 'closedpostboxes', 'closedpostboxesnonce', false );
          wp_nonce_field( 'meta-box-order', 'meta-box-order-nonce', false );
 
 ?>
 <div class="wrap">
- <?php screen_icon($icon); ?>
   <h2><?php echo $title ?></h2>
    <p><?php echo $description ?></p>
    <div id="poststuff">
@@ -296,6 +294,9 @@ if ( ! class_exists ( 'Amazon_Link_Admin_Support' ) ) {
          include('showOptions.php');
       }
 
+      function show_settings_progress() {
+         include( 'showProgress.php' );
+      }
       // Extras Management Page
       function show_extras() {
          include('showExtras.php');
@@ -589,7 +590,11 @@ if ( ! class_exists ( 'Amazon_Link_Admin_Support' ) ) {
                                                            'Title' => __('Amazon Link Settings', 'amazon-link'), 
                                                            'Label' =>__('Settings', 'amazon-link'), 
                                                            'Capability' => 'manage_options',
-                                                           'Metaboxes' => array( 'alOptions' => array( 'Title' => __( 'Options', 'amazon-link' ),
+                                                           'Metaboxes' => array( /*'alStatus' => array( 'Title' => __( 'Status', 'amazon-link' ),
+                                                                                                       'Callback' => array (&$this, 'show_settings_progress' ),
+                                                                                                       'Context' => 'normal',
+                                                                                                       'Priority' => 'high'),*/
+                                                                                 'alOptions' => array( 'Title' => __( 'Options', 'amazon-link' ),
                                                                                                        'Callback' => array (&$this, 'show_options' ), 
                                                                                                        'Context' => 'normal', 
                                                                                                        'Priority' => 'core'))
@@ -626,7 +631,6 @@ if ( ! class_exists ( 'Amazon_Link_Admin_Support' ) ) {
                                                            ),
                         'amazon-link-extras'     => array( 'Slug' => 'amazon-link-extras',
                                                            'Help' => WP_PLUGIN_DIR . '/'.$this->plugin_dir .'/'.'help/extras.php',
-                                                           'Icon' => 'plugins',
                                                            'Description' => __('On this page you can manage user provided or requested extra functionality for the Amazon Link plugin. These items are not part of the main Amazon Link plugin as they provide features that not every user wants and may have a negative impact on your site (e.g. reduced performance, extra database usage, etc.).', 'amazon-link'),
                                                            'Title' => __('Manage Amazon Link Extras', 'amazon-link'), 
                                                            'Label' => __('Extras', 'amazon-link'), 
