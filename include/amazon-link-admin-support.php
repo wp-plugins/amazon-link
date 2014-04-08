@@ -335,7 +335,11 @@ if ( ! class_exists ( 'Amazon_Link_Admin_Support' ) ) {
           * Populate the help popup.
           */
          $text = __('<p>Hover the mouse pointer over the keywords for more information.</p>', 'amazon-link');
-         foreach ($this->get_keywords() as $keyword => $details) {
+
+         $keywords = $this->get_keywords();
+         ksort($keywords);
+
+         foreach ( $keywords as $keyword => $details) {
             $title = (!empty($details['Description']) ? 'title="'. htmlspecialchars($details['Description']) .'"' : '');
             $text = $text . '<p><abbr '.$title.'>%' . strtoupper($keyword) . '%</abbr></p>';
          }
@@ -444,7 +448,7 @@ if ( ! class_exists ( 'Amazon_Link_Admin_Support' ) ) {
                'default_cc'    => array( 'Name' => __('Default Country', 'amazon-link'), 'Hint' => __('The Amazon Associate Tags should be entered in the \'Associate IDs\' settings page.', 'amazon-link'),'Description' => __('Which country\'s Amazon site to use by default', 'amazon-link'), 'Type' => 'selection', 'Class' => 'alternate al_border' ),
                'localise'      => array( 'Name' => __('Localise Amazon Link', 'amazon-link'), 'Description' => __('Make the link point to the user\'s local Amazon website, (you must have ip2nation installed for this to work).', 'amazon-link'), 'Type' => 'checkbox', 'Class' => 'al_border' ),
 
-               'plugin_ids'   => array( 'Name' => __('Plugin Associate IDs', 'amazon-link'), 'Description' => __('Support future plugin development by using the plugin\'s own associate IDs for locales for which you have not registered. This gives back to the developer and is free to you!', 'amazon-link'), 'Type' => 'checkbox', 'Class' => 'al_border' ),
+               'plugin_ids'    => array( 'Name' => __('Plugin Associate IDs', 'amazon-link'), 'Description' => __('Support future plugin development by using the plugin\'s own associate IDs for locales for which you have not registered. This gives back to the developer and is free to you!', 'amazon-link'), 'Type' => 'checkbox', 'Class' => 'al_border' ),
                'global_over'   => array( 'Name' => __('Global Defaults', 'amazon-link'), 'Description' => __('Default values in the shortcode "title=xxxx" affect all locales, if not set only override the default locale.', 'amazon-link'), 'Type' => 'checkbox', 'Class' => 'alternate al_border' ),
                'search_link'   => array( 'Name' => __('Create Search Links', 'amazon-link'), 'Description' => __('Generate links to search for the items by "Artist Title" for non local links, rather than direct links to the product by ASIN.', 'amazon-link'), 'Type' => 'checkbox', 'Class' => 'al_border' ),
                'search_text'   => array( 'Name' => __('Default Search String', 'amazon-link'), 'Description' => __('Default items to search for with "Search Links", uses the same system as the Templates below.', 'amazon-link'), 'Type' => 'text', 'Size' => '40', 'Class' => 'alternate al_border' ),

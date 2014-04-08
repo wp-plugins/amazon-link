@@ -4,7 +4,7 @@
 Plugin Name: Amazon Link
 Plugin URI: http://www.houseindorset.co.uk/plugins/amazon-link
 Description: A plugin that provides a facility to insert Amazon product links directly into your site's Pages, Posts, Widgets and Templates.
-Version: 3.2
+Version: 3.2.1
 Text Domain: amazon-link
 Author: Paul Stuttard
 Author URI: http://www.houseindorset.co.uk
@@ -122,7 +122,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
       const channels_name    = 'AmazonLinkChannels';
 
       var $option_version    = 8;
-      var $plugin_version    = '3.2';
+      var $plugin_version    = '3.2.1';
       var $menu_slug         = 'amazon-link-settings';
       var $plugin_home       = 'http://www.houseindorset.co.uk/plugins/amazon-link/';
 
@@ -1008,7 +1008,8 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          $settings = $this->get_country_data();
          $countries = array_keys( $settings );
          $settings['global'] = $this->get_default_settings();
-
+         // If no ASIN supplied, ensure template is expanded at least once.
+         $settings['asin'][0][$settings['global']['default_cc']] = '';
          /*
           * First get the main arguments string
           */
@@ -1491,6 +1492,9 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
             } else if ( ! empty( $asin[$home_cc] ) ) {
                $term = $asin[$home_cc];
                
+            } else if ( ! empty( $settings[$cc]['search_link'] ) ) {
+               $type = 'S';
+               $term = $search;
             } else {
                $type = 'X';
                $term = ! empty( $settings[$home_cc]['url'] ) ?  $settings[$home_cc]['url'][$cc] : '';
@@ -1706,6 +1710,7 @@ function amazon_shortcode( $args )
 {
    global $awlfw;
    $awlfw->in_post = False;
+   $awlfw->post_ID = NULL;
    return $awlfw->shortcode_expand( array( 'args' => $args ) );
 }
 
