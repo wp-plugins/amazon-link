@@ -1389,13 +1389,13 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
           * This just needs to get the data through to the javascript, typical HTML looks like:
           * <a onmouseover="Function( {'arg': '%KEYWORD%'} )">
           * Need to ensure there are no unescaped ' or " characters or new lines
-          *
+          * " => '&#34;'
           * It is up to the receiving javascript to ensure that the data is present correctly for the next stage
           *  - in postedit -> strip out > and " and & and [ to ensure the shortcode is parsed correctly
           *  - in popup (do nothing?).
           */
-         if ( $escaped ) $phrase = str_ireplace( array( "'", '&' ), array( "\'", '%26' ), $phrase);
-         if ( ! empty( $key_data['Live'] ) && empty( $key_data['Link'] ) ) $phrase = str_ireplace( array( '"', "'", "\r", "\n" ), array( '&#34;', '&#39;','&#13;','&#10;' ), $phrase );
+         if ( $escaped ) $phrase = str_ireplace( array( '"', "'", '&' ), array( '%22', "\'", '%26' ), $phrase);
+         if ( ! empty( $key_data['Live'] ) && empty( $key_data['Link'] ) ) $phrase = str_ireplace( array(  "'", "\r", "\n" ), array( '&#39;','&#13;','&#10;' ), $phrase );
 
          /*
           * Update unused_args to remove used keyword.
