@@ -3,7 +3,7 @@ Contributors: paulstuttard
 Donate link: http://www.houseindorset.co.uk/plugins
 Tags: Amazon, links, wishlist, recommendations,, shortcode, ip2nation, localise, images, media library, affiliate, product, template
 Requires at least: 3.3
-Tested up to: 3.9
+Tested up to: 3.8.1
 Stable tag: 3.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -16,7 +16,7 @@ This plugin enables you to put Amazon product links, images and bespoke template
 
 This plugin is used to quickly add Amazon products links to your WordPress posts and pages. The product links can be simple text links, thumbnail images, full-size images, complex templates or full-blown Amazon flash widgets.
 
-The product links that can be for any of the Amazon domains ([UK](http://www.amazon.co.uk), [US](http://www.amazon.com), [Canada](http://www.amazon.ca), [China](http://www.amazon.cn), [Germany](http://www.amazon.de), [Spain](http://www.amazon.es), [France](http://www.amazon.fr), [Italy](http://www.amazon.it), [India](http://www.amazon.in) and [Japan](http://www.amazon.co.jp/)).
+The product links that can be for any of the Amazon domains ([UK](http://www.amazon.co.uk), [US](http://www.amazon.com), [Brazil](http://www.amazon.com.br), [Canada](http://www.amazon.ca), [China](http://www.amazon.cn), [Germany](http://www.amazon.de), [Spain](http://www.amazon.es), [France](http://www.amazon.fr), [Italy](http://www.amazon.it), [India](http://www.amazon.in) and [Japan](http://www.amazon.co.jp/)).
 
 The content of the product links can be statically entered by the Author (when the link is created), or dynamically refreshed when displayed using data from the Amazon site that is most appropriate for the nationality of the reader.
 
@@ -71,6 +71,18 @@ This is created by either putting the line `amazon_recommends(<Category>,<Number
 * Other - Update Amazon Java based Templates to match new subdomains
 * Compliance - Improve visibility of use of plugins own affiliate IDs
 
+
+
+= Development Version - 3.2.2 =
+
+
+
+
+* New Feature - New Setup page to help new users configure the plugin
+* New Feature - Add support for Brazil locale
+* Bug Fix - Correction to iframe localised subdomains
+* Bug Fix - Tweek the way Amazon data is escaped to show HTML in the Editorial Comments
+* Bug Fix - Remove depreciated screen_icons
 
 
 
@@ -536,7 +548,7 @@ The localisation process is far from perfect and authors should be aware of the 
 
 * Incorrect Amazon site allocation -
 
-    There are only 10 major Amazon sites (UK, France, Germany, Spain, US, Japan, India, Italy, China and Canada). So the plugin has to guess where a country's residents are most likely to shop on-line. An alternative is to enable the 'Multinational Link' option, this will enable a small popup for each link allowing the site visitor to choose the most appropriate site (based on locale or language).
+    There are only 10 major Amazon sites (UK, France, Germany, Spain, US, Japan, India, Italy, China, Brazil and Canada). So the plugin has to guess where a country's residents are most likely to shop on-line. An alternative is to enable the 'Multinational Link' option, this will enable a small popup for each link allowing the site visitor to choose the most appropriate site (based on locale or language).
 * Product Availability -
 
     A product that is available in the author's locale may not be available on other Amazon sites. If the live data option is enabled the plugin will display a link to the Amazon site in the author's own locale if the product is not available at the visitor's Amazon store.
@@ -653,7 +665,7 @@ If localisation is not enabled, or has failed for some reason, then this is the 
 
 **Localise Amazon Link**
 
-If this option is selected and the [ip2nation](http://www.ip2nation.com) database has been installed then the plugin will attempt to use the most appropriate Amazon site when creating the link, currently supports [www.amazon.co.uk](http://www.amazon.co.uk), [www.amazon.com](http://www.amazon.com), [www.amazon.ca](http://www.amazon.ca), [www.amazon.cn](http://www.amazon.cn), [www.amazon.de](http://www.amazon.de), [www.amazon.es](http://www.amazon.es), [www.amazon.fr](http://www.amazon.fr), [www.amazon.in](http://www.amazon.in) , [www.amazon.it](http://www.amazon.it) and [www.amazon.co.jp](http://www.amazon.co.jp).
+If this option is selected and the [ip2nation](http://www.ip2nation.com) database has been installed then the plugin will attempt to use the most appropriate Amazon site when creating the link, currently supports [www.amazon.co.uk](http://www.amazon.co.uk), [www.amazon.com](http://www.amazon.com), [www.amazon.com.br](http://www.amazon.com.br), [www.amazon.ca](http://www.amazon.ca), [www.amazon.cn](http://www.amazon.cn), [www.amazon.de](http://www.amazon.de), [www.amazon.es](http://www.amazon.es), [www.amazon.fr](http://www.amazon.fr), [www.amazon.in](http://www.amazon.in) , [www.amazon.it](http://www.amazon.it) and [www.amazon.co.jp](http://www.amazon.co.jp).
 
 **Global Defaults**
 
@@ -872,7 +884,25 @@ Features I will be adding to the plugin in the future:
 * Combine 'convert' and 'alternates' extras plugins
 * Add flush to sc cache on any admin change, settings, template post/page edit.
 
-== Upgrade Notice ==
+== Setup ==
+
+Use the Amazon Link plugin's Setup page to quickly enable all the plugin's major features. It's a good place to start for new users.
+
+None of the steps is compulsory but each step will improve the capability of the plugin so that you can take advantage of all the features the plugin has to offer.
+
+To get the plugin working to its full potential there are currently 6 steps:
+
+
+
+1. Select your home or default country
+1. Enter your Amazon Associate ID's
+1. Enable localisation of your Amazon Links
+1. Enable support for further plugin development
+1. Enable access to the Amazon Product Advertising Database
+1. Enable and Install the Amazon Product Cache
+
+
+== Upgrade Notice ==
 
 **3.2 - 12th March 2014**
 

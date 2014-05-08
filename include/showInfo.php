@@ -11,11 +11,20 @@
 </dl>
 <dl>
 <dt>Documentation:</dt>
-<dd><a href="http://wordpress.org/extend/plugins/<?php echo $info['TextDomain']?>/">Wordpress Plugin Page</a></dd>
+<dd><a href="http://wordpress.org/extend/plugins/<?php echo $info['TextDomain']?>/">WordPress Plugin Page</a></dd>
 </dl>
 <dl>
 <dt>Homepage:</dt>
 <dd><?php echo $info['Title']?></dd>
+</dl>
+<dl>
+<dt>Support:</dt>
+<dd><a href="http://wordpress.org/support/plugin/<?php echo $info['TextDomain']?>/">WordPress Forum</a></dd>
+</dl>
+<dl>
+<dl>
+<dt>Review:</dt>
+<dd><a href="http://wordpress.org/support/view/plugin-reviews/<?php echo $info['TextDomain']?>/">Plugin Review Page</a></dd>
 </dl>
 <dl>
 <dt>Version:</dt>

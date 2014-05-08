@@ -192,8 +192,8 @@ wpAmazonLinkAdmin.prototype = {
         $this['shortcode']              = AmazonLinkData['shortcode_template'];
         $this['template_user_keywords'] = AmazonLinkData['template_user_keywords'];
         $this['template_live_keywords'] = AmazonLinkData['template_live_keywords'];
-        $this['template_keywords']      = AmazonLinkData[$this['options']['template']]['keywords'];
-        $this['template_content']       = AmazonLinkData[$this['options']['template']]['content'];
+        $this['template_keywords']      = AmazonLinkData['templates'][$this['options']['template']]['keywords'];
+        $this['template_content']       = AmazonLinkData['templates'][$this['options']['template']]['content'];
         if ($this['template_user_keywords'] != undefined) {
            this['keywords'] = AmazonLinkData['template_user_keywords'].concat(',',AmazonLinkData['template_live_keywords']).split(',');
         }

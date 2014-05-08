@@ -106,6 +106,7 @@ To serve a page containing amazon links the plugin performs the following:
 *******************************************************************************************************/
 
 include ('include/ip2nation.php');
+   //include ('include/ip2location.php');
 
 if (!class_exists('AmazonWishlist_For_WordPress')) {
    class AmazonWishlist_For_WordPress {
@@ -123,7 +124,6 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
 
       var $option_version    = 8;
       var $plugin_version    = '3.2.1';
-      var $menu_slug         = 'amazon-link-settings';
       var $plugin_home       = 'http://www.houseindorset.co.uk/plugins/amazon-link/';
 
       var $stats             = array();
@@ -143,11 +143,17 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          add_action( 'init', array( $this, 'init' ) );
         
          // Register filters to process the content and widget text
-         add_filter( 'the_content', array( $this, 'content_filter' ),15,1 );
-         add_filter( 'widget_text', array( $this, 'widget_filter' ), 16,1 );
-
+         if ( false  ) { // change false to true - To support WP Super Cache
+            add_cacheaction( 'wpsc_cachedata_safety', array( $this, 'safety' ) );
+            add_cacheaction( 'wpsc_cachedata', array( $this, 'widget_filter' ) );
+         } else {
+            add_filter( 'the_content', array( $this, 'content_filter' ),15,1 );
+            add_filter( 'widget_text', array( $this, 'widget_filter' ), 16,1 );
+         }
       }
 
+      function safety () { return 1; }
+      
       /*****************************************************************************************/
       // Functions for the above hooks
       
@@ -200,6 +206,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          
          // Add default url generator - low priority
          add_filter( 'amazon_link_url',                     array( $this, 'get_url' ), 20, 6 );
+         add_filter( 'amazon_link_url',                     'esc_url', 21, 1);
          
          /* Set up the default channel filters - priority determines order */
          add_filter( 'amazon_link_get_channel' ,            array( $this, 'get_channel_by_setting' ), 10,4 );
@@ -584,7 +591,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
        * TODO: Add option to enable Channel Rules, (i.e. remove all filters)
        */
       function get_channel( $settings ) {
-         
+        
          // get post ID if in post, needed for channel cache.
          if ( ! empty( $settings['in_post'] ) ) {
             global $post;
@@ -780,13 +787,13 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
             if ( empty( $this->local_country ) ) {
                
                // Pretty arbitrary mapping of domains to Amazon sites, default to 'com' - the 'international' site.
-               $country_map = array( 'uk' => array('uk', 'ie', 'gi', 'gl', 'nl', 'vg', 'cy', 'gb', 'dk'),
+               $country_map = array( 'uk' => array('uk', 'ie', 'im', 'gi', 'gl', 'nl', 'vg', 'cy', 'gb', 'dk', 'gb'),
                                      'fr' => array('fr', 'be', 'bj', 'bf', 'bi', 'cm', 'cf', 'td', 'km', 'cg', 'dj', 'ga', 'gp',
                                                    'gf', 'gr', 'pf', 'tf', 'ht', 'ci', 'lu', 'mg', 'ml', 'mq', 'yt', 'mc', 'nc',
                                                    'ne', 're', 'sn', 'sc', 'tg', 'vu', 'wf'),
                                      'de' => array('de', 'at', 'ch', 'no', 'dn', 'li', 'sk'),
                                      'es' => array('es'),
-                                     'it' => array('it'),
+                                     'it' => array('it', 'va'),
                                      'cn' => array('cn'),
                                      'ca' => array('ca', 'pm'),
                                      'jp' => array('jp'),
@@ -862,7 +869,6 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
        *   2. Search through the content and record any Amazon ASIN numbers ready to generate a wishlist.
        */
       function content_filter( $content, $create_shortcodes = True, $in_post = True ) {
-
 
          if ( $create_shortcodes ) {
 
@@ -1456,7 +1462,6 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          $script = str_replace ( '<a', '<a ' . $script, $text );
          return $script;
       }
-         
 
       function get_link_type ( $type, $asin, $cc, $search, $settings ) {
          

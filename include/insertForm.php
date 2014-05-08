@@ -125,14 +125,19 @@
     */
    
    // Channel Options
-   $optionList['chan']['Options'] = array(' ');
+
    $channels = $this->get_channels();
+   $optionList['chan']['Options'] = array(' ');
    foreach ($channels as $channel_id => $details) {
-      if (empty($details['user_channel'])) {
+      if ( ($channel_id != 'default') && empty($details['user_channel']) ) {
          $optionList['chan']['Options'][$channel_id]['Name'] = $details['Name']. '  -  ' . $details['Description'];
       }
    }
-
+   /* If there is only the Default Channel don't show this option */
+   if (count($optionList['chan']['Options']) == 1 ) {
+      $optionList['chan'] = array( 'Type' => 'hidden');
+   }
+   
    // Template Options
    $optionList['template']['Options'] = array(' ');
    $Templates = $this->getTemplates();
@@ -140,12 +145,16 @@
       $optionList['template']['Options'][$templateName]['Name'] = $Details['Name']. '  -  ' . $Details['Description'];
       $optionList['template']['Options'][$templateName]['Hint'] = $Details['Description'];
    }
-
-        
+   
    $optionList = apply_filters('amazon_link_search_form', $optionList, $this);
 
 /*****************************************************************************************/
 
+   $Settings['chan'] = $Settings['form_channel'];
+   $Settings['s_index'] = $Settings['form_s_index'];
+   $Settings['template'] = $Settings['form_template'];
+         
+      
    // **********************************************************
    // Now display the options editing screen
    $this->form->displayForm($optionList, $Settings, True, True);
