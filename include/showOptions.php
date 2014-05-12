@@ -181,14 +181,25 @@
    }
 
 /*****************************************************************************************/
-
    unset($optionList['wishlist_template']['Options']);
+   $optionList['form_template']['Options'][] = ' ';
    $Templates = $this->getTemplates();
    foreach ($Templates as $templateName => $Details) {
       $optionList['wishlist_template']['Options'][] = $templateName;
+      $optionList['form_template']['Options'][] = $templateName;
    }
-
-
+   $channels = $this->get_channels();
+   $optionList['form_channel']['Options'][] = ' ';
+   foreach ($channels as $channel => $details) {
+      if ( ($channel != 'default') && empty($details['user_channel']) ) {
+         $optionList['form_channel']['Options'][] = $channel;
+      }
+   }
+   $s_indices = $this->search->get_aws_info();
+   foreach ( $s_indices['SearchIndexByLocale'][$Opts['default_cc'] ] as $index ) {
+      $optionList['form_s_index']['Options'][] = $index;
+   }
+   
    // **********************************************************
    // Now display the options editing screen
 
