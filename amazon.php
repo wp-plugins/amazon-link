@@ -4,7 +4,7 @@
 Plugin Name: Amazon Link
 Plugin URI: http://www.houseindorset.co.uk/plugins/amazon-link
 Description: A plugin that provides a facility to insert Amazon product links directly into your site's Pages, Posts, Widgets and Templates.
-Version: 3.2.1
+Version: 3.2.2
 Text Domain: amazon-link
 Author: Paul Stuttard
 Author URI: http://www.houseindorset.co.uk
@@ -123,7 +123,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
       const channels_name    = 'AmazonLinkChannels';
 
       var $option_version    = 8;
-      var $plugin_version    = '3.2.1';
+      var $plugin_version    = '3.2.2';
       var $plugin_home       = 'http://www.houseindorset.co.uk/plugins/amazon-link/';
 
       var $stats             = array();
@@ -393,17 +393,17 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
              * - language     -> Language of each locale.
              */
             $this->country_data = array(
-               'uk' => array( 'cc' => 'uk', 'mplace' => 'GB', 'mplace_id' => '2',  'lang' => 'en',     'flag' => $this->URLRoot. '/'. 'images/flag_uk.gif', 'tld' => 'co.uk', 'language' => 'English',    'region' => 'eu', 'imp' => 'ir-uk', 'rcm' => 'rcm-eu.amazon-adsystem.com',   'site' => 'https://affiliate-program.amazon.co.uk', 'buy_button' => 'https://images-na.ssl-images-amazon.com/images/G/02/buttons/buy-from-tan.gif', 'country_name' => 'United Kingdom'),
-               'us' => array( 'cc' => 'us', 'mplace' => 'US', 'mplace_id' => '1',  'lang' => 'en',     'flag' => $this->URLRoot. '/'. 'images/flag_us.gif', 'tld' => 'com',   'language' => 'English',    'region' => 'na', 'imp' => 'ir-na', 'rcm' => 'rcm-na.amazon.com',            'site' => 'https://affiliate-program.amazon.com', 'buy_button' => 'https://images-na.ssl-images-amazon.com/images/G/01/buttons/buy-from-tan.gif', 'country_name' => 'United States'),
-               'de' => array( 'cc' => 'de', 'mplace' => 'DE', 'mplace_id' => '3',  'lang' => 'de',     'flag' => $this->URLRoot. '/'. 'images/flag_de.gif', 'tld' => 'de',    'language' => 'Deutsch',    'region' => 'eu', 'imp' => 'ir-de', 'rcm' => 'rcm-de.amazon.de',             'site' => 'https://partnernet.amazon.de', 'buy_button' => 'https://images-na.ssl-images-amazon.com/images/G/03/buttons/buy-from-tan.gif', 'country_name' => 'Germany'),
-               'es' => array( 'cc' => 'es', 'mplace' => 'ES', 'mplace_id' => '30', 'lang' => 'es',     'flag' => $this->URLRoot. '/'. 'images/flag_es.gif', 'tld' => 'es',    'language' => 'Español',    'region' => 'eu', 'imp' => 'ir-es', 'rcm' => 'rcm-es.amazon.es',             'site' => 'https://afiliados.amazon.es', 'buy_button' => 'https://images-na.ssl-images-amazon.com/images/G/30/buttons/buy-from-tan.gif', 'country_name' => 'Spain'),
-               'fr' => array( 'cc' => 'fr', 'mplace' => 'FR', 'mplace_id' => '8',  'lang' => 'fr',     'flag' => $this->URLRoot. '/'. 'images/flag_fr.gif', 'tld' => 'fr',    'language' => 'Français',   'region' => 'eu', 'imp' => 'ir-fr', 'rcm' => 'rcm-fr.amazon.fr',             'site' => 'https://partenaires.amazon.fr', 'buy_button' => 'https://images-na.ssl-images-amazon.com/images/G/08/buttons/buy-from-tan.gif', 'country_name' => 'France'),
-               'jp' => array( 'cc' => 'jp', 'mplace' => 'JP', 'mplace_id' => '9',  'lang' => 'ja',     'flag' => $this->URLRoot. '/'. 'images/flag_jp.gif', 'tld' => 'co.jp', 'language' => '日本語',      'region' => 'fe', 'imp' => 'ir-jp', 'rcm' => 'rcm-jp.amazon.co.jp',          'site' => 'https://affiliate.amazon.co.jp', 'buy_button' => 'https://images-na.ssl-images-amazon.com/images/G/09/buttons/buy-from-tan.gif', 'country_name' => 'Japan'),
-               'it' => array( 'cc' => 'it', 'mplace' => 'IT', 'mplace_id' => '29', 'lang' => 'it',     'flag' => $this->URLRoot. '/'. 'images/flag_it.gif', 'tld' => 'it',    'language' => 'Italiano',   'region' => 'eu', 'imp' => 'ir-it', 'rcm' => 'rcm-it.amazon.it',             'site' => 'https://programma-affiliazione.amazon.it', 'buy_button' => 'https://images-na.ssl-images-amazon.com/images/G/29/buttons/buy-from-tan.gif', 'country_name' => 'Italy'),
-               'cn' => array( 'cc' => 'cn', 'mplace' => 'CN', 'mplace_id' => '28', 'lang' => 'zh-CHS', 'flag' => $this->URLRoot. '/'. 'images/flag_cn.gif', 'tld' => 'cn',    'language' => '简体中文',     'region' => 'cn', 'imp' => 'ir-cn', 'rcm' => 'rcm-cn.amazon.cn',             'site' => 'https://associates.amazon.cn', 'buy_button' => 'https://images-na.ssl-images-amazon.com/images/G/28/buttons/buy-from-tan.gif', 'country_name' => 'China'),
-               'in' => array( 'cc' => 'in', 'mplace' => 'IN', 'mplace_id' => '31', 'lang' => 'hi',     'flag' => $this->URLRoot. '/'. 'images/flag_in.gif', 'tld' => 'in',    'language' => 'Hindi',      'region' => 'in', 'imp' => 'ir-in', 'rcm' => 'ws-in.amazon-adsystem.com',    'site' => 'https://associates.amazon.in', 'buy_button' => 'https://images-na.ssl-images-amazon.com/images/G/31/buttons/buy-from-tan.gif', 'country_name' => 'India'),
-               'ca' => array( 'cc' => 'ca', 'mplace' => 'CA', 'mplace_id' => '15', 'lang' => 'en',     'flag' => $this->URLRoot. '/'. 'images/flag_ca.gif', 'tld' => 'ca',    'language' => 'English',    'region' => 'na', 'imp' => 'ir-ca', 'rcm' => 'rcm-ca.amazon.ca',             'site' => 'https://associates.amazon.ca', 'buy_button' => 'https://images-na.ssl-images-amazon.com/images/G/15/buttons/buy-from-tan.gif', 'country_name' => 'Canada'),
-               'br' => array( 'cc' => 'br', 'mplace' => 'BR', 'mplace_id' => '33', 'lang' => 'pt-br',  'flag' => $this->URLRoot. '/'. 'images/flag_br.gif', 'tld' => 'com.br','language' => 'Portuguese', 'region' => 'na', 'imp' => 'ir-br', 'rcm' => 'rcm-br.amazon-adsystem.br',    'site' => 'https://associados.amazon.com.br/', 'buy_button' => 'https://images-na.ssl-images-amazon.com/images/G/33/buttons/buy-from-tan.gif', 'country_name' => 'Brazil'),
+               'uk' => array( 'cc' => 'uk', 'mplace' => 'GB', 'mplace_id' => '2',  'lang' => 'en',     'flag' => $this->URLRoot. '/'. 'images/flag_uk.gif', 'tld' => 'co.uk', 'language' => 'English',    'region' => 'eu', 'imp' => 'ir-uk', 'rcm' => 'rcm-eu.amazon-adsystem.com',   'site' => 'https://affiliate-program.amazon.co.uk', 'buy_button' => 'https://images-na.ssl-images-amazon.com/images/G/02/buttons/buy-from-tan.gif', 'country_name' => 'United Kingdom', 'link_close' => '</a>'),
+               'us' => array( 'cc' => 'us', 'mplace' => 'US', 'mplace_id' => '1',  'lang' => 'en',     'flag' => $this->URLRoot. '/'. 'images/flag_us.gif', 'tld' => 'com',   'language' => 'English',    'region' => 'na', 'imp' => 'ir-na', 'rcm' => 'rcm-na.amazon.com',            'site' => 'https://affiliate-program.amazon.com', 'buy_button' => 'https://images-na.ssl-images-amazon.com/images/G/01/buttons/buy-from-tan.gif', 'country_name' => 'United States', 'link_close' => '</a>'),
+               'de' => array( 'cc' => 'de', 'mplace' => 'DE', 'mplace_id' => '3',  'lang' => 'de',     'flag' => $this->URLRoot. '/'. 'images/flag_de.gif', 'tld' => 'de',    'language' => 'Deutsch',    'region' => 'eu', 'imp' => 'ir-de', 'rcm' => 'rcm-de.amazon.de',             'site' => 'https://partnernet.amazon.de', 'buy_button' => 'https://images-na.ssl-images-amazon.com/images/G/03/buttons/buy-from-tan.gif', 'country_name' => 'Germany', 'link_close' => '</a>'),
+               'es' => array( 'cc' => 'es', 'mplace' => 'ES', 'mplace_id' => '30', 'lang' => 'es',     'flag' => $this->URLRoot. '/'. 'images/flag_es.gif', 'tld' => 'es',    'language' => 'Español',    'region' => 'eu', 'imp' => 'ir-es', 'rcm' => 'rcm-es.amazon.es',             'site' => 'https://afiliados.amazon.es', 'buy_button' => 'https://images-na.ssl-images-amazon.com/images/G/30/buttons/buy-from-tan.gif', 'country_name' => 'Spain', 'link_close' => '</a>'),
+               'fr' => array( 'cc' => 'fr', 'mplace' => 'FR', 'mplace_id' => '8',  'lang' => 'fr',     'flag' => $this->URLRoot. '/'. 'images/flag_fr.gif', 'tld' => 'fr',    'language' => 'Français',   'region' => 'eu', 'imp' => 'ir-fr', 'rcm' => 'rcm-fr.amazon.fr',             'site' => 'https://partenaires.amazon.fr', 'buy_button' => 'https://images-na.ssl-images-amazon.com/images/G/08/buttons/buy-from-tan.gif', 'country_name' => 'France', 'link_close' => '</a>'),
+               'jp' => array( 'cc' => 'jp', 'mplace' => 'JP', 'mplace_id' => '9',  'lang' => 'ja',     'flag' => $this->URLRoot. '/'. 'images/flag_jp.gif', 'tld' => 'co.jp', 'language' => '日本語',      'region' => 'fe', 'imp' => 'ir-jp', 'rcm' => 'rcm-jp.amazon.co.jp',          'site' => 'https://affiliate.amazon.co.jp', 'buy_button' => 'https://images-na.ssl-images-amazon.com/images/G/09/buttons/buy-from-tan.gif', 'country_name' => 'Japan', 'link_close' => '</a>'),
+               'it' => array( 'cc' => 'it', 'mplace' => 'IT', 'mplace_id' => '29', 'lang' => 'it',     'flag' => $this->URLRoot. '/'. 'images/flag_it.gif', 'tld' => 'it',    'language' => 'Italiano',   'region' => 'eu', 'imp' => 'ir-it', 'rcm' => 'rcm-it.amazon.it',             'site' => 'https://programma-affiliazione.amazon.it', 'buy_button' => 'https://images-na.ssl-images-amazon.com/images/G/29/buttons/buy-from-tan.gif', 'country_name' => 'Italy', 'link_close' => '</a>'),
+               'cn' => array( 'cc' => 'cn', 'mplace' => 'CN', 'mplace_id' => '28', 'lang' => 'zh-CHS', 'flag' => $this->URLRoot. '/'. 'images/flag_cn.gif', 'tld' => 'cn',    'language' => '简体中文',     'region' => 'cn', 'imp' => 'ir-cn', 'rcm' => 'rcm-cn.amazon.cn',             'site' => 'https://associates.amazon.cn', 'buy_button' => 'https://images-na.ssl-images-amazon.com/images/G/28/buttons/buy-from-tan.gif', 'country_name' => 'China', 'link_close' => '</a>'),
+               'in' => array( 'cc' => 'in', 'mplace' => 'IN', 'mplace_id' => '31', 'lang' => 'hi',     'flag' => $this->URLRoot. '/'. 'images/flag_in.gif', 'tld' => 'in',    'language' => 'Hindi',      'region' => 'in', 'imp' => 'ir-in', 'rcm' => 'ws-in.amazon-adsystem.com',    'site' => 'https://associates.amazon.in', 'buy_button' => 'https://images-na.ssl-images-amazon.com/images/G/31/buttons/buy-from-tan.gif', 'country_name' => 'India', 'link_close' => '</a>'),
+               'ca' => array( 'cc' => 'ca', 'mplace' => 'CA', 'mplace_id' => '15', 'lang' => 'en',     'flag' => $this->URLRoot. '/'. 'images/flag_ca.gif', 'tld' => 'ca',    'language' => 'English',    'region' => 'na', 'imp' => 'ir-ca', 'rcm' => 'rcm-ca.amazon.ca',             'site' => 'https://associates.amazon.ca', 'buy_button' => 'https://images-na.ssl-images-amazon.com/images/G/15/buttons/buy-from-tan.gif', 'country_name' => 'Canada', 'link_close' => '</a>'),
+               'br' => array( 'cc' => 'br', 'mplace' => 'BR', 'mplace_id' => '33', 'lang' => 'pt-br',  'flag' => $this->URLRoot. '/'. 'images/flag_br.gif', 'tld' => 'com.br','language' => 'Portuguese', 'region' => 'na', 'imp' => 'ir-br', 'rcm' => 'rcm-br.amazon-adsystem.br',    'site' => 'https://associados.amazon.com.br/', 'buy_button' => 'https://images-na.ssl-images-amazon.com/images/G/33/buttons/buy-from-tan.gif', 'country_name' => 'Brazil', 'link_close' => '</a>'),
             );
          }
          if ( empty( $cc ) ) {
@@ -1201,7 +1201,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          $map = array( 'url' => 'A', 'rurl' => 'R', 'surl' => 'S' );
          $type = $map[$keyword];
 
-         $url = apply_filters( 'amazon_link_url', '', $type, $data, $data[$cc]['search_text'], $cc, $settings, $this );
+         $url = apply_filters( 'amazon_link_url', '', $type, $data, $data[$cc]['search_text_s'], $cc, $settings, $this );
          return $url;
 
       }
@@ -1216,7 +1216,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
 
          $attributes = 'rel="nofollow"' . ( $settings['new_window'] ? ' target="_blank"' : '' );
          $attributes .= ! empty( $data[$cc]['link_title'] ) ? ' title="'.addslashes( $data[$cc]['link_title'] ).'"' : '';
-         $url = apply_filters( 'amazon_link_url', '', $type, $data, $data[$cc]['search_text'], $cc, $settings, $this );
+         $url = apply_filters( 'amazon_link_url', '', $type, $data, $data[$cc]['search_text_s'], $cc, $settings, $this );
          $text = "<a $attributes href=\"$url\">";
          if ( $settings['multi_cc'] ) {
             $multi_data = array( 'settings' => $data, 'asin' => $data['asin'], 'type' => $type, 'search' => $data[$cc]['search_text_s'], 'cc' => $cc );
@@ -1396,12 +1396,23 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
           * <a onmouseover="Function( {'arg': '%KEYWORD%'} )">
           * Need to ensure there are no unescaped ' or " characters or new lines
           * " => '&#34;'
+          * 
+          * Also for search links need to ensure & is escaped
+          *
+          * For keywords in the link title need to escape " ?
+          *
           * It is up to the receiving javascript to ensure that the data is present correctly for the next stage
           *  - in postedit -> strip out > and " and & and [ to ensure the shortcode is parsed correctly
           *  - in popup (do nothing?).
           */
-         if ( $escaped ) $phrase = str_ireplace( array( '"', "'", '&' ), array( '%22', "\'", '%26' ), $phrase);
-         if ( ! empty( $key_data['Live'] ) && empty( $key_data['Link'] ) ) $phrase = str_ireplace( array(  "'", "\r", "\n" ), array( '&#39;','&#13;','&#10;' ), $phrase );
+         //if ( $escaped ) $phrase = str_ireplace( array( '"', "'", '&' ), array( '%22', "%27", '%26' ), $phrase);
+         if ( $escaped ) {
+            $phrase = str_ireplace( array( '"', "'", '&', "\r", "\n"  ), array( '%22', "%27", '%26', '&#13;','&#10;'  ), $phrase);
+         } else {
+           if ( ! empty( $key_data['Live'] ) && empty( $key_data['Link'] ) ) $phrase = str_ireplace( array(   '"' ), array( '&quot;' ), $phrase );
+         }
+         //if ( ! empty( $key_data['Live'] ) && empty( $key_data['Link'] ) ) $phrase = str_ireplace( array(  "'", "\r", "\n" ), array( '&#39;','&#13;','&#10;' ), $phrase );
+         //if ( ! empty( $key_data['Live'] ) && empty( $key_data['Link'] ) ) $phrase = str_ireplace( array(   "\r", "\n" ), array( '&#13;','&#10;' ), $phrase );
 
          /*
           * Update unused_args to remove used keyword.

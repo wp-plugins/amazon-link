@@ -123,7 +123,6 @@ if (!class_exists('AmazonWishlist_ip2nation')) {
          foreach ($lines as $line) {
             $line = trim($line);
             if ( ! empty($line) && ($wpdb->query($line.';') === FALSE) ) {
-               echo "<PRE>-". $line ."-</pRE>";
                return array ( 'Success' => False, 'Message' => '='.$line.'='.sprintf(__('ip2nation install: Database downloaded and unzipped but failed to install [%s]','amazon-link'), $wpdb->last_error));
             }
             $queries++;

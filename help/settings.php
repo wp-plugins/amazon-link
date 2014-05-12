@@ -24,8 +24,6 @@
     'title' => 'Display Options',
     'content' => '
 <p>These options affect the default appearance and behaviour of standard text links and the type of Amazon Wishlist that is displayed.</p>
-<h5>Link Text</h5>
-<p>If you do not specify the \'text\' argument in your &#91;amazon] shortcode, then this text will be used by default. This option is equivalent to the \'text\' shortcode argument, and the %TEXT% keyword in the template.</p>
 <h5>Image Class</h5>
 <p>Allows the author to change the default class used when the plugin inserts a thumbnail or image into a post. This option is equivalent to the \'image_class\' shortcode argument, and the %IMAGE_CLASS% keyword in the template.</p>
 <h5>Wishlist Template</h5>
@@ -41,6 +39,23 @@
 <p>This is the text that will appear in the link \'title\' attribute for the Amazon links, it may contain any of the usual template keywords e.g. %TITLE% or %TEXT%. Leave blank to not have a title attribute.</p>
 <h5>Use Media Library</h5>
 <p>This option adds the ability to upload images for products from the Amazon site to your local WordPress media library. Once uploaded the plugin will always use these local images for all shortcodes for that product.</p>
+',
+  ),
+  'add amazon link - form options' => 
+  array (
+    'id' => 'amazon-link-settings-add-amazon-link-form-options',
+    'page' => 'settings',
+    'title' => 'Add Amazon Link - Form Options',
+    'content' => '
+<p>These options affect the default values that are shown in the \'Add Amazon Link\' helper box that is used to insert Amazon Link shortcodes into Posts.</p>
+<h5>Link Text</h5>
+<p>If you do not specify the \'text\' argument in your &#91;amazon] shortcode, then this text will be used by default. This option is equivalent to the \'text\' shortcode argument, and the %TEXT% keyword in the template.</p>
+<h5>Default Template</h5>
+<p>Use this setting to pre-select the template to use when inserting new Amazon Links into posts.</p>
+<h5>Default Channel</h5>
+<p>Use this setting to pre-select the channel to use when inserting new Amazon Links into posts. If nothing is selected then the \'Default\' channel is always used.</p>
+<h5>Default Search Index</h5>
+<p>Use this setting to pre-select which search index should be used when searching for Amazon products.</p>
 ',
   ),
   'localisation options' => 

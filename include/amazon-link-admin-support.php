@@ -795,8 +795,12 @@ if ( ! class_exists ( 'Amazon_Link_Admin_Support' ) ) {
          $Settings['default_local'] = 'uk';
          $Settings['localise'] = '0';
          $pxml = $this->doQuery($request, $Settings);
-         if (isset($pxml['Items'])) {
+
+         if (isset($pxml['Items']['Item'])) {
             $result['Valid'] = 1;
+         } else if (isset($pxml['Items']['Request']['Errors']['Error'])) {
+            $result['Valid'] = 0;
+            $result['Message'] = $pxml['Items']['Request']['Errors']['Error']['Message'];
          } else if (isset($pxml['Error'])) {
             $result['Valid'] = 0;
             $result['Message'] = $pxml['Error']['Message'];
