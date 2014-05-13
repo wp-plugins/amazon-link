@@ -1,10 +1,10 @@
 === Amazon Link ===
 Contributors: paulstuttard
 Donate link: http://www.houseindorset.co.uk/plugins
-Tags: Amazon, links, wishlist, recommendations,, shortcode, ip2nation, localise, images, media library, affiliate, product, template
+Tags: Amazon, links, wishlist, recommendations, shortcode, ip2nation, localise, images, media library, affiliate, product, template
 Requires at least: 3.3
 Tested up to: 3.9.1
-Stable tag: 3.2
+Stable tag: 3.2.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -112,9 +112,9 @@ To upgrade use the built in WordPress update option on the Plugins Admin page.
 
 6. On the Amazon Link Associate ID options page enter all your Amazon Associate IDs to earn commission from links.
 
-== Changelog ==
+== Changelog ==
 
-= 3.2.2 - 9th April 2014 =
+= 3.2.2 - 9th April 2014 =
 
 
 
@@ -336,9 +336,9 @@ Add internationalisation hooks into plugin.
 
 **1.0**
 First Release
-== Frequently Asked Questions ==
+== Frequently Asked Questions ==
 
-**I've tried the plugin and it doesn't do what I want, help?**
+**I've tried the plugin and it doesn't do what I want, help?**
 
 If you think the plugin doesn't work, please try contacting me and I will endeavour to help. You can either start a forum topic on the [Wordpress site](http://wordpress.org/support/plugin/amazon-link) or leave a comment on my site on the plugin page [Amazon Link Page](http://www.houseindorset.co.uk/plugins/amazon-link).
 
@@ -603,9 +603,9 @@ Produce a wishlist using the default template containing a random selection of p
 `[amazon cat=local&template=My Favourites&wishlist_type=similar&text=Some Related Products]`
 Produce an Amazon My Favourites widget containing a selection of related products to those already displayed on the current page.
 
-== Settings ==
+== Settings ==
 
-The plugin Settings page is where the author can modify the behaviour of all the links embedded in their site.
+The plugin Settings page is where the author can modify the behaviour of all the links embedded in their site.
 
 Note any changes here will affect all existing links that do not explicitly set these options via the [shortcode](#shortcode) content. These options can be viewed as the 'default' behaviour any of which can be overridden locally by adding the appropriate parameter to the shortcode.
 
@@ -872,9 +872,9 @@ Set the type of this particular wishlist. Overides the 'Wishlist Type' setting.
 
 
 
-== Technical ==
+== Technical ==
 
-== AWS Requests ==
+== AWS Requests ==
 
 The plugin relies upon the php script aws_signed_request kindly crafted by [Ulrich Mierendorff](http://www.ulrichmierendorff.com/software/aws_signed_query/).
 
@@ -908,9 +908,9 @@ Features I will be adding to the plugin in the future:
 * Combine 'convert' and 'alternates' extras plugins
 * Add flush to sc cache on any admin change, settings, template post/page edit.
 
-== Upgrade Notice ==
+== Upgrade Notice ==
 
-**3.2.2 - 9th April 2014**
+**3.2.2 - 9th April 2014**
 
 Upgrade to add support for Amazon Brazil and fix some minor bugs.
 
@@ -1009,9 +1009,9 @@ Minor internal structural changes, add options link from plugin page.
 **1.1**
 
 Upgrade if you wish to have internationalisation (i18n) support.
-== Upgrading ==
+== Upgrading ==
 
-Some guidance on upgrading the Amazon Link plugin from one version to the next.
+Some guidance on upgrading the Amazon Link plugin from one version to the next.
 
 **Be prepared**
 
