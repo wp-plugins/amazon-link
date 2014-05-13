@@ -312,11 +312,12 @@ if (!class_exists('AmazonWishlist_Options')) {
                   } else {
                      $Title = '<h4 '.$id.'>'. $optDetails['Value'] . '</h4>';
                   }
-                  $class  = isset($optDetails['Class']) ? 'class="'.$optDetails['Class'].' al_options"' : 'class="al_options"';
+                  $class   = isset($optDetails['Class']) ? 'class="'.$optDetails['Class'].' al_options"' : 'class="al_options"';
+                  $s_class = isset($optDetails['Section_Class']) ? 'class="'.$optDetails['Section_Class'].'"' : '';
 
 ?>
     <div <?php echo $option_id; ?> class="al_section">
-     <div class="<?php echo $optDetails['Section_Class']; ?>">
+     <div <?php echo $s_class;?> >
       <?php echo $Title;
             if (isset($optDetails['Description'])) echo '<div class="al_description">'.$optDetails['Description'].'</div>';
             if (isset($optDetails['Buttons'])) $this->displayButtons($optDetails['Buttons']);

@@ -10,8 +10,8 @@ $wishlist_template = htmlspecialchars ('
    <p>%LINK_OPEN%%TITLE%%LINK_CLOSE%</p>
    <div class="amazon_details">
      <p>by %ARTIST% [%MANUFACTURER%]<br />
-     Rank/Rating: %RANK%/%RATING%<br />
-     <b>Price: <span class="amazon_price">%PRICE%</span></b>
+        Rank/Rating: %RANK%/%RATING%<br />
+        <b>Price: <span class="amazon_price">%PRICE%</span></b>
     </p>
    </div>
   </div>
