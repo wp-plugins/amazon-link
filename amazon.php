@@ -209,10 +209,12 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          add_filter( 'amazon_link_url',                     'esc_url', 21, 1);
          
          /* Set up the default channel filters - priority determines order */
-         add_filter( 'amazon_link_get_channel' ,            array( $this, 'get_channel_by_setting' ), 10,4 );
-         add_filter( 'amazon_link_get_channel' ,            array( $this, 'get_channel_by_rules' ), 12,4 );
-         if (!empty($settings['user_ids'])) {
-            add_filter( 'amazon_link_get_channel' ,         array( $this, 'get_channel_by_user' ), 14,4 );
+         if (!empty($settings['do_channels'])) {
+            add_filter( 'amazon_link_get_channel' ,            array( $this, 'get_channel_by_setting' ), 10,4 );
+            add_filter( 'amazon_link_get_channel' ,            array( $this, 'get_channel_by_rules' ), 12,4 );
+            if (!empty($settings['user_ids'])) {
+               add_filter( 'amazon_link_get_channel' ,         array( $this, 'get_channel_by_user' ), 14,4 );
+            }
          }
         
          /* Set up the default link and channel filters */
@@ -564,7 +566,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
 
             if ( ! $override ) return $channels;
 
-            if (!empty($settings['plugin_ids'])) {
+            if ( ! empty($settings['plugin_ids']) ) {
                /*
                 * Only use the plugin ids for unpopulated locales if it has
                 * been explicitly enabled by the user option.
@@ -1065,10 +1067,8 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
             // copy global settings into each locale
             $settings[$cc] += $settings['global'];
          }
-        
 
          return $settings;
-     
       }
 
       /*****************************************************************************************/
@@ -1308,6 +1308,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
           * Select the most appropriate ASIN for the locale
           * TODO: Pre-do this?
           */
+
          if ( empty( $this->temp_data[$country]['asin'] ) ) {
             $this->temp_data[$country]['asin'] = isset( $this->temp_data[$default_country]['asin'] ) ? $this->temp_data[$default_country]['asin'] : NULL;
          }
@@ -1316,7 +1317,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          /*
           * Prefetch product data if not already fetched and prefetch is enabled
           */
-         if ( $settings['live'] && $settings['prefetch'] && empty( $this->temp_data[$country]['prefetched'] ) ) {
+         if ( $settings['live'] && $settings['prefetch'] && empty( $this->temp_data[$country]['prefetched']) && ! empty($asin) ) {
 
             $item_data = $this->cached_query( $asin, $settings, True );
 

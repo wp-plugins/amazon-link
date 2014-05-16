@@ -129,7 +129,7 @@
 
    if ($notify_update && current_user_can('manage_options')) {
       $this->save_channels($channels);
-
+            
       // **********************************************************
       // Put an options updated message on the screen
       foreach ((array)$update_message as $message) {

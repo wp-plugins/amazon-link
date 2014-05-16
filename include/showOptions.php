@@ -18,7 +18,7 @@
    $update = False;
    if(  $Action == __('Update Options', 'amazon-link') ) {
 
-      // Update Current Wishlist settings
+      // Update Current settings
 
       foreach ($optionList as $optName => $optDetails) {
          if (isset($optDetails['Name'])) {
@@ -29,11 +29,19 @@
                $AWS_keys_updated = 1;
                $Opts[$optName] = trim(stripslashes($_POST[$optName]));
             } else {
+               if (($optName == 'user_ids') && (empty($Opts[$optName]) != empty($_POST[$optName]))) {
+                  $user_ids_changed = 1;
+               }
                $Opts[$optName] = stripslashes($_POST[$optName]);
             }
          }
       }
       $this->saveOptions($Opts);
+      if (isset($user_ids_changed)) {
+         $this->save_channels($this->get_channels());
+         $Opts = $this->get_default_settings();
+      }
+      
       $update = __('Options saved.', 'amazon-link' );
 
 /*****************************************************************************************/

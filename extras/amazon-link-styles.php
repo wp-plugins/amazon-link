@@ -1,7 +1,7 @@
 <?php
 
 /*
-Plugin Name: Amazon Link Stylesheet
+Plugin Name: Amazon Link Extra - Stylesheet
 Plugin URI: http://www.houseindorset.co.uk/
 Description: Update the Amazon Link plugin to use a new stylsheet, default location 'wp-content/plugins/user-styles.css'
 Version: 1.0

@@ -122,6 +122,9 @@ function al_show( id ) {
 function al_gen_multi (id, term, def, chan) {
    var content = "";
 
+   if ( AmazonLinkMulti.channels[chan] == undefined) {
+      chan = 'default';
+   }
    for (var cc in AmazonLinkMulti.country_data) {
       var type = term[cc].substr(0,1);
       var arg  = term[cc].substr(2);

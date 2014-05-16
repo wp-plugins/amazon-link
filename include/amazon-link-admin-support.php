@@ -368,12 +368,17 @@ if ( ! class_exists ( 'Amazon_Link_Admin_Support' ) ) {
       // User Options
 
       function get_user_options($ID) {
-         $options = get_the_author_meta( self::user_options, $ID );
+         $options = get_user_meta( self::user_options, $ID );
          return $options;
       }
 
       function save_user_options($ID, $options ) {
-         update_usermeta( $ID, self::user_options,  array_filter($options) );
+         $options = array_filter($options);
+         if ( empty($options)) {
+            delete_user_meta( $ID, self::user_options );
+         } else {
+            update_user_meta( $ID, self::user_options, $options );
+         }
       }
 
       function get_user_option_list() {
@@ -430,7 +435,7 @@ if ( ! class_exists ( 'Amazon_Link_Admin_Support' ) ) {
                's_author'          => array( 'Type' => 'hidden' ),
                's_page'            => array( 'Type' => 'hidden' ),
                'template_content'  => array( 'Type' => 'hidden' ),
-               
+               'do_channels'       => array( 'Type' => 'calculated' ),
                /* Options that change how the items are displayed */
                'hd1s'              => array( 'Type' => 'section', 'Value' => __('Display Options', 'amazon-link'), 'Title_Class' => 'al_section_head', 'Description' => __('Change the default appearance and behaviour of the Links.','amazon-link'), 'Section_Class' => 'al_subhead1'),
                //               'text'              => array( 'Name' => __('Link Text', 'amazon-link'), 'Description' => __('Default text to display if none specified', 'amazon-link'), 'Type' => 'text', 'Size' => '40', 'Class' => 'al_border' ),
@@ -764,19 +769,31 @@ if ( ! class_exists ( 'Amazon_Link_Admin_Support' ) ) {
       }
 
       function save_channels($channels) {
+         
          if (!is_array($channels)) {
             return;
          }
+         $options = get_option( self::optionName, array() );
+         
          $defaults = $channels['default'];
          unset($channels['default']);
          ksort($channels);
          $channels = array('default' => $defaults) + $channels;
+         $options['do_channels'] = 0;
          foreach ($channels as $channel => &$data) {
             $data = array_filter($data);
-            $data['Rule'] = apply_filters('amazon_link_save_channel_rule', array(), $channel, $data, $this);
-
+            $data['Rule'] = apply_filters( 'amazon_link_save_channel_rule', array(), $channel, $data, $this);
+            
+            // If multiple channels enabled then enable channel filters
+            if ( ($channel != 'default') && ( empty($data['user_channel']) || !empty($options['user_ids']) ) ) {
+               $options['do_channels'] = 1;
+            }
          }
-         update_option(self::channels_name, $channels);
+         
+         update_option( self::channels_name, $channels );
+         update_option( self::optionName, $options );
+         unset($this->default_settings);
+
          $this->channels = $channels;
       }
       

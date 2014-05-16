@@ -80,6 +80,7 @@ if ( ! class_exists( 'AmazonLinkSearch' ) ) {
          $opts['localise'] = 0;
          $opts['live'] = 1;
          $opts['skip_slow'] = 1;
+         
          $Settings = $this->alink->parse_shortcode($opts);
 
          $cc = $Settings['local_cc'];
@@ -151,6 +152,9 @@ if ( ! class_exists( 'AmazonLinkSearch' ) ) {
          
          $opts = $_POST;
 
+         $this->alink->in_post = False;
+         $this->alink->post_ID = 0;
+         
          /* Do not upload if we already have this image */
          $media_ids = $this->find_attachments( $opts['asin'] );
 
@@ -356,9 +360,12 @@ if ( ! class_exists( 'AmazonLinkSearch' ) ) {
 
          $settings = $this->alink->get_default_settings();
          $data = $this->alink->cached_query( $asin, $settings, True );
-         if ( is_array($data['image']) ) {
-            $data['image'] = $data['image'][0];
-         } 
+         // Strip out arrays
+         foreach ($data as $item => $content) {
+            if ( is_array($content) ) {
+               $data[$item] = $data[$item][0];
+            } 
+         }
          $data['asin'] = $asin;
          $data['template_content'] = '%IMAGE%';
          $image_url = $this->alink->shortcode_expand( $data );

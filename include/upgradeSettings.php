@@ -161,5 +161,18 @@ if ($Opts['version'] == 7) {
    $Opts['version'] = 8;
    $this->saveOptions($Opts);
 }
+   /*
+    * Set the 'do_channels' option if more than default channel is set
+    */
+   if ($Opts['version'] == 8) {
+      
+      // Resave Channels - this will set 'do_channels' for us, but will need to refetch options
+      $channels = $this->get_channels();
+      $this->save_channels($channels);
+      
+      $Opts = get_option(self::optionName, array());
+      $Opts['version'] = 9;
+      $this->saveOptions($Opts);
+   }
    
 ?>
