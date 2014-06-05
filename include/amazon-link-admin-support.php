@@ -1,7 +1,7 @@
 <?php
 
 /*
-Copyright 2012-2013 Paul Stuttard (email : wordpress_amazonlink@ redtom.co.uk)
+Copyright 2013-2014 Paul Stuttard (email : wordpress_amazonlink@ redtom.co.uk)
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -21,6 +21,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 if ( ! class_exists ( 'Amazon_Link_Admin_Support' ) ) {
    class Amazon_Link_Admin_Support extends AmazonWishlist_For_WordPress {
 
+      var $menu_slug         = 'amazon-link-quickstart';
+      
       // Constructor for the Admin Support
       function __construct () {
          
@@ -55,25 +57,25 @@ if ( ! class_exists ( 'Amazon_Link_Admin_Support' ) ) {
       function init () {
 
          // Register default channel rule creation filter - needed for Upgrading Settings 7->8
-         add_filter('amazon_link_save_channel_rule', array($this, 'create_channel_rules'), 10,4);
+         add_filter( 'amazon_link_save_channel_rule', array($this, 'create_channel_rules'), 10,4 );
          
          // Call Parent Inititialisation - still need to do frontend initialisation
-         parent::init ();
+         parent::init();
          
          /* load localisation  */
-         load_plugin_textdomain('amazon-link', $this->plugin_dir . '/i18n', $this->plugin_dir . '/i18n');
+         load_plugin_textdomain( 'amazon-link', $this->plugin_dir . '/i18n', $this->plugin_dir . '/i18n' );
 
          /* Initialise dependent classes */
          $this->form = new AmazonWishlist_Options;
-         $this->form->init($this);                     // Need to register form styles
+         $this->form->init( $this );                     // Need to register form styles
          $this->search = new AmazonLinkSearch;
-         $this->search->init($this);                   // Need to register scripts & ajax callbacks
+         $this->search->init( $this );                   // Need to register scripts & ajax callbacks
 
          /* Register backend scripts */
          $edit_script  = $this->URLRoot."/postedit.js";
          $admin_script = $this->URLRoot."/include/amazon-admin.js";
-         wp_register_script ( 'amazon-link-edit-script',  $edit_script,  array('jquery', 'amazon-link-search'), $this->plugin_version);
-         wp_register_script ( 'amazon-link-admin-script', $admin_script, false, $this->plugin_version);
+         wp_register_script( 'amazon-link-edit-script',  $edit_script,  array('jquery', 'amazon-link-search'), $this->plugin_version );
+         wp_register_script( 'amazon-link-admin-script', $admin_script, false, $this->plugin_version );
          
       }
 
@@ -135,11 +137,12 @@ if ( ! class_exists ( 'Amazon_Link_Admin_Support' ) ) {
          $page = $this->pages[$screen->id];
          $slug = $page['Slug'];
 
-         add_filter( 'screen_layout_columns', array(&$this, 'admin_columns'), 10, 2 );
-
-         wp_enqueue_script('common');
-         wp_enqueue_script('wp-lists');
-         wp_enqueue_script('postbox');
+         // Set default screen columns for this page.
+         add_screen_option( 'layout_columns', array( 'default' => 2, 'max' => 2 ) );
+                            
+         wp_enqueue_script( 'common' );
+         wp_enqueue_script( 'wp-lists' );
+         wp_enqueue_script( 'postbox' );
 
          if ( isset( $page['Metaboxes'] ) ) {
             foreach( $page['Metaboxes'] as $id => $data ) {
@@ -167,13 +170,6 @@ if ( ! class_exists ( 'Amazon_Link_Admin_Support' ) ) {
                                    '<p><a target="_blank" href="'. $this->plugin_home . 'faq/#channels">' . __('Channels Help','amazon-link') . '</a></p>' .
                                    '<p><a target="_blank" href="'. $this->plugin_home . 'faq/#templates">' . __('Template Help','amazon-link') . '</a></p>');
 
-      }
-
-      function admin_columns( $columns, $id ) {
-         if ( isset( $this->pages[$id] ) ) {
-            $columns[$id] = 2;
-         }
-         return $columns;
       }
 
       function amazon_admin_styles() {
@@ -208,8 +204,8 @@ if ( ! class_exists ( 'Amazon_Link_Admin_Support' ) ) {
                if ((isset($details['Live']) || isset($details['User'])) && (stripos($Details['Content'], '%'.$keyword.'%')!==FALSE))
                   $template_data[] = $keyword;
             }
-            $j_data[$templateName]['keywords'] = implode(',',$template_data);
-            $j_data[$templateName]['content'] = htmlspecialchars_decode($Details['Content']);
+            $j_data['templates'][$templateName]['keywords'] = implode(',',$template_data);
+            $j_data['templates'][$templateName]['content'] = htmlspecialchars_decode($Details['Content']);
          }
          
          $live_data = array();
@@ -222,7 +218,7 @@ if ( ! class_exists ( 'Amazon_Link_Admin_Support' ) ) {
          }
          $j_data['template_live_keywords'] = implode(',',$live_data);
          $j_data['template_user_keywords'] = implode(',',$user_data);
-         $j_data[' '] = array( 'keywords' => '', 'content' => '');
+         $j_data['templates'][' '] = array( 'keywords' => 'text', 'content' => '');
          $j_data['shortcode_template'] = apply_filters( 'amazon_link_shortcode_template', '[amazon %ARGS%]', $this);
          wp_localize_script( 'amazon-link-edit-script', 'AmazonLinkData', $j_data);
       }
@@ -251,14 +247,12 @@ if ( ! class_exists ( 'Amazon_Link_Admin_Support' ) ) {
          $data        = $this->pages[$page];
          $title       = $data['Title'];
          $description = $data['Description'];
-         $icon        = isset( $data['Icon'] ) ? $data['Icon'] : 'options-general';
 
          wp_nonce_field( 'closedpostboxes', 'closedpostboxesnonce', false );
          wp_nonce_field( 'meta-box-order', 'meta-box-order-nonce', false );
 
 ?>
 <div class="wrap">
- <?php screen_icon($icon); ?>
   <h2><?php echo $title ?></h2>
    <p><?php echo $description ?></p>
    <div id="poststuff">
@@ -291,11 +285,19 @@ if ( ! class_exists ( 'Amazon_Link_Admin_Support' ) ) {
 
 /*****************************************************************************************/
 
-      // Main Options Page
+      // Advanced Options Page
       function show_options() {
          include('showOptions.php');
       }
 
+      // Basic Options Page
+      function show_setup() {
+         include('showSetup.php');
+      }
+
+      function show_settings_progress() {
+         include( 'showProgress.php' );
+      }
       // Extras Management Page
       function show_extras() {
          include('showExtras.php');
@@ -334,7 +336,11 @@ if ( ! class_exists ( 'Amazon_Link_Admin_Support' ) ) {
           * Populate the help popup.
           */
          $text = __('<p>Hover the mouse pointer over the keywords for more information.</p>', 'amazon-link');
-         foreach ($this->get_keywords() as $keyword => $details) {
+
+         $keywords = $this->get_keywords();
+         ksort($keywords);
+
+         foreach ( $keywords as $keyword => $details) {
             $title = (!empty($details['Description']) ? 'title="'. htmlspecialchars($details['Description']) .'"' : '');
             $text = $text . '<p><abbr '.$title.'>%' . strtoupper($keyword) . '%</abbr></p>';
          }
@@ -362,12 +368,17 @@ if ( ! class_exists ( 'Amazon_Link_Admin_Support' ) ) {
       // User Options
 
       function get_user_options($ID) {
-         $options = get_the_author_meta( self::user_options, $ID );
+         $options = get_user_meta( self::user_options, $ID );
          return $options;
       }
 
       function save_user_options($ID, $options ) {
-         update_usermeta( $ID, self::user_options,  array_filter($options) );
+         $options = array_filter($options);
+         if ( empty($options)) {
+            delete_user_meta( $ID, self::user_options );
+         } else {
+            update_user_meta( $ID, self::user_options, $options );
+         }
       }
 
       function get_user_option_list() {
@@ -424,10 +435,10 @@ if ( ! class_exists ( 'Amazon_Link_Admin_Support' ) ) {
                's_author'          => array( 'Type' => 'hidden' ),
                's_page'            => array( 'Type' => 'hidden' ),
                'template_content'  => array( 'Type' => 'hidden' ),
-               
+               'do_channels'       => array( 'Type' => 'calculated' ),
                /* Options that change how the items are displayed */
                'hd1s'              => array( 'Type' => 'section', 'Value' => __('Display Options', 'amazon-link'), 'Title_Class' => 'al_section_head', 'Description' => __('Change the default appearance and behaviour of the Links.','amazon-link'), 'Section_Class' => 'al_subhead1'),
-               'text'              => array( 'Name' => __('Link Text', 'amazon-link'), 'Description' => __('Default text to display if none specified', 'amazon-link'), 'Type' => 'text', 'Size' => '40', 'Class' => 'al_border' ),
+               //               'text'              => array( 'Name' => __('Link Text', 'amazon-link'), 'Description' => __('Default text to display if none specified', 'amazon-link'), 'Type' => 'text', 'Size' => '40', 'Class' => 'al_border' ),
                'image_class'       => array( 'Name' => __('Image Class', 'amazon-link'), 'Description' => __('Style Sheet Class of image thumbnails', 'amazon-link'), 'Type' => 'text', 'Size' => '40', 'Class' => 'alternate al_border' ),
                'wishlist_template' => array( 'Name' => __('Wishlist Template', 'amazon-link') , 'Description' => __('Default template to use for the wishlist <em>* <a href="#aws_notes" title="AWS Access keys required for full functionality">AWS</a> *</em>', 'amazon-link'), 'Type' => 'selection', 'Class' => 'al_border'  ),
                'wishlist_items'    => array( 'Name' => __('Wishlist Length', 'amazon-link'), 'Description' => __('Maximum number of items to display in a wishlist (Amazon only returns a maximum of 5, for the \'Similar\' type of list) <em>* <a href="#aws_notes" title="AWS Access keys required for full functionality">AWS</a> *</em>', 'amazon-link'), 'Type' => 'text', 'Class' => 'alternate al_border' ),
@@ -436,16 +447,24 @@ if ( ! class_exists ( 'Amazon_Link_Admin_Support' ) ) {
                'link_title'        => array( 'Name' => __('Link Title Text', 'amazon-link'), 'Description' => __('The text to put in the link \'title\' attribute, can use the same keywords as in the Templates (e.g. %TITLE% %ARTIST%), leave blank to not have a link title.', 'amazon-link'), 'Type' => 'text', 'Size' => '40', 'Class' => 'al_border' ),
                'media_library'     => array( 'Name' => __('Use Media Library', 'amazon-link'), 'Description' => __('The plugin will look for and use thumbnails and images in the WordPress media library that are marked with an Amazon ASIN.', 'amazon-link'), 'Type' => 'checkbox', 'Class' => 'alternate' ),
                'hd1e'              => array( 'Type' => 'end'),
-               
+
+               /* Options that change how the Add Amazon Link Form behaves */
+               'hd1as'             => array( 'Type' => 'section', 'Value' => __('\'Add Amazon Link\' Form Settings', 'amazon-link'), 'Title_Class' => 'al_section_head', 'Description' => __('Settings that change the behaviour of the \'Add Amazon Link\' helper form, located on the Post/Page edit screen.','amazon-link'), 'Section_Class' => 'al_subhead1'),
+               'text'              => array( 'Name' => __('Link Text', 'amazon-link'), 'Description' => __('Default text to display if none specified', 'amazon-link'), 'Type' => 'text', 'Size' => '40', 'Class' => 'al_border' ),
+               'form_template'     => array( 'Name' => __('Default Template', 'amazon-link'), 'Description' => __('The default template selected on the Add Amazon Link form', 'amazon-link'), 'Type' => 'selection', 'Size' => '40', 'Class' => 'alternate al_border' ),
+               'form_channel'      => array( 'Name' => __('Default Channel', 'amazon-link') , 'Description' => __('The default channel to use when inserting new links. Note you do not need to set this for \'default\' channel to be automatically used.', 'amazon-link'), 'Type' => 'selection', 'Class' => 'al_border'  ),
+               'form_s_index'      => array( 'Name' => __('Default Search Index', 'amazon-link'), 'Description' => __('The default search index to use when searching for products.', 'amazon-link'), 'Type' => 'selection', 'Class' => 'alternate al_border' ),
+               'hd1ae'             => array( 'Type' => 'end'),
+
                /* Options that control localisation */
                'hd2s'          => array( 'Type' => 'section', 'Value' => __('Localisation Options', 'amazon-link'), 'Title_Class' => 'al_section_head', 'Description' => __('Control the localisation of data displayed and links created.','amazon-link'), 'Section_Class' => 'al_subhead1'),
                'ip2n_message'  => array( 'Type' => 'title', 'Title_Class' => 'al_para', 'Class' => 'al_pad al_border'),
                'default_cc'    => array( 'Name' => __('Default Country', 'amazon-link'), 'Hint' => __('The Amazon Associate Tags should be entered in the \'Associate IDs\' settings page.', 'amazon-link'),'Description' => __('Which country\'s Amazon site to use by default', 'amazon-link'), 'Type' => 'selection', 'Class' => 'alternate al_border' ),
                'localise'      => array( 'Name' => __('Localise Amazon Link', 'amazon-link'), 'Description' => __('Make the link point to the user\'s local Amazon website, (you must have ip2nation installed for this to work).', 'amazon-link'), 'Type' => 'checkbox', 'Class' => 'al_border' ),
 
-               'plugin_ids'   => array( 'Name' => __('Plugin Associate IDs', 'amazon-link'), 'Description' => __('Support future plugin development by using the plugin\'s own associate IDs for locales for which you have not registered. This gives back to the developer and is free to you!', 'amazon-link'), 'Type' => 'checkbox', 'Class' => 'al_border' ),
-               'global_over'   => array( 'Name' => __('Global Defaults', 'amazon-link'), 'Description' => __('Default values in the shortcode "title=xxxx" affect all locales, if not set only override the default locale.', 'amazon-link'), 'Type' => 'checkbox', 'Class' => 'alternate al_border' ),
-               'search_link'   => array( 'Name' => __('Create Search Links', 'amazon-link'), 'Description' => __('Generate links to search for the items by "Artist Title" for non local links, rather than direct links to the product by ASIN.', 'amazon-link'), 'Type' => 'checkbox', 'Class' => 'al_border' ),
+               'plugin_ids'    => array( 'Name' => __('Plugin Associate IDs', 'amazon-link'), 'Description' => __('Support future plugin development by using the plugin\'s own associate IDs for locales for which you have not registered. This gives back to the developer and is free to you!', 'amazon-link'), 'Type' => 'checkbox', 'Class' => 'al_border' ),
+               'search_link'   => array( 'Name' => __('Create Search Links', 'amazon-link'), 'Description' => __('Generate links to search for the items by "Artist Title" for non local links, rather than direct links to the product by ASIN.', 'amazon-link'), 'Type' => 'checkbox', 'Class' => 'alternate al_border' ),
+               'home_links'    => array( 'Name' => __('Create Default Country Links', 'amazon-link'), 'Description' => __('If a product can not be found in the visitor\'s locale then provide links to the default Amazon locale instead.', 'amazon-link'), 'Type' => 'checkbox', 'Class' => 'al_border' ),
                'search_text'   => array( 'Name' => __('Default Search String', 'amazon-link'), 'Description' => __('Default items to search for with "Search Links", uses the same system as the Templates below.', 'amazon-link'), 'Type' => 'text', 'Size' => '40', 'Class' => 'alternate al_border' ),
                'search_text_s' => array( 'Type' => 'calculated' ),
                'multi_cc'      => array( 'Name' => __('Multinational Link', 'amazon-link'), 'Description' => __('Insert links to all other Amazon sites after primary link.', 'amazon-link'), 'Type' => 'checkbox', 'Class' => 'al_border'),
@@ -495,10 +514,10 @@ if ( ! class_exists ( 'Amazon_Link_Admin_Support' ) ) {
             }
             
             // Populate the hidden Template Keywords
-            foreach ($this->get_keywords() as $keyword => $details) {
-               if (!isset($option_list[$keyword]))
-                  $option_list[$keyword] = array( 'Type' => 'hidden' );
-            }
+            //foreach ($this->get_keywords() as $keyword => $details) {
+            // if (!isset($option_list[$keyword]))
+            //    $option_list[$keyword] = array( 'Type' => 'hidden' );
+            //}
          }
          
          parent::get_option_list($option_list);
@@ -583,15 +602,30 @@ if ( ! class_exists ( 'Amazon_Link_Admin_Support' ) ) {
       }
 
       function get_menus() {
-         $menus = array('amazon-link-settings'   => array( 'Slug' => 'amazon-link-settings', 
+         $menus = array('amazon-link-quickstart' => array( 'Slug' => 'amazon-link-quickstart', 
+                                                           'Help' => WP_PLUGIN_DIR . '/'.$this->plugin_dir .'/'.'help/setup.php',
+                                                           'Description' => __('Use this page to quickly get the main features of the plugin up and running. Use the Contextual Help tab above for more information about the settings.','amazon-link'),
+                                                           'Title' => __('Amazon Link Setup', 'amazon-link'), 
+                                                           'Label' =>__('Setup', 'amazon-link'), 
+                                                           'Capability' => 'manage_options',
+                                                           'Metaboxes' => array( 'alOptions' => array( 'Title' => __( 'Setup', 'amazon-link' ),
+                                                                                                       'Callback' => array (&$this, 'show_setup' ), 
+                                                                                                       'Context' => 'normal', 
+                                                                                                       'Priority' => 'core'))
+                                                           ),
+                        'amazon-link-settings'   => array( 'Slug' => 'amazon-link-settings',
                                                            'Help' => WP_PLUGIN_DIR . '/'.$this->plugin_dir .'/'.'help/settings.php',
                                                            'Description' => __('Use this page to update the main Amazon Link settings to control the basic behaviour of the plugin, the appearance of the links and control the additional features such as localisation and the data cache. Use the Contextual Help tab above for more information about the settings.','amazon-link'),
-                                                           'Title' => __('Amazon Link Settings', 'amazon-link'), 
-                                                           'Label' =>__('Settings', 'amazon-link'), 
+                                                           'Title' => __('Amazon Link Settings', 'amazon-link'),
+                                                           'Label' =>__('Settings', 'amazon-link'),
                                                            'Capability' => 'manage_options',
-                                                           'Metaboxes' => array( 'alOptions' => array( 'Title' => __( 'Options', 'amazon-link' ),
-                                                                                                       'Callback' => array (&$this, 'show_options' ), 
-                                                                                                       'Context' => 'normal', 
+                                                           'Metaboxes' => array( /*'alStatus' => array( 'Title' => __( 'Status', 'amazon-link' ),
+                                                                                                       'Callback' => array (&$this, 'show_settings_progress' ),
+                                                                                                       'Context' => 'normal',
+                                                                                                       'Priority' => 'high'),*/
+                                                                                 'alOptions' => array( 'Title' => __( 'Options', 'amazon-link' ),
+                                                                                                       'Callback' => array (&$this, 'show_options' ),
+                                                                                                       'Context' => 'normal',
                                                                                                        'Priority' => 'core'))
                                                            ),
                         'amazon-link-channels'   => array( 'Slug' => 'amazon-link-channels', 
@@ -626,7 +660,6 @@ if ( ! class_exists ( 'Amazon_Link_Admin_Support' ) ) {
                                                            ),
                         'amazon-link-extras'     => array( 'Slug' => 'amazon-link-extras',
                                                            'Help' => WP_PLUGIN_DIR . '/'.$this->plugin_dir .'/'.'help/extras.php',
-                                                           'Icon' => 'plugins',
                                                            'Description' => __('On this page you can manage user provided or requested extra functionality for the Amazon Link plugin. These items are not part of the main Amazon Link plugin as they provide features that not every user wants and may have a negative impact on your site (e.g. reduced performance, extra database usage, etc.).', 'amazon-link'),
                                                            'Title' => __('Manage Amazon Link Extras', 'amazon-link'), 
                                                            'Label' => __('Extras', 'amazon-link'), 
@@ -694,7 +727,7 @@ if ( ! class_exists ( 'Amazon_Link_Admin_Support' ) ) {
 
       /*
        * Store Templates array in WordPress options
-       *   - Used in upgrade_settings
+       *
        */
       function saveTemplates ( $templates ) {
          if ( ! is_array ( $templates ) ) {
@@ -736,19 +769,31 @@ if ( ! class_exists ( 'Amazon_Link_Admin_Support' ) ) {
       }
 
       function save_channels($channels) {
+         
          if (!is_array($channels)) {
             return;
          }
+         $options = get_option( self::optionName, array() );
+         
          $defaults = $channels['default'];
          unset($channels['default']);
          ksort($channels);
          $channels = array('default' => $defaults) + $channels;
+         $options['do_channels'] = 0;
          foreach ($channels as $channel => &$data) {
             $data = array_filter($data);
-            $data['Rule'] = apply_filters('amazon_link_save_channel_rule', array(), $channel, $data, $this);
-
+            $data['Rule'] = apply_filters( 'amazon_link_save_channel_rule', array(), $channel, $data, $this);
+            
+            // If multiple channels enabled then enable channel filters
+            if ( ($channel != 'default') && ( empty($data['user_channel']) || !empty($options['user_ids']) ) ) {
+               $options['do_channels'] = 1;
+            }
          }
-         update_option(self::channels_name, $channels);
+         
+         update_option( self::channels_name, $channels );
+         update_option( self::optionName, $options );
+         unset($this->default_settings);
+
          $this->channels = $channels;
       }
       
@@ -767,8 +812,12 @@ if ( ! class_exists ( 'Amazon_Link_Admin_Support' ) ) {
          $Settings['default_local'] = 'uk';
          $Settings['localise'] = '0';
          $pxml = $this->doQuery($request, $Settings);
-         if (isset($pxml['Items'])) {
+
+         if (isset($pxml['Items']['Item'])) {
             $result['Valid'] = 1;
+         } else if (isset($pxml['Items']['Request']['Errors']['Error'])) {
+            $result['Valid'] = 0;
+            $result['Message'] = $pxml['Items']['Request']['Errors']['Error']['Message'];
          } else if (isset($pxml['Error'])) {
             $result['Valid'] = 0;
             $result['Message'] = $pxml['Error']['Message'];

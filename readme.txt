@@ -1,10 +1,10 @@
 === Amazon Link ===
 Contributors: paulstuttard
 Donate link: http://www.houseindorset.co.uk/plugins
-Tags: Amazon, links, wishlist, recommendations, , shortcode, ip2nation, localise, images, media library, affiliate, product, template
+Tags: Amazon, links, wishlist, recommendations,, shortcode, ip2nation, localise, images, media library, affiliate, product, template
 Requires at least: 3.3
-Tested up to: 3.8.1
-Stable tag: 3.1.3
+Tested up to: 3.9.1
+Stable tag: 3.2.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -16,7 +16,7 @@ This plugin enables you to put Amazon product links, images and bespoke template
 
 This plugin is used to quickly add Amazon products links to your WordPress posts and pages. The product links can be simple text links, thumbnail images, full-size images, complex templates or full-blown Amazon flash widgets.
 
-The product links that can be for any of the Amazon domains ([UK](http://www.amazon.co.uk), [US](http://www.amazon.com), [Canada](http://www.amazon.ca), [China](http://www.amazon.cn), [Germany](http://www.amazon.de), [Spain](http://www.amazon.es), [France](http://www.amazon.fr), [Italy](http://www.amazon.it), [India](http://www.amazon.in) and [Japan](http://www.amazon.co.jp/)).
+The product links that can be for any of the Amazon domains ([UK](http://www.amazon.co.uk), [US](http://www.amazon.com), [Brazil](http://www.amazon.com.br), [Canada](http://www.amazon.ca), [China](http://www.amazon.cn), [Germany](http://www.amazon.de), [Spain](http://www.amazon.es), [France](http://www.amazon.fr), [Italy](http://www.amazon.it), [India](http://www.amazon.in) and [Japan](http://www.amazon.co.jp/)).
 
 The content of the product links can be statically entered by the Author (when the link is created), or dynamically refreshed when displayed using data from the Amazon site that is most appropriate for the nationality of the reader.
 
@@ -56,21 +56,21 @@ To generate a list of products relevant to the content of your site use the 'cat
 
 This is created by either putting the line `amazon_recommends(<Category>,<Number of Posts>)` in your template. Or putting the line `[amazon cat=<Category>&last=<Number of Posts>]` within a post or page. Where 'Category' is a list of category ids to search within (e.g. as expected by the 'cat' argument of [query_posts](http://codex.wordpress.org/Class_Reference/WP_Query#Parameters) function. The 'last' parameter is the number of posts to search through.
 
-= Latest Version - 3.1.3 =
+= Latest Version - 3.2.2 =
 
 
 
 
-* New Feature - Experimental 'live search', use a shortcode using s_title, s_index, s_author to create a wishlist of search results.
-* Bug Fix - Improve separation of backend and frontend functionality
-* Bug Fix - Fix bug with Template Export encoding function
-* Bug Fix - Ensure 'Extra' plugins are Deactivated before Uninstalling
-* Bug Fix - Improve performance of User Channel lookups
-* Bug Fix - Rework parsing of shortcode arguments and settings
-* Other - Updates to match WordPress coding standard
-* Other - Update Amazon Java based Templates to match new subdomains
-* Compliance - Improve visibility of use of plugins own affiliate IDs
-
+* New Feature - New Setup page to help new users configure the plugin
+* New Feature - Add support for Brazil locale
+* New Feature - Add settings to allow the 'Add Amazon Link' form to have pre-configured defaults
+* Bug Fix - Correction to iframe localised subdomains
+* Bug Fix - Tweek the way Amazon data is escaped to show HTML in the Editorial Comments
+* Bug Fix - Remove depreciated screen_icons
+* Bug Fix - Ensure 'Link Text' is put into the shortcode when link inserted into a post
+* Bug Fix - Prevent PHP timeouts when install the ip2nation database
+* Bug Fix - Ensure multinational links are 'nofollow'
+* Bug Fix - Escape the '&' in the link URLs
 
 
 
@@ -114,7 +114,25 @@ To upgrade use the built in WordPress update option on the Plugins Admin page.
 
 == Changelog ==
 
-= 3.1.3 - 12th March 2014 =
+= 3.2.2 - 9th April 2014 =
+
+
+
+
+* New Feature - New Setup page to help new users configure the plugin
+* New Feature - Add support for Brazil locale
+* New Feature - Add settings to allow the 'Add Amazon Link' form to have pre-configured defaults
+* Bug Fix - Correction to iframe localised subdomains
+* Bug Fix - Tweek the way Amazon data is escaped to show HTML in the Editorial Comments
+* Bug Fix - Remove depreciated screen_icons
+* Bug Fix - Ensure 'Link Text' is put into the shortcode when link inserted into a post
+* Bug Fix - Prevent PHP timeouts when install the ip2nation database
+* Bug Fix - Ensure multinational links are 'nofollow'
+* Bug Fix - Escape the '&' in the link URLs
+
+
+
+= 3.2 - 12th March 2014 =
 
 
 
@@ -536,7 +554,7 @@ The localisation process is far from perfect and authors should be aware of the 
 
 * Incorrect Amazon site allocation -
 
-    There are only 10 major Amazon sites (UK, France, Germany, Spain, US, Japan, India, Italy, China and Canada). So the plugin has to guess where a country's residents are most likely to shop on-line. An alternative is to enable the 'Multinational Link' option, this will enable a small popup for each link allowing the site visitor to choose the most appropriate site (based on locale or language).
+    There are only 10 major Amazon sites (UK, France, Germany, Spain, US, Japan, India, Italy, China, Brazil and Canada). So the plugin has to guess where a country's residents are most likely to shop on-line. An alternative is to enable the 'Multinational Link' option, this will enable a small popup for each link allowing the site visitor to choose the most appropriate site (based on locale or language).
 * Product Availability -
 
     A product that is available in the author's locale may not be available on other Amazon sites. If the live data option is enabled the plugin will display a link to the Amazon site in the author's own locale if the product is not available at the visitor's Amazon store.
@@ -606,10 +624,6 @@ The Settings are split into 5 sections dealing with different aspects of the plu
 
 These options affect the default appearance and behaviour of standard text links and the type of Amazon Wishlist that is displayed.
 
-**Link Text**
-
-If you do not specify the 'text' argument in your [amazon] shortcode, then this text will be used by default. This option is equivalent to the 'text' shortcode argument, and the %TEXT% keyword in the template.
-
 **Image Class**
 
 Allows the author to change the default class used when the plugin inserts a thumbnail or image into a post. This option is equivalent to the 'image_class' shortcode argument, and the %IMAGE_CLASS% keyword in the template.
@@ -640,6 +654,28 @@ This is the text that will appear in the link 'title' attribute for the Amazon l
 
 This option adds the ability to upload images for products from the Amazon site to your local WordPress media library. Once uploaded the plugin will always use these local images for all shortcodes for that product.
 
+= Add Amazon Link - Form Options =
+
+
+These options affect the default values that are shown in the 'Add Amazon Link' helper box that is used to insert Amazon Link shortcodes into Posts.
+
+**Link Text**
+
+If you do not specify the 'text' argument in your [amazon] shortcode, then this text will be used by default. This option is equivalent to the 'text' shortcode argument, and the %TEXT% keyword in the template.
+
+**Default Template**
+
+Use this setting to pre-select the template to use when inserting new Amazon Links into posts.
+
+**Default Channel**
+
+Use this setting to pre-select the channel to use when inserting new Amazon Links into posts. If nothing is selected then the 'Default' channel is always used.
+
+**Default Search Index**
+
+Use this setting to pre-select which search index should be used when searching for Amazon products.
+
+
 = Localisation Options =
 
 
@@ -653,7 +689,7 @@ If localisation is not enabled, or has failed for some reason, then this is the 
 
 **Localise Amazon Link**
 
-If this option is selected and the [ip2nation](http://www.ip2nation.com) database has been installed then the plugin will attempt to use the most appropriate Amazon site when creating the link, currently supports [www.amazon.co.uk](http://www.amazon.co.uk), [www.amazon.com](http://www.amazon.com), [www.amazon.ca](http://www.amazon.ca), [www.amazon.cn](http://www.amazon.cn), [www.amazon.de](http://www.amazon.de), [www.amazon.es](http://www.amazon.es), [www.amazon.fr](http://www.amazon.fr), [www.amazon.in](http://www.amazon.in) , [www.amazon.it](http://www.amazon.it) and [www.amazon.co.jp](http://www.amazon.co.jp).
+If this option is selected and the [ip2nation](http://www.ip2nation.com) database has been installed then the plugin will attempt to use the most appropriate Amazon site when creating the link, currently supports [www.amazon.co.uk](http://www.amazon.co.uk), [www.amazon.com](http://www.amazon.com), [www.amazon.com.br](http://www.amazon.com.br), [www.amazon.ca](http://www.amazon.ca), [www.amazon.cn](http://www.amazon.cn), [www.amazon.de](http://www.amazon.de), [www.amazon.es](http://www.amazon.es), [www.amazon.fr](http://www.amazon.fr), [www.amazon.in](http://www.amazon.in) , [www.amazon.it](http://www.amazon.it) and [www.amazon.co.jp](http://www.amazon.co.jp).
 
 **Global Defaults**
 
@@ -874,7 +910,11 @@ Features I will be adding to the plugin in the future:
 
 == Upgrade Notice ==
 
-**3.1.3 - 12th March 2014**
+**3.2.2 - 9th April 2014**
+
+Upgrade to add support for Amazon Brazil and fix some minor bugs.
+
+**3.2 - 12th March 2014**
 
 Upgrade to improve frontend performance, including User Channels.
 

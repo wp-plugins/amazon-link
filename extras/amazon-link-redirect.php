@@ -3,7 +3,7 @@
 /*
 Plugin Name: Amazon Link Extra - Redirect
 Plugin URI: http://www.houseindorset.co.uk/plugins/amazon-link/
-Description: Adds the ability to redirect to any Amazon Link product using a URL of the format www.mydomain.com/go/<ASIN>/<LINK TYPE S,R or A>/<Domain ca,cn,de, etc.>/?args. Note if using these type of links it is recommended that you clearly indicate on your site that the link is to Amazon otherwise you might be in breach of the terms and conditions of your associates account.
+Description: Adds the ability to redirect to any Amazon Link product using a URL of the format www.mydomain.com/go/[ASIN]. Note if using these type of links it is recommended that you clearly indicate on your site that the link is to Amazon otherwise you might be in breach of the terms and conditions of your associates account.
 Version: 1.2.4
 Author: Paul Stuttard
 Author URI: http://www.houseindorset.co.uk

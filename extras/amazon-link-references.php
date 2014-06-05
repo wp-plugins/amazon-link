@@ -233,7 +233,7 @@ function alx_reference_get_options ($al) {
          'args'        => array ( 'Type' => 'textbox', 'Input_Class' => 'al_fixed_width', 'Name' => __('Extra Arguments', 'amazon-link'), 'Description' => __('Additional Shortcode Arguments.', 'amazon-link'), 'Rows'=> 5, 'Default' => ''),
          'template'    => array ( 'Type' => 'selection', 'Shortcode' => 1, 'Name' => __('Template', 'amazon-link')),
          'chan'        => array ( 'Type' => 'selection', 'Shortcode' => 1, 'Name' => __('Channel', 'amazon-link')),
-         'title1'      => array ( 'Type' => 'title', 'Value' => __('Country Specific ASINs:', 'amazon-link'), 'Title_Class' => 'sub_head'));
+         'title1'      => array ( 'Type' => 'title', 'Value' => __('Country Specific ASINs:', 'amazon-link'), 'Title_Class' => 'al_sub_head'));
 
 
    $sql = "SELECT ref,name,description FROM $refs_table;";

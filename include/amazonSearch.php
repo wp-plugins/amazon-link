@@ -80,6 +80,7 @@ if ( ! class_exists( 'AmazonLinkSearch' ) ) {
          $opts['localise'] = 0;
          $opts['live'] = 1;
          $opts['skip_slow'] = 1;
+         
          $Settings = $this->alink->parse_shortcode($opts);
 
          $cc = $Settings['local_cc'];
@@ -151,6 +152,9 @@ if ( ! class_exists( 'AmazonLinkSearch' ) ) {
          
          $opts = $_POST;
 
+         $this->alink->in_post = False;
+         $this->alink->post_ID = 0;
+         
          /* Do not upload if we already have this image */
          $media_ids = $this->find_attachments( $opts['asin'] );
 
@@ -209,15 +213,73 @@ if ( ! class_exists( 'AmazonLinkSearch' ) ) {
 'Grocery', 'MP3Downloads', 'DVD', 'Electronics', 'HealthPersonalCare', 'HomeGarden', 'Industrial', 'Jewelry', 'KindleStore',
 'Kitchen', 'Magazines', 'Merchants', 'Miscellaneous', 'MobileApps', 'Music', 'MusicalInstruments', 'MusicTracks',
 'OfficeProducts', 'OutdoorLiving', 'PCHardware', 'PetSupplies', 'Photo', 'Shoes', 'Software', 'SportingGoods', 'Tools', 'Toys',
-'UnboxVideo', 'VHS', 'Video', 'VideoGames', 'Watches', 'Wireless', 'WirelessAccessories'));
+'UnboxVideo', 'VHS', 'Video', 'VideoGames', 'Watches', 'Wireless', 'WirelessAccessories'),
+            'br' => array('KindleStore'));
 
+         $search_index_info = array(
+            'All' => array ( 'Keywords' => True ),
+            'Apparel' => array ( 'Creator' => 'Manufacturer' ),
+            'Appliances' => array ( 'Creator' => 'Manufacturer' ),
+            'ArtsAndCrafts' => array ( 'Creator' => 'Brand'),
+            'Automotive' => array ( 'Creator' => 'Manufacturer' ),
+            'Baby' => array ( 'Creator' => 'Brand'),
+            'Beauty' => array ( 'Creator' => 'Brand'),
+            'Blended' => array ( 'Keywords' => True ),
+            'Books' => array ( 'Creator' => 'Author'),
+            'Classical' => array ( 'Creator' => 'Composer' ),
+            'Collectibles' => array ( ),
+            'DigitalMusic' => array ( 'Creator' => 'Actor' ),
+            'DVD' => array ( 'Creator' => 'Director'),
+            'Electronics' => array ( 'Creator' => 'Manufacturer' ),
+            'ForeignBooks' => array ( 'Creator' => 'Author'),
+            'Grocery' => array ( 'Creator' => 'Brand'),
+            'HealthPersonalCare' => array ( 'Creator' => 'Manufacturer' ),
+            'Hobbies' => array ( 'Creator' => 'Manufacturer' ),
+            'HomeGarden' => array ( 'Creator' => 'Manufacturer' ),
+            'Home' => array ( 'Creator' => 'Manufacturer' ),
+            'HomeImprovement' => array ( 'Creator' => 'Manufacturer' ),
+            'Industrial' => array ( 'Creator' => 'Manufacturer' ),
+            'Jewelry' => array ( ),
+            'KindleStore' => array ( 'Creator' => 'Author'),
+            'Kitchen' => array ( 'Creator' => 'Manufacturer' ),
+            'LawnGarden' => array ( 'Creator' => 'Manufacturer' ),
+            'Lighting' => array ( 'Creator' => 'Brand'),
+            'Magazines' => array ( 'Creator' => 'Publisher' ),
+            'Marketplace' => array ( ),
+            'Merchants' => array ( ),
+            'Miscellaneous' => array ( 'Creator' => 'Brand'),
+            'MobileApps' => array ( 'Creator' => 'Author'),
+            'MP3Downloads' => array ( 'Creator' => 'Author'),
+            'Music' => array ( 'Creator' => 'Artist' ),
+            'MusicalInstruments' => array ( 'Creator' => 'Brand'),
+            'MusicTracks' => array ( 'Keywords' => True ),
+            'OfficeProducts' => array ( 'Creator' => 'Brand'),
+            'OutdoorLiving' => array ( 'Creator' => 'Manufacturer' ),
+            'Outlet' => array ( 'Keywords' => True ),
+            'PCHardware' => array ( 'Creator' => 'Manufacturer' ),
+            'PetSupplies' => array ( 'Creator' => 'Brand'),
+            'Photo' => array ( 'Creator' => 'Manufacturer' ),
+            'Shoes' => array ( 'Creator' => 'Brand'),
+            'Software' => array ( 'Creator' => 'Manufacturer' ),
+            'SoftwareVideoGames' => array ( 'Creator' => 'Manufacturer' ),
+            'SportingGoods' => array ( 'Creator' => 'Brand' ),
+            'Tools' => array ( 'Creator' => 'Manufacturer' ),
+            'Toys' => array ( ),
+            'UnboxVideo' => array ( 'Creator' => 'Director'),
+            'VHS' => array ( 'Creator' => 'Director'),
+            'Video' => array ( 'Creator' => 'Director'),
+            'VideoGames' => array ( 'Creator' => 'Brand'),
+            'Watches' => array ( ),
+            'Wireless' => array ( ),
+            'WirelessAccessories' => array ( )
+            );
          return array('SearchIndexByLocale' => $search_index_by_locale);
       }
 
       function create_search_query( $Settings ) {
          
          // Not working: Baby, MusicalInstruments
-         $Creator = array( 'Author' => array( 'Books', 'ForeignBooks', 'MobileApps', 'MP3Downloads'),
+         $Creator = array( 'Author' => array( 'Books', 'ForeignBooks', 'MobileApps', 'MP3Downloads', 'KindleStore'),
                            'Actor' => array( 'DigitalMusic' ),
                            'Artist' => array('Music'),
                            'Director' => array('DVD', 'UnboxVideo', 'VHS', 'Video'),
@@ -298,9 +360,12 @@ if ( ! class_exists( 'AmazonLinkSearch' ) ) {
 
          $settings = $this->alink->get_default_settings();
          $data = $this->alink->cached_query( $asin, $settings, True );
-         if ( is_array($data['image']) ) {
-            $data['image'] = $data['image'][0];
-         } 
+         // Strip out arrays
+         foreach ($data as $item => $content) {
+            if ( is_array($content) ) {
+               $data[$item] = $data[$item][0];
+            } 
+         }
          $data['asin'] = $asin;
          $data['template_content'] = '%IMAGE%';
          $image_url = $this->alink->shortcode_expand( $data );
