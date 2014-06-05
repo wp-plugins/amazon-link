@@ -83,11 +83,6 @@
    $updates = array();
    if(  $Action == __('Update Options', 'amazon-link') ) {
 
-      // Update Default Channel
-      foreach ( $country_data as $cc => $data ) {
-         $channels['default']['tag_' . $cc] = $_POST['tag_' . $cc];
-      }
-      
       // Update subset of options
       foreach ($options as $opt => $opt_data) {
          if ( isset($opt_data['Name']) ) {
@@ -121,12 +116,17 @@
             } else {
                $opts[$opt] = stripslashes($_POST[$opt]);
             }
-         }
+         } 
+      }
+      // Update Default Channel
+      foreach ( $country_data as $cc => $data ) {
+         $channels['default']['tag_' . $cc] = $_POST['tag_' . $cc];
+         unset($opts['tag_'. $cc]);
       }
       
       $updates[] = __('Options saved.', 'amazon-link' );
    }
-   //echo "<PRE>"; print_r($_POST); echo "</pRE>";
+
 /*****************************************************************************************/
    if ( ! empty($install_ip2nation) ) {
 
@@ -172,7 +172,7 @@
    }
 
 /*****************************************************************************************/
-  // echo "<PRE>"; print_r($opts); echo "</pRE>";
+
    /* AWS Keys not yet validate, do a dummy request to see if we get any errors */
    if ( ! empty($opts['pub_key']) ) {
       if ( isset($AWS_keys_updated) || empty($opts['aws_valid']) ) {

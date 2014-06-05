@@ -72,6 +72,12 @@ input.al_show-0,.al_show-0,#al_buttons input.al_show-0 {
  padding-bottom: 4px;
 }
 
+.al_sub_head {
+ border-bottom: 1px dotted #aaaaaa;
+ margin: 2px 0 2px 0;
+ padding: 2px 0 2px 0;
+}
+
 .al_para {
  padding-left: 4px;
 }
@@ -85,10 +91,10 @@ input.al_show-0,.al_show-0,#al_buttons input.al_show-0 {
 .al_subhead1 h4, .al_subhead h4  {  
     cursor:pointer;  
     font-weight:normal;  
-//    width:80%;  
     padding:0px;  
-    margin:2px;  
+    margin:2px;
 }  
+
 .al_subhead1, .al_subhead {  
     cursor:pointer;  
     border-bottom:1px solid #ddd;  
