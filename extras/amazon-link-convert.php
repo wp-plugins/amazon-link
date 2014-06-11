@@ -4,7 +4,7 @@
 Plugin Name: Amazon Link Extra - Convert
 Plugin URI: http://www.houseindorset.co.uk/plugins/amazon-link/
 Description: <strong>!!!BETA!!!</strong> This plugin adds the ability to search for Amazon Link shortcodes and convert them into static content or links of a different format and vice versa.</br>
-Version: 1.6
+Version: 1.7
 Author: Paul Stuttard
 Author URI: http://www.houseindorset.co.uk
 */
@@ -56,8 +56,8 @@ function alx_convert_show_panel () {
                                                   'Template'    => '<!--amazon-link-open: %ARGS%-->%STATIC%<!--amazon-link-close-->'),
                          'amazon'      => array ( 'Regex'       => '!<a(?U:.*)href="(?U:[^"]*)www.amazon.(?:com|co.uk|ca|fr|jp|de|es)/(?U:[^/?]*[/?])*?(?P<asin>[0-9A-Z]{10})(?U:[/?][^"/?]*)*?"(?U:.*)>(?P<text>.*?)</a>!',
                                                   'Name'        => __('Amazon Link', 'amazon-link'),
-                                                  'Description' => 'Standard Amazon Product Links of the form <a ... href="www.amazon.%TLD%/.../%ASIN%/" ... >%TEXT%</a>',
-                                                  )
+                                                  'Description' => 'Standard Amazon Product Links of the form <a ... href="www.amazon.%TLD%/.../%ASIN%/" ... >%TEXT%</a>'
+                                                 )
                          );
    $expressions = apply_filters ('amazon_link_convert_expressions',$expressions, $awlfw);
 
@@ -214,7 +214,7 @@ function alx_convert_do_shortcode($match) {
    $args = $sep ='';
    foreach ($match as $arg => $data) {
       if (!is_int($arg) && !empty($data)) {
-         $args .= $sep. $arg .'='. $data;
+         $args .= $sep. $arg .'='. str_replace('&','%26',$data);
          $sep = '&';
       }
    }
@@ -225,18 +225,16 @@ function alx_convert_do_shortcode($match) {
    $awlfw->post_ID = '0';
    $static = $awlfw->shortcode_expand( $sc );
 
-   //   remove_all_filters ('amazon_link_process_args');
-
    $settings = $awlfw->parse_shortcode ( $sc );
 
    $settings[$settings['local_cc']]['static'] = $static;
    $settings[$settings['local_cc']]['args'] = $args;
    $settings[$settings['local_cc']]['unused_args'] = $args;
-   $settings['asin'] = isset( $settings['asin'][0] ) ? $settings['asin'][0] : NULL;
+
    $settings[$settings['local_cc']]['template_content'] = $alx_convert['Template'];
    $alx_convert['Count']++;
 
-   return preg_replace( '![\s]+!', ' ',$awlfw->parse_template($settings));
+   return preg_replace( '![\s]+!', ' ',$awlfw->make_links($settings));
 }
 
 /*

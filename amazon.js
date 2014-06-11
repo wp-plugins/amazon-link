@@ -122,6 +122,9 @@ function al_show( id ) {
 function al_gen_multi (id, term, def, chan) {
    var content = "";
 
+   if ( AmazonLinkMulti.channels[chan] == undefined) {
+      chan = 'default';
+   }
    for (var cc in AmazonLinkMulti.country_data) {
       var type = term[cc].substr(0,1);
       var arg  = term[cc].substr(2);
@@ -136,7 +139,7 @@ function al_gen_multi (id, term, def, chan) {
          url = url.replace(/%ARG%/g, arg);
          url = url.replace(/%TLD%/g, tld);
          url = url.replace(/%TAG%/g, tag);
-         content = content +'<a '+AmazonLinkMulti.target+' href="' + url + '"><img src="' + AmazonLinkMulti.country_data[cc].flag + '"></a>';
+         content = content +'<a rel="nofollow" '+AmazonLinkMulti.target+' href="' + url + '"><img src="' + AmazonLinkMulti.country_data[cc].flag + '"></a>';
       }
    }
    al_link_in (id, content);

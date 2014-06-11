@@ -24,8 +24,6 @@
     'title' => 'Display Options',
     'content' => '
 <p>These options affect the default appearance and behaviour of standard text links and the type of Amazon Wishlist that is displayed.</p>
-<h5>Link Text</h5>
-<p>If you do not specify the \'text\' argument in your &#91;amazon] shortcode, then this text will be used by default. This option is equivalent to the \'text\' shortcode argument, and the %TEXT% keyword in the template.</p>
 <h5>Image Class</h5>
 <p>Allows the author to change the default class used when the plugin inserts a thumbnail or image into a post. This option is equivalent to the \'image_class\' shortcode argument, and the %IMAGE_CLASS% keyword in the template.</p>
 <h5>Wishlist Template</h5>
@@ -43,6 +41,23 @@
 <p>This option adds the ability to upload images for products from the Amazon site to your local WordPress media library. Once uploaded the plugin will always use these local images for all shortcodes for that product.</p>
 ',
   ),
+  'add amazon link - form options' => 
+  array (
+    'id' => 'amazon-link-settings-add-amazon-link-form-options',
+    'page' => 'settings',
+    'title' => 'Add Amazon Link - Form Options',
+    'content' => '
+<p>These options affect the default values that are shown in the \'Add Amazon Link\' helper box that is used to insert Amazon Link shortcodes into Posts.</p>
+<h5>Link Text</h5>
+<p>If you do not specify the \'text\' argument in your &#91;amazon] shortcode, then this text will be used by default. This option is equivalent to the \'text\' shortcode argument, and the %TEXT% keyword in the template.</p>
+<h5>Default Template</h5>
+<p>Use this setting to pre-select the template to use when inserting new Amazon Links into posts.</p>
+<h5>Default Channel</h5>
+<p>Use this setting to pre-select the channel to use when inserting new Amazon Links into posts. If nothing is selected then the \'Default\' channel is always used.</p>
+<h5>Default Search Index</h5>
+<p>Use this setting to pre-select which search index should be used when searching for Amazon products.</p>
+',
+  ),
   'localisation options' => 
   array (
     'id' => 'amazon-link-settings-localisation-options',
@@ -54,7 +69,7 @@
 <h5>Default Country</h5>
 <p>If localisation is not enabled, or has failed for some reason, then this is the default Amazon site to use for the link.</p>
 <h5>Localise Amazon Link</h5>
-<p>If this option is selected and the <a href="http://www.ip2nation.com">ip2nation</a> database has been installed then the plugin will attempt to use the most appropriate Amazon site when creating the link, currently supports <a href="http://www.amazon.co.uk">www.amazon.co.uk</a>, <a href="http://www.amazon.com">www.amazon.com</a>, <a href="http://www.amazon.ca">www.amazon.ca</a>, <a href="http://www.amazon.cn">www.amazon.cn</a>, <a href="http://www.amazon.de">www.amazon.de</a>, <a href="http://www.amazon.es">www.amazon.es</a>, <a href="http://www.amazon.fr">www.amazon.fr</a>, <a href="http://www.amazon.in">www.amazon.in</a> , <a href="http://www.amazon.it">www.amazon.it</a> and <a href="http://www.amazon.co.jp">www.amazon.co.jp</a>.</p>
+<p>If this option is selected and the <a href="http://www.ip2nation.com">ip2nation</a> database has been installed then the plugin will attempt to use the most appropriate Amazon site when creating the link, currently supports <a href="http://www.amazon.co.uk">www.amazon.co.uk</a>, <a href="http://www.amazon.com">www.amazon.com</a>, <a href="http://www.amazon.com.br">www.amazon.com.br</a>, <a href="http://www.amazon.ca">www.amazon.ca</a>, <a href="http://www.amazon.cn">www.amazon.cn</a>, <a href="http://www.amazon.de">www.amazon.de</a>, <a href="http://www.amazon.es">www.amazon.es</a>, <a href="http://www.amazon.fr">www.amazon.fr</a>, <a href="http://www.amazon.in">www.amazon.in</a> , <a href="http://www.amazon.it">www.amazon.it</a> and <a href="http://www.amazon.co.jp">www.amazon.co.jp</a>.</p>
 <h5>Global Defaults</h5>
 <p>When creating Amazon Links the plugin will use data provided in the shortcode in preference to data retrieved from Amazon (e.g. Setting the \'<code>Title=My Favourite Book</code>\' in the shortcode will override the Title retrieved from Amazon). If you have localisation enabled, by default the data in the shortcode will only override your default locale. Enable this option if you want shortcode data to override the Amazon data in <em>all</em> locales.</p>
 <h5>Create Search Links</h5>
@@ -104,7 +119,7 @@
     'page' => 'settings',
     'title' => 'Amazon Caches',
     'content' => '
-<h5>Amazon Product Cache</h4>
+<h5>Amazon Product Cache</h5>
 <p>If you use the plugin to its full extent and display a lot of content retrieved from the Amazon Web Service it is recommended that you enable the Amazon Product Cache.</p>
 <p>This will improve page load times for pages that retrieve live data from the Amazon Web Service by keeping a local copy of the data.</p>
 <p>At the bottom of this section are buttons to Enable, Disable (and remove) and Flush the content of the Amazon Data Cache.</p>
