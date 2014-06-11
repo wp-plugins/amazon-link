@@ -4,7 +4,7 @@ Donate link: http://www.houseindorset.co.uk/plugins
 Tags: Amazon, links, wishlist, recommendations,, shortcode, ip2nation, localise, images, media library, affiliate, product, template
 Requires at least: 3.3
 Tested up to: 3.9.1
-Stable tag: 3.2.2
+Stable tag: 3.2.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -56,22 +56,13 @@ To generate a list of products relevant to the content of your site use the 'cat
 
 This is created by either putting the line `amazon_recommends(<Category>,<Number of Posts>)` in your template. Or putting the line `[amazon cat=<Category>&last=<Number of Posts>]` within a post or page. Where 'Category' is a list of category ids to search within (e.g. as expected by the 'cat' argument of [query_posts](http://codex.wordpress.org/Class_Reference/WP_Query#Parameters) function. The 'last' parameter is the number of posts to search through.
 
-= Latest Version - 3.2.2 =
+= Latest Version - 3.2.3 =
 
 
 
 
-* New Feature - New Setup page to help new users configure the plugin
-* New Feature - Add support for Brazil locale
-* New Feature - Add settings to allow the 'Add Amazon Link' form to have pre-configured defaults
-* Bug Fix - Correction to iframe localised subdomains
-* Bug Fix - Tweek the way Amazon data is escaped to show HTML in the Editorial Comments
-* Bug Fix - Remove depreciated screen_icons
-* Bug Fix - Ensure 'Link Text' is put into the shortcode when link inserted into a post
-* Bug Fix - Prevent PHP timeouts when install the ip2nation database
-* Bug Fix - Ensure multinational links are 'nofollow'
-* Bug Fix - Escape the '&' in the link URLs
-
+* New Feature - Add 'home_links' option to show default locale links if product not available locally, and hide price if not relevant for that locale.
+* Bug Fix - Correct US iframe image - %RCM% keyword.
 
 
 == Installation ==
@@ -114,8 +105,15 @@ To upgrade use the built in WordPress update option on the Plugins Admin page.
 
 == Changelog ==
 
-= 3.2.2 - 9th April 2014 =
+**3.2.3 - 11th May 2014**
 
+
+
+* New Feature - Add 'home_links' option to show default locale links if product not available locally, and hide price if not relevant for that locale.
+* Bug Fix - Correct US iframe image - %RCM% keyword.
+
+
+**3.2.2 - 9th April 2014**
 
 
 
@@ -132,8 +130,7 @@ To upgrade use the built in WordPress update option on the Plugins Admin page.
 
 
 
-= 3.2 - 12th March 2014 =
-
+**3.2 - 12th March 2014**
 
 
 
@@ -525,15 +522,20 @@ For these features to work you must have set up an [Amazon Web Services](http://
 
 For the wishlist to work you must also have inserted at least a few links to Amazon products using the `[amazon]` tag for it to generate a list of related product suggestions.
 
-**Can I change the styling of the wishlist?**
+**Can I change the styling of the templates?**
 
-If you are using the default Wishlist template that came with the plugin then you can override the default styles. To do this add the file 'user_styles.css' to the plugins directory overriding the default stylesheet, the wishlist has the following style elements:
+If you are using the default templates that came with the plugin then you can either override the default stylesheet or change the templates to use classes and ids from your own/themes stylesheet. 
+
+To override the default stylesheet add the file '`user_styles.css`' to the `wp-content/plugin` directory and then go to the Amazon Link > Extras admin page and install the 'Stylesheet' plugin. This will load the `user_styles.css` file instead of the default `Amazon.css` file.
+
+The following styles are used in some of the default templates:
+
 
 
 *   amazon_container      - Encloses whole wishlist.
 *   amazon_prod           - Encloses each list item.
 *   amazon_img_container  - Encloses the item thumbnail (link+img)
-*   amazon_pic            - Class of the item thumbnail IMG element
+*   wishlist_image        - (Default) Class of the item thumbnail IMG element
 *   amazon_text_container - Encloses the item description (Title paragraphs+link + Details paragraphs)
 *   amazon_details        - Encloses the item details part of the description
 *   amazon_price          - Spans the item's formatted price.
@@ -903,14 +905,20 @@ Features I will be adding to the plugin in the future:
 * Have static data for displaying the template previews, for users without AWS keys
 * Source Widgets not working on new install - Template ASINs has no default?
 * Add diagnostics submenu, get cache cron task working, display 'not found' items in cache page
-* Add 'Walk Through' to setup plugin
+* Add 'Status' Box -> Alerts on Dashboard, nag, 'not found' items, x% from locale with no tag
 * Kindle items not showing list price, add format?
 * Combine 'convert' and 'alternates' extras plugins
 * Add flush to sc cache on any admin change, settings, template post/page edit.
+* Add Price history database, graph popup -> cloud store/access data
+
 
 == Upgrade Notice ==
 
-**3.2.2 - 9th April 2014**
+**3.2.3 - 11th May 2014**
+
+Upgrade to fix issue with US iframe image templates not working (faulty %RCM% keyword).
+
+**3.2.2 - 9th April 2014**
 
 Upgrade to add support for Amazon Brazil and fix some minor bugs.
 
