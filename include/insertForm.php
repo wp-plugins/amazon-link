@@ -69,7 +69,7 @@
 
    /* This defines the options table shown in the Amazon link Meta Box */
    $optionList = array(
-         'subhd1' => array ( 'Type' => 'title', 'Value' => __('Enter the following settings for a simple Amazon Link', 'amazon-link'), 'Title_Class' => 'sub-head'),
+         'subhd1' => array ( 'Type' => 'title', 'Value' => __('Enter the following settings for a simple Amazon Link', 'amazon-link'), 'Title_Class' => 'al_sub_head'),
          'asin' => array( 'Id' => 'AmazonLinkOpt', 'Name' => __('ASIN', 'amazon-link'), 'Default' => '', 'Type' => 'text', 'Hint' => __('Amazon product ASIN', 'amazon-link'), 'Size' => '30', 
                            'Buttons' => array( __('Insert Link', 'amazon-link' ) => array( 'Type' => 'button', 'Hint' => __('Insert Amazon Link into Post using the ASIN(s) entered', 'amazon-link'), 'Class' => 'button-primary', 'Script' => 'return wpAmazonLinkAd.sendToEditor(this.form);'))),
          'text' => array( 'Id' => 'AmazonLinkOpt', 'Name' => __('Link Text', 'amazon-link'), 'Hint' => __('Amazon Link text', 'amazon-link'), 'Default' => 'Amazon', 'Type' => 'text', 'Size' => '40'),
@@ -86,7 +86,7 @@
       $search_indexes = $aws_api_info['SearchIndexByLocale'][$Settings['default_cc']];
 
       $optionList = array_merge($optionList,array(
-         'subhd2' => array ( 'Type' => 'title', 'Value' => __('Search Amazon for Products', 'amazon-link'), 'Title_Class' => 'sub-head'),
+         'subhd2' => array ( 'Type' => 'title', 'Value' => __('Search Amazon for Products', 'amazon-link'), 'Title_Class' => 'al_sub_head'),
          'template_content' => array( 'Id' => 'amazon-link-search', 'Default' => $results_template, 'Type' => 'hidden'),
          'post' => array( 'Id' => 'amazon-link-search', 'Default' => $post_ID, 'Type' => 'hidden'),
          's_index' => array( 'Id' => 'amazon-link-search', 'Name' => __('Product Index', 'amazon-link'), 'Hint' => __('Which Amazon Product Index to Search through', 'amazon-link'), 'Default' => 'Books', 'Type' => 'selection', 
@@ -103,12 +103,12 @@
    }
 
    $optionList = array_merge($optionList,array(
-         'subhd3' => array ( 'Type' => 'title', 'Value' => __('Enter the following settings for an Amazon Wishlist', 'amazon-link'), 'Title_Class' => 'sub-head'),
+         'subhd3' => array ( 'Type' => 'title', 'Value' => __('Enter the following settings for an Amazon Wishlist', 'amazon-link'), 'Title_Class' => 'al_sub_head'),
          'cat' => array( 'Id' => 'AmazonListOpt', 'Name' => __('Post Category', 'amazon-link'), 'Hint' => __('List of Categories to search through for amazon links', 'amazon-link'), 'Type' => 'text', 'Size' => '40', 'Default' => 'local',
                          'Buttons' => array( __('Insert Wishlist', 'amazon-link' ) => array( 'Type' => 'button', 'Hint' => __('Insert Amazon Link Wishlist Item in your post.', 'amazon-link'),'Class' => 'button-primary', 'Script' => 'return wpAmazonLinkAd.sendToEditor(this.form, {wishlist: \'1\'});'))),
          'last' => array( 'Id' => 'AmazonListOpt', 'Name' => __('Number of Posts', 'amazon-link'), 'Hint' => __('Number of posts to search back through for amazon links', 'amazon-link'),  'Type' => 'text', 'Size' => '5'),
          'wishlist_type' => array ( 'Id' => 'AmazonListOpt', 'Name' => __('Wishlist Type', 'amazon-link'), 'Hint' => __('Default type of wishlist to display, \'Similar\' shows items similar to the ones found, \'Random\' shows a random selection of the ones found ', 'amazon-link'), 'Default' => 'Similar', 'Options' => array('Similar', 'Random', 'Multi'), 'Type' => 'selection'  ),
-         'subhd4' => array ( 'Type' => 'title', 'Value' => __('Advanced settings', 'amazon-link'), 'Title_Class' => 'sub-head'),
+         'subhd4' => array ( 'Type' => 'title', 'Value' => __('Advanced settings', 'amazon-link'), 'Title_Class' => 'al_sub_head'),
          'defaults' => array( 'Id' => 'AmazonLinkOpt', 'Name' => __('Use Defaults', 'amazon-link'), 'Hint' => __('Use the site default settings for the options below', 'amazon-link'), 'Default' => '1', 'Type' => 'checkbox', 'Script' => 'return wpAmazonLinkAd.toggleAdvanced(this.form);'),
          'localise' => array( 'Id' => 'AmazonLinkOpt', 'Name' => __('Localise Amazon Link', 'amazon-link'), 'Hint' => __('Make the link point to the users local Amazon website', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox', 'Class' => 'hide-if-js'),
          'search_link' => array( 'Id' => 'AmazonLinkOpt', 'Name' => __('Create Search Links', 'amazon-link'), 'Hint' => __('Make the link point to a search result on the Amazon site', 'amazon-link'), 'Default' => '0', 'Type' => 'checkbox', 'Class' => 'hide-if-js'),
@@ -125,14 +125,19 @@
     */
    
    // Channel Options
-   $optionList['chan']['Options'] = array(' ');
+
    $channels = $this->get_channels();
+   $optionList['chan']['Options'] = array(' ');
    foreach ($channels as $channel_id => $details) {
-      if (empty($details['user_channel'])) {
+      if ( ($channel_id != 'default') && empty($details['user_channel']) ) {
          $optionList['chan']['Options'][$channel_id]['Name'] = $details['Name']. '  -  ' . $details['Description'];
       }
    }
-
+   /* If there is only the Default Channel don't show this option */
+   if (count($optionList['chan']['Options']) == 1 ) {
+      $optionList['chan'] = array( 'Type' => 'hidden');
+   }
+   
    // Template Options
    $optionList['template']['Options'] = array(' ');
    $Templates = $this->getTemplates();
@@ -140,12 +145,16 @@
       $optionList['template']['Options'][$templateName]['Name'] = $Details['Name']. '  -  ' . $Details['Description'];
       $optionList['template']['Options'][$templateName]['Hint'] = $Details['Description'];
    }
-
-        
+   
    $optionList = apply_filters('amazon_link_search_form', $optionList, $this);
 
 /*****************************************************************************************/
 
+   $Settings['chan'] = $Settings['form_channel'];
+   $Settings['s_index'] = $Settings['form_s_index'];
+   $Settings['template'] = $Settings['form_template'];
+         
+      
    // **********************************************************
    // Now display the options editing screen
    $this->form->displayForm($optionList, $Settings, True, True);

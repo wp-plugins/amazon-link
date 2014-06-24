@@ -32,20 +32,21 @@ wpAmazonLinkSearcher.prototype = {
     },
 
    grabMedia: function(event, options) {
-        var collection = jQuery(event).find("[id^=amazon-link-search]");
-        var $ths = this;
+      var collection = jQuery(event).find("[id^=amazon-link-search]");
+      var $ths = this;
 
-        collection.each(function () {
+      $ths['options'] = {};
+      collection.each(function () {
            $ths['options'][this.name] = jQuery(this).val();
-        });
-        $ths['options']['action'] = 'amazon-link-get-image';
+      });
+      $ths['options']['action'] = 'amazon-link-get-image';
 
-        if (options != undefined) {
+      if (options != undefined) {
            jQuery.extend($ths['options'], options); 
-        jQuery('#upload-button-'+options['asin']).attr("disabled", true);
-        jQuery('#upload-progress-'+options['asin']).removeClass('ajax-feedback');
-        jQuery.post('admin-ajax.php', $ths['options'] , $ths.mediaDone, 'json');
-   }
+         jQuery('#upload-button-'+options['asin']).attr("disabled", true);
+         jQuery('#upload-progress-'+options['asin']).removeClass('ajax-feedback');
+         jQuery.post('admin-ajax.php', $ths['options'] , $ths.mediaDone, 'json');
+      }
    },
 
    removeMedia: function(event, options) {
@@ -90,28 +91,28 @@ wpAmazonLinkSearcher.prototype = {
    },
 
    searchAmazon : function(event, page) {
-        var collection = jQuery(event).find("[id^=amazon-link-search],input[name=asin]");
-        var $ths = this;
-        page = (page ? page : 1);
-        jQuery(event).find("#amazon-link-search[name='s_page']").val(page);
-   if( !this['sendingAmazonRequest'] ) {
-           this['sendingAmazonRequest'] = true;
-           collection.each(function () {
-              if (this.type == 'checkbox') {
-                 $ths['search_options'][this.name] = this.checked ? "1" : "0";
-              } else if (this.type == "select-one") {
+      var collection = jQuery(event).find("[id^=amazon-link-search],input[name=asin]");
+      var $ths = this;
+      page = (page ? page : 1);
+      jQuery(event).find("#amazon-link-search[name='s_page']").val(page);
+      if( !this['sendingAmazonRequest'] ) {
+         this['sendingAmazonRequest'] = true;
+         collection.each(function () {
+            if (this.type == 'checkbox') {
+               $ths['search_options'][this.name] = this.checked ? "1" : "0";
+            } else if (this.type == "select-one") {
                  $ths['search_options'][this.name] = this[this.selectedIndex].value;
-              } else {
-                 $ths['search_options'][this.name] = this.value;
-              }
-           });
-           $ths['search_options']['action'] = 'amazon-link-search';
-           jQuery('#amazon-link-result-list').empty();
-           jQuery('#amazon-link-error').hide();
-           jQuery('#amazon-link-results').show();
-           jQuery('#amazon-link-status').removeClass('ajax-feedback');
-           jQuery.post('admin-ajax.php', $ths['search_options'] , $ths.showResults, 'json');
-   }
+            } else {
+               $ths['search_options'][this.name] = this.value;
+            }
+         });
+         $ths['search_options']['action'] = 'amazon-link-search';
+         jQuery('#amazon-link-result-list').empty();
+         jQuery('#amazon-link-error').hide();
+         jQuery('#amazon-link-results').show();
+         jQuery('#amazon-link-status').removeClass('ajax-feedback');
+         jQuery.post('admin-ajax.php', $ths['search_options'] , $ths.showResults, 'json');
+      }
    },
 
    showResults : function (response, status){

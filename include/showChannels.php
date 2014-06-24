@@ -12,7 +12,7 @@
          'nonce'       => array ( 'Type' => 'nonce', 'Value' => 'update-AmazonLink-channels' ),
 
          'ID'          => array ( 'Type' => 'hidden'),
-         'title'       => array ( 'Type' => 'section', 'Value' => '', 'Class' => 'hidden', 'Section_Class' => 'al_subhead'),
+         'title'       => array ( 'Type' => 'section', 'Value' => '', 'Class' => '', 'Section_Class' => 'al_subhead'),
          'Name'        => array ( 'Type' => 'text', 'Name' => __('Channel Name', 'amazon-link'), 'Default' => 'Channel', 'Size' => '40'),
          'Description' => array ( 'Type' => 'text', 'Name' => __('Channel Description', 'amazon-link'), 'Default' => 'Channel Description', 'Size' => '80'),
          'Filter'      => array ( 'Type' => 'textbox', 'Name' => __('Channel Filter', 'amazon-link'), 'Rows' => 5, 'Description' => __('Channel Filter Rules', 'amazon-link'), 'Default' => '' ),
@@ -129,7 +129,7 @@
 
    if ($notify_update && current_user_can('manage_options')) {
       $this->save_channels($channels);
-
+            
       // **********************************************************
       // Put an options updated message on the screen
       foreach ((array)$update_message as $message) {
