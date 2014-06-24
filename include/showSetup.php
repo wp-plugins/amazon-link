@@ -199,7 +199,11 @@
 
       // **********************************************************
       // Put an options updated message on the screen
-      if (current_user_can('manage_options')) $this->saveOptions($opts);
+      if (current_user_can('manage_options')) 
+      {
+         $this->saveOptions($opts);
+         $this->save_channels($channels);
+      }
       
       foreach ( $updates as $update ) {
 ?>
