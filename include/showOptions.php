@@ -21,7 +21,7 @@
       // Update Current settings
 
       foreach ($optionList as $optName => $optDetails) {
-         if (isset($optDetails['Name'])) {
+         if ( isset($optDetails['Name']) && empty($optDetails['Read_Only']) ) {
             if (!isset($_POST[$optName])) $_POST[$optName] = NULL;
             // Read their posted value
             if ((($optName == 'pub_key') || ($optName == 'priv_key')) &&

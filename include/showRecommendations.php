@@ -4,16 +4,17 @@
       function remove_duplicates( $asins, $local_cc, $default_cc ) {
          
          $unique_asins = array();
-         for ( $index = 0; $index < count( $asins ); $index++ ) {
+         $count = count( $asins );
+         for ( $index = 0; $index < $count; $index++ ) {
             $asin = isset( $asins[$index][$local_cc] ) ? $asins[$index][$local_cc] : 
                ( isset($asins[$index][$default_cc] ) ? $asins[$index][$default_cc] : '' );
-            if ( strlen( $asin < 8 ) || in_array( $asin, $unique_asins ) ) {
+            if ( (strlen( $asin ) < 8) || in_array( $asin, $unique_asins ) ) {
                unset( $asins[$index] );
             } else {
                $unique_asins[] = $asin;
             }
-            return $asins;
          }
+         return $asins;
       }
    }
 
@@ -101,9 +102,9 @@
    } else {
       
       // Use the 'local' ASINs already found by the plugin
+
       $asins_list = remove_duplicates( $this->tags, $cc, $settings['default_cc'] );
    }
-
    /*
     * If we have some ASINS in the tags array then use them to create a wishlist.
     */
@@ -156,7 +157,7 @@
 
       } else if ( strcasecmp( $settings[$cc]['wishlist_type'], 'random' ) == 0 ) {
          
-         shuffle( $asin_list );
+         shuffle( $asins_list );
       }
       
       // We have a processed list of ASINs, get on with displaying the items
@@ -171,7 +172,6 @@
       $output = '<div class="amazon_container">';
       $output .= $this->make_links( $settings );
       $output .= "</div>";
-
    } else {
       $output = "<!--". sprintf(__('No [amazon] tags found in the last %1$s posts in categories %2$s', 'amazon-link'), $settings[$cc]['last'], $settings[$cc]['cat']). "--!>";
    }

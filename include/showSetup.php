@@ -85,7 +85,7 @@
 
       // Update subset of options
       foreach ($options as $opt => $opt_data) {
-         if ( isset($opt_data['Name']) ) {
+         if ( isset($opt_data['Name']) && empty($opt_data['Read_Only']) ) {
             
             if ( ! isset($_POST[$opt]) ) {
                $_POST[$opt] = NULL;
@@ -187,6 +187,7 @@
                                                        $result['Message'] . 
                                                        '</span>';
          }
+         $updates[] = __( 'AWS Keys checked', 'amazon-link');
       }
    } else {
       $opts['aws_valid'] = 0;

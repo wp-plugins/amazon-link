@@ -464,7 +464,7 @@ if ( ! class_exists ( 'Amazon_Link_Admin_Support' ) ) {
 
                'plugin_ids'    => array( 'Name' => __('Plugin Associate IDs', 'amazon-link'), 'Description' => __('Support future plugin development by using the plugin\'s own associate IDs for locales for which you have not registered. This gives back to the developer and is free to you!', 'amazon-link'), 'Type' => 'checkbox', 'Class' => 'al_border' ),
                'search_link'   => array( 'Name' => __('Create Search Links', 'amazon-link'), 'Description' => __('Generate links to search for the items by "Artist Title" for non local links, rather than direct links to the product by ASIN.', 'amazon-link'), 'Type' => 'checkbox', 'Class' => 'alternate al_border' ),
-               'home_links'    => array( 'Name' => __('Create Default Country Links', 'amazon-link'), 'Description' => __('If a product can not be found in the visitor\'s locale then provide links to the default Amazon locale instead.', 'amazon-link'), 'Type' => 'checkbox', 'Class' => 'al_border' ),
+               'home_links'    => array( 'Name' => __('Create Default Country Links', 'amazon-link'), 'Description' => __('If a product can not be found in the visitor\'s locale then provide links to the default Amazon locale instead. For this to work reliably you may need to enable the \'<a href="#prefetch">Prefetch Data</a>\'  option below.', 'amazon-link'), 'Type' => 'checkbox', 'Class' => 'al_border' ),
                'search_text'   => array( 'Name' => __('Default Search String', 'amazon-link'), 'Description' => __('Default items to search for with "Search Links", uses the same system as the Templates below.', 'amazon-link'), 'Type' => 'text', 'Size' => '40', 'Class' => 'alternate al_border' ),
                'search_text_s' => array( 'Type' => 'calculated' ),
                'multi_cc'      => array( 'Name' => __('Multinational Link', 'amazon-link'), 'Description' => __('Insert links to all other Amazon sites after primary link.', 'amazon-link'), 'Type' => 'checkbox', 'Class' => 'al_border'),
@@ -513,11 +513,6 @@ if ( ! class_exists ( 'Amazon_Link_Admin_Support' ) ) {
                $option_list['default_cc']['Options'][$cc]['Name'] = $data['country_name'];
             }
             
-            // Populate the hidden Template Keywords
-            //foreach ($this->get_keywords() as $keyword => $details) {
-            // if (!isset($option_list[$keyword]))
-            //    $option_list[$keyword] = array( 'Type' => 'hidden' );
-            //}
          }
          
          parent::get_option_list($option_list);
@@ -593,6 +588,7 @@ if ( ! class_exists ( 'Amazon_Link_Admin_Support' ) ) {
 
              'downloaded'   => array( 'Description' => __('1 if Images are in the local WordPress media library', 'amazon-link') ),
              'found'        => array( 'Description' => __('1 if product was found doing a live data request (also 1 if live not enabled).', 'amazon-link') ),
+             'count'        => array( 'Description' => __('When multiple ASIN\'s are used this is the count of which one is being shown', 'amazon-link') ),
              'timestamp'    => array( 'Description' => __('Date and time of when the Amazon product data was retrieved from Amazon.', 'amazon-link') )
             );
             
@@ -785,7 +781,7 @@ if ( ! class_exists ( 'Amazon_Link_Admin_Support' ) ) {
             $data['Rule'] = apply_filters( 'amazon_link_save_channel_rule', array(), $channel, $data, $this);
             
             // If multiple channels enabled then enable channel filters
-            if ( ($channel != 'default') && ( empty($data['user_channel']) || !empty($options['user_ids']) ) ) {
+            if ( ($channel != 'default') && ( empty($data['user_channel']) || ! empty($options['user_ids'] ) ) ) {
                $options['do_channels'] = 1;
             }
          }
@@ -808,8 +804,8 @@ if ( ! class_exists ( 'Amazon_Link_Admin_Support' ) ) {
          $result['Message'] = 'AWS query failed to get a response - try again later.';
          $request = array('Operation'     => 'ItemSearch', 
                           'ResponseGroup' => 'ItemAttributes',
-                          'SearchIndex'   =>  'All', 'Keywords' => 'a');
-         $Settings['default_local'] = 'uk';
+                          'SearchIndex'   =>  'Books', 'Keywords' => 'a');
+         $Settings['default_cc'] = 'uk';
          $Settings['localise'] = '0';
          $pxml = $this->doQuery($request, $Settings);
 

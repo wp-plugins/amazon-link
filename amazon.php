@@ -4,7 +4,7 @@
 Plugin Name: Amazon Link
 Plugin URI: http://www.houseindorset.co.uk/plugins/amazon-link
 Description: A plugin that provides a facility to insert Amazon product links directly into your site's Pages, Posts, Widgets and Templates.
-Version: 3.2.4
+Version: 3.2.5-rc1
 Text Domain: amazon-link
 Author: Paul Stuttard
 Author URI: http://www.houseindorset.co.uk
@@ -123,7 +123,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
       const channels_name    = 'AmazonLinkChannels';
 
       var $option_version    = 9;
-      var $plugin_version    = '3.2.4';
+      var $plugin_version    = '3.2.5-rc1';
       var $plugin_home       = 'http://www.houseindorset.co.uk/plugins/amazon-link/';
 
       var $stats             = array();
@@ -141,19 +141,10 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          
          // Register Initialisation Hook
          add_action( 'init', array( $this, 'init' ) );
-        
-         // Register filters to process the content and widget text
-         if ( false  ) { // change false to true - To support WP Super Cache
-            add_cacheaction( 'wpsc_cachedata_safety', array( $this, 'safety' ) );
-            add_cacheaction( 'wpsc_cachedata', array( $this, 'widget_filter' ) );
-         } else {
-            add_filter( 'the_content', array( $this, 'content_filter' ),15,1 );
-            add_filter( 'widget_text', array( $this, 'widget_filter' ), 16,1 );
-         }
+         add_filter( 'the_content', array( $this, 'content_filter' ),15,1 );
+         add_filter( 'widget_text', array( $this, 'widget_filter' ), 16,1 );
       }
-
-      function safety () { return 1; }
-      
+    
       /*****************************************************************************************/
       // Functions for the above hooks
       
@@ -165,6 +156,8 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
        */
       function init() {
 
+         do_action( 'amazon_link_pre_init', $this );
+         
          $settings = $this->get_default_settings();
          
          // Create and Initialise Dependent Class Instances:
@@ -209,10 +202,10 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          add_filter( 'amazon_link_url',                     'esc_url', 21, 1);
          
          /* Set up the default channel filters - priority determines order */
-         if (!empty($settings['do_channels'])) {
+         if ( ! empty($settings['do_channels']) ) {
             add_filter( 'amazon_link_get_channel' ,         array( $this, 'get_channel_by_setting' ), 10,4 );
             add_filter( 'amazon_link_get_channel' ,         array( $this, 'get_channel_by_rules' ), 12,4 );
-            if (!empty($settings['user_ids'])) {
+            if ( ! empty($settings['user_ids']) ) {
                add_filter( 'amazon_link_get_channel' ,      array( $this, 'get_channel_by_user' ), 14,4 );
             }
          }
@@ -360,6 +353,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
                
                'downloaded'   => array( 'Calculated' => '1'),
                'found'        => array( 'Calculated' => '1', 'Default' => '1', 'National' => 1),
+               'count'        => array( 'Calculated' => '1'),
                'timestamp'    => array( 'Calculated' => 1, 'Default' => '0')
             );
             if ( isset ( $keywords ) ) {
@@ -1155,12 +1149,15 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
             $output = '';
 
             $countries = array_keys( $this->get_country_data() );
+            $count = 1;
             foreach ( $asins as $asin ) {
                // TODO: Do we need this loop?
                foreach ( $countries as $cc ) {
                   $settings[$cc]['asin'] = ! empty( $asin[$cc] ) ? $asin[$cc] : NULL;
+                  $settings[$cc]['count'] = $count;
                }
                $settings['asin'] = $asin;
+               $count++;
 
                $output .= $this->parse_template( $settings );
             }

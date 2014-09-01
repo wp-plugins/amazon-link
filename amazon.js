@@ -121,7 +121,8 @@ function al_show( id ) {
 
 function al_gen_multi (id, term, def, chan) {
    var content = "";
-
+   var def = def.split(",");
+   
    if ( AmazonLinkMulti.channels[chan] == undefined) {
       chan = 'default';
    }
@@ -131,7 +132,7 @@ function al_gen_multi (id, term, def, chan) {
       var tld  = AmazonLinkMulti.country_data[cc].tld;
       var tag  = AmazonLinkMulti.channels[chan]['tag_'+cc];
       
-      if (cc != def) {
+      if ( def.indexOf(cc) == -1 ) {
          url = AmazonLinkMulti.link_templates[type];
          url = url.replace(/%CC%#/g, '');
          url = url.replace(/%CC%/g, cc);

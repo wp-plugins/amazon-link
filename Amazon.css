@@ -29,6 +29,7 @@
 
 .amazon_prod {
    width:100%;
+   min-height:110px;
    height:auto;
    margin: 3px;
    border-bottom: 1px dashed;
@@ -37,7 +38,6 @@
 .amazon_img_container {
    height:100px;
    float:right;
-   border:1px dotted;
    margin:3px;
    width:100px;
    overflow:hidden;

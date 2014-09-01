@@ -3,7 +3,7 @@ Contributors: paulstuttard
 Donate link: http://www.houseindorset.co.uk/plugins
 Tags: Amazon, links, wishlist, recommendations, shortcode, ip2nation, localise, images, media library, affiliate, product, template
 Requires at least: 3.3
-Tested up to: 3.9.1
+Tested up to: 3.9.2
 Stable tag: 3.2.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -62,6 +62,15 @@ This is created by either putting the line `amazon_recommends(<Category>,<Number
 
 
 * Bug Fix - Save Affiliate IDs on Setup Screen.
+
+
+= Development Version - 3.2.5-rc1 =
+
+
+
+
+* Bug Fix - Validate AWS Keys in all locales.
+* Feature - 'Count' keyword for multi ASIN links
 
 
 == Installation ==
