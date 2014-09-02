@@ -39,6 +39,13 @@
  margin-bottom:4px;
 }
 
+.al_pad_top {
+ margin-top:1em;
+}
+.al_pad_bottom {
+ margin-bottom:1em;
+}
+
 .al_description {
  font-size:80%;
  clear:both;
@@ -65,6 +72,12 @@ input.al_show-0,.al_show-0,#al_buttons input.al_show-0 {
  padding-bottom: 4px;
 }
 
+.al_sub_head {
+ border-bottom: 1px dotted #aaaaaa;
+ margin: 2px 0 2px 0;
+ padding: 2px 0 2px 0;
+}
+
 .al_para {
  padding-left: 4px;
 }
@@ -78,10 +91,10 @@ input.al_show-0,.al_show-0,#al_buttons input.al_show-0 {
 .al_subhead1 h4, .al_subhead h4  {  
     cursor:pointer;  
     font-weight:normal;  
-//    width:80%;  
     padding:0px;  
-    margin:2px;  
+    margin:2px;
 }  
+
 .al_subhead1, .al_subhead {  
     cursor:pointer;  
     border-bottom:1px solid #ddd;  
@@ -89,6 +102,16 @@ input.al_show-0,.al_show-0,#al_buttons input.al_show-0 {
     padding:2px;  
     margin-bottom:1px;  
 } 
+
+.al_subhead2 {  
+    cursor:pointer;  
+    border-bottom:1px solid #ddd;
+    font-size: 110%;
+    background:#eee;  
+    padding:2px;  
+    padding-bottom:1em;  
+    padding-top:1em;
+}
 
 .al_highlight { background:#fffbe4; }
 

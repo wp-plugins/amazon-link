@@ -18,10 +18,10 @@
    $update = False;
    if(  $Action == __('Update Options', 'amazon-link') ) {
 
-      // Update Current Wishlist settings
+      // Update Current settings
 
       foreach ($optionList as $optName => $optDetails) {
-         if (isset($optDetails['Name'])) {
+         if ( isset($optDetails['Name']) && empty($optDetails['Read_Only']) ) {
             if (!isset($_POST[$optName])) $_POST[$optName] = NULL;
             // Read their posted value
             if ((($optName == 'pub_key') || ($optName == 'priv_key')) &&
@@ -29,11 +29,19 @@
                $AWS_keys_updated = 1;
                $Opts[$optName] = trim(stripslashes($_POST[$optName]));
             } else {
+               if (($optName == 'user_ids') && (empty($Opts[$optName]) != empty($_POST[$optName]))) {
+                  $user_ids_changed = 1;
+               }
                $Opts[$optName] = stripslashes($_POST[$optName]);
             }
          }
       }
       $this->saveOptions($Opts);
+      if (isset($user_ids_changed)) {
+         $this->save_channels($this->get_channels());
+         $Opts = $this->get_default_settings();
+      }
+      
       $update = __('Options saved.', 'amazon-link' );
 
 /*****************************************************************************************/
@@ -181,14 +189,25 @@
    }
 
 /*****************************************************************************************/
-
    unset($optionList['wishlist_template']['Options']);
+   $optionList['form_template']['Options'][] = ' ';
    $Templates = $this->getTemplates();
    foreach ($Templates as $templateName => $Details) {
       $optionList['wishlist_template']['Options'][] = $templateName;
+      $optionList['form_template']['Options'][] = $templateName;
    }
-
-
+   $channels = $this->get_channels();
+   $optionList['form_channel']['Options'][] = ' ';
+   foreach ($channels as $channel => $details) {
+      if ( ($channel != 'default') && empty($details['user_channel']) ) {
+         $optionList['form_channel']['Options'][] = $channel;
+      }
+   }
+   $s_indices = $this->search->get_aws_info();
+   foreach ( $s_indices['SearchIndexByLocale'][$Opts['default_cc'] ] as $index ) {
+      $optionList['form_s_index']['Options'][] = $index;
+   }
+   
    // **********************************************************
    // Now display the options editing screen
 

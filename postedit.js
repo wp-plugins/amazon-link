@@ -125,7 +125,7 @@ wpAmazonLinkAdmin.prototype = {
         var sep = '';
         jQuery.each(shortcode_options, function(name, value){
             if (value != ' ') {
-                attrs += sep + name + cc + '='+value; //.replace(/"/g,'%22').replace(/\[/g, '&#91;').replace(/>/g,'%3E').replace(/&/g, '%26');
+                attrs += sep + name + cc + '='+value;
                 sep = '&';
             }
         });
@@ -137,6 +137,7 @@ wpAmazonLinkAdmin.prototype = {
 
         var template = new String(this['shortcode']);
         var $this = this;
+        // Need to escape any character that might be critical for preg_matching the shortcode
         jQuery.each(this['options'], function(name, value){
          $this['options'][name] = value.replace(/"/g,'%22').replace(/\[/g, '%5B').replace(/\]/g, '%5D').replace(/>/g,'%3E').replace(/&/g, '%26');
         });
@@ -192,8 +193,8 @@ wpAmazonLinkAdmin.prototype = {
         $this['shortcode']              = AmazonLinkData['shortcode_template'];
         $this['template_user_keywords'] = AmazonLinkData['template_user_keywords'];
         $this['template_live_keywords'] = AmazonLinkData['template_live_keywords'];
-        $this['template_keywords']      = AmazonLinkData[$this['options']['template']]['keywords'];
-        $this['template_content']       = AmazonLinkData[$this['options']['template']]['content'];
+        $this['template_keywords']      = AmazonLinkData['templates'][$this['options']['template']]['keywords'];
+        $this['template_content']       = AmazonLinkData['templates'][$this['options']['template']]['content'];
         if ($this['template_user_keywords'] != undefined) {
            this['keywords'] = AmazonLinkData['template_user_keywords'].concat(',',AmazonLinkData['template_live_keywords']).split(',');
         }
