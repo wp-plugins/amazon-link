@@ -310,11 +310,13 @@ if ( ! class_exists( 'AmazonLinkSearch' ) ) {
             }
          }
 
-         foreach ($Creator as $Term => $Indices) {
-            if (in_array($Settings['s_index'], $Indices)) {
-               $request[$Term] = $Settings['s_author'];
-               continue;
-            }
+         if (!empty($Settings['s_author'])) {
+             foreach ($Creator as $Term => $Indices) {
+                if (in_array($Settings['s_index'], $Indices)) {
+                   $request[$Term] = $Settings['s_author'];
+                   continue;
+                }
+             }
          }
 
          if (in_array($Settings['s_index'], $Keywords)) {

@@ -4,13 +4,13 @@
 Plugin Name: Amazon Link Extra - Images
 Plugin URI: http://www.houseindorset.co.uk/
 Description: Update the Amazon Link plugin to improve the processing of Images, allows setting the Image and Thumbnail size per shortcode as well as grabbing all possible images from the Amazon site.
-Version: 1.2.2
+Version: 1.5
 Author: Paul Stuttard
 Author URI: http://www.houseindorset.co.uk
 */
 
 /*
-Copyright 2011-2012 Paul Stuttard
+Copyright 2014-2015 Paul Stuttard
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -62,6 +62,18 @@ function alx_images_display_images( $images, $keyword, $country, $data, $setting
 }
 
 /*
+ * Filter to set the image/thumb URL if none available
+ */
+function alx_images_set_no_image ( $images, $keyword, $country, $data, $settings, $al ) {
+   
+   if ( empty($images) || ($images == '-') ) {
+      return $settings['no_image'];
+   } else {
+      return $images;
+   }
+}
+   
+/*
  * Filter to process the image array
  */
 function alx_images_process_images ( $images, $keyword_info, $al ) {
@@ -78,13 +90,13 @@ function alx_images_process_images ( $images, $keyword_info, $al ) {
          $url = $image['SmallImage']['URL'];
       
          // URL of the form: 'http://ecx.images-amazon.com/images/I/518FFDVWNQL._SL160_.jpg
-         $data[] = preg_replace( '!(http://(?:[^/]*/)+(?:[^.]*)).*$!', '\1._SL'.$keyword.'_.jpg', $url );
+         $data[] = preg_replace( '!(http://(?:[^/]*/)+(?:[^.]*)).*$!', '\1.'.$keyword.'.jpg', $url );
       }
-   } else if (! empty( $images['URL'] ) ){
+   } else if ( ! empty( $images['URL'] ) ){
       $url = $images['URL'];
       
       // URL of the form: 'http://ecx.images-amazon.com/images/I/518FFDVWNQL._SL160_.jpg
-      $data[] = preg_replace( '!(http://(?:[^/]*/)+(?:[^.]*)).*$!', '\1._SL'.$keyword.'_.jpg', $url );
+      $data[] = preg_replace( '!(http://(?:[^/]*/)+(?:[^.]*)).*$!', '\1.'.$keyword.'.jpg', $url );
 
    }
    return array_values( array_unique( $data ) );
@@ -104,18 +116,21 @@ function alx_images_keywords ($keywords) {
 
    $keywords['images'] = array( 'Description' => __('Images Array', 'amazon-link'),
                                 'Live' => 1, // Force plugin to retrieve image & thumb(s)
-                                'Link' => 1, // Prevent plugin from encoding ' & " 
                                 'Default' => '' );
    $keywords['thumbs'] = array( 'Description' => __('Thumbs Array', 'amazon-link'),
                                 'Live' => 1, // Force plugin to retrieve image(s) & thumb(s)
-                                'Link' => 1, // Prevent plugin from encoding ' & "
                                 'Default' => '' );
 
    $keywords['image_size'] = array( 'Description' => __('Size of Images', 'amazon-link') );
    $keywords['thumb_size'] = array( 'Description' => __('Size of Thumbnails', 'amazon-link') );
-
+   
+   unset( $keywords['image']['Default'], $keywords['thumb']['Default'] );
+   
    add_filter( 'amazon_link_template_process_thumbs', 'alx_images_display_images',11,6 );
    add_filter( 'amazon_link_template_process_images', 'alx_images_display_images',11,6 );
+
+   add_filter( 'amazon_link_template_process_thumb', 'alx_images_set_no_image',11,6 );
+   add_filter( 'amazon_link_template_process_image', 'alx_images_set_no_image',11,6 );
 
    return $keywords;
 }
@@ -124,15 +139,20 @@ function alx_images_keywords ($keywords) {
  * Add the Image options to the Amazon Link Settings Page
  */
 function alx_images_option_list ($options_list) {
-   $options_list['image_size'] = array ( 'Name' => __('Preferred Image Size', 'amazon-link'),
-                                       'Description' => __('Retrieve the URL to an Image with the width or height (the longest) of this size rather than the default \'Large\' Image.', 'amazon-link'),
-                                       'Type' => 'text', 
-                                       'Default' => '800', 
+   $options_list['no_image'] = array ( 'Name' => __('Default Image URL', 'amazon-link'),
+                                       'Description' => __('The URL to the image to show if none is available.', 'amazon-link'),
+                                       'Type' => 'text',
+                                       'Default' => 'http://images-eu.amazon.com/images/G/02/misc/no-img-lg-uk.gif',
                                        'Class' => 'al_border');
-   $options_list['thumb_size'] = array ( 'Name' => __('Preferred Thumb Size', 'amazon-link'),
-                                       'Description' => __('Retrieve the URL to a Thumbnail with the width or height (the longest) of this size rather than the default \'Small\' Image.', 'amazon-link'),
+   $options_list['image_size'] = array ( 'Name' => __('Preferred Image Size Modifier', 'amazon-link'),
+                                       'Description' => __('Retrieve the URL to an Image modified using this string, e.g. SL800 sets the width or height (the longest) of this size rather than the default \'Large\' Image.', 'amazon-link'),
                                        'Type' => 'text', 
-                                       'Default' => '100', 
+                                       'Default' => 'SL800', 
+                                       'Class' => 'al_border');
+   $options_list['thumb_size'] = array ( 'Name' => __('Preferred Thumb Size Modifier', 'amazon-link'),
+                                       'Description' => __('Retrieve the URL to an Thumbnail modified using this string, e.g. SL100 sets the width or height (the longest) of this size rather than the default \'Small\' Image.', 'amazon-link'),
+                                       'Type' => 'text', 
+                                       'Default' => 'SL100', 
                                        'Class' => 'al_border');
    $options_list['max_images'] = array ( 'Name' => __('Image Array Limit', 'amazon-link'),
                                        'Description' => __('Limit the number of images/thumbnails returned by the %IMAGES% or %THUMBS% keywords.', 'amazon-link'),
@@ -154,9 +174,12 @@ function alx_images_option_list ($options_list) {
    return $options_list;
 }
 
-/*
- * Install the image size keyword, data filter and options
- */
-add_filter( 'amazon_link_keywords', 'alx_images_keywords', 11, 1 );
-add_filter( 'amazon_link_option_list', 'alx_images_option_list', 11, 1 );
+   /*
+    * Install the image size keyword, data filter and options
+    */
+   add_action( 'amazon_link_pre_init', 'alx_images_install' );
+   function alx_images_install() {
+      add_filter( 'amazon_link_keywords', 'alx_images_keywords', 11, 1 );
+      add_filter( 'amazon_link_option_list', 'alx_images_option_list', 11, 1 );
+   }
 ?>
