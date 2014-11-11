@@ -9,7 +9,7 @@
    $full_options = $this->get_option_list();
    $country_data = $this->get_country_data();
    
-   /* Add default channel tags to opts array */
+   /* Create default channel if it does not exist */
    if ( empty ($channels['default']) ) {
       $channels['default'] = array('Name' => 'Default', 'Description' => 'Default Affiliate IDs', 'Filter' => '');
    }
@@ -57,8 +57,12 @@
    $options['plugin_ids']['Description'] = '';
    $options['plugin_ids']['Class'] = 'al_pad_top al_pad_bottom';
    $options['dev_end'] = array( 'Type' => 'end');
+   $options['xtr_head'] = array( 'Type' => 'section', 'Value' => '5. Plugin Extras Support - allows custom features to be added to the plugin. For example image and thumbnail size control, link cloaking, extra keywords (rating, live price, genre, editorial comment), and custom made features.', 'Title_Class' => 'al_subhead2' );
+   $options['plugin_extras'] = array( 'Name' => __( 'Plugin Extra Feature', 'amazon-link'), 'Type' => 'checkbox', 'Read_Only' => '1');
+   $options['plugin_extras']['Class'] = 'al_pad_top al_pad_bottom';
+   $options['xtr_end'] = array( 'Type' => 'end');
    
-   $options['aws_head'] = array( 'Type' => 'section', 'Value' => __( '5. To get the most out of the plugin it is recommended that you register for the Amazon Advertising API (its free!) and enter your keys here. Visit <a href="https://affiliate-program.amazon.com/gp/advertising/api/detail/main.html">Amazon Web Services</a> to sign up to get your own keys.', 'amazon-link'), 'Title_Class' => 'al_subhead2' );   
+   $options['aws_head'] = array( 'Type' => 'section', 'Value' => __( '6. To get the most out of the plugin it is recommended that you register for the Amazon Advertising API (its free!) and enter your keys here. Visit <a href="https://affiliate-program.amazon.com/gp/advertising/api/detail/main.html">Amazon Web Services</a> to sign up to get your own keys.', 'amazon-link'), 'Title_Class' => 'al_subhead2' );   
    $options['pub_key'] = $full_options['pub_key'];
    $options['pub_key']['Class'] = 'al_pad_top';
    $options['priv_key'] = $full_options['priv_key'];
@@ -67,7 +71,7 @@
    $options['aws_valid']['Class'] = 'al_pad_bottom';
    $options['aws_end'] = array( 'Type' => 'end');
    
-   $options['ch_head'] = array( 'Type' => 'section', 'Value' => __( '6. Improve site performance by enabled and installing the Amazon Link Cache.', 'amazon-link'), 'Title_Class' => 'al_subhead2' );   
+   $options['ch_head'] = array( 'Type' => 'section', 'Value' => __( '7. Improve site performance by enabled and installing the Amazon Link Cache.', 'amazon-link'), 'Title_Class' => 'al_subhead2' );   
    $options['cache_enabled'] = array( 'Type' => 'checkbox', 'Class' => 'al_pad_top al_pad_bottom', 'Name' => __('Enable Data Cache', 'amazon-link'), 'Description' => __('', 'amazon-link'));
    $options['ch_end'] = array( 'Type' => 'end');
 
@@ -229,6 +233,14 @@
    $opts['localise'] = ($ip2n_status['Uninstall'] && $opts['localise']);
    $options['localise']['Description'] = $ip2n_status['Message'];
 
+   /* plugin_extras only supported if plugin_ids is enabled. */
+   if ( !empty($opts['plugin_ids']) ) {
+      $opts['plugin_extras'] = '1';
+      $options['plugin_extras']['Description'] = __( 'This option is enabled by default with developer support.', 'amazon-link');
+   } else {
+      unset($opts['plugin_extras']);
+      $options['plugin_extras']['Description'] = __( 'This option is only enabled when developer support above is enabled.', 'amazon-link');
+   }
 /*****************************************************************************************/
 
    // **********************************************************

@@ -67,9 +67,15 @@ if ( ! class_exists ( 'Amazon_Link_Admin_Support' ) ) {
 
          /* Initialise dependent classes */
          $this->form = new AmazonWishlist_Options;
-         $this->form->init( $this );                     // Need to register form styles
-         $this->search = new AmazonLinkSearch;
-         $this->search->init( $this );                   // Need to register scripts & ajax callbacks
+         $this->form->init( $this );                        // Need to register form styles
+         if ( ! empty( $this->search ) ) {
+            $this->search = new AmazonLinkSearch;
+            $this->search->init( $this );                   // Need to register scripts & ajax callbacks
+         }
+         if ( ! empty( $this->ip2n ) ) {
+            $this->ip2n = new AmazonWishlist_ip2nation;
+            $this->ip2n->init( $this );
+         }
 
          /* Register backend scripts */
          $edit_script  = $this->URLRoot."/postedit.js";
@@ -541,6 +547,7 @@ if ( ! class_exists ( 'Amazon_Link_Admin_Support' ) ) {
             $keywords = array(
              'link_open'    => array( 'Description' => __('Create an Amazon link to a product with user defined content, of the form %LINK_OPEN%My Content%LINK_CLOSE%', 'amazon-link') ),
              'rlink_open'   => array( 'Description' => __('Create an Amazon link to product reviews with user defined content, of the form %RLINK_OPEN%My Content%LINK_CLOSE%', 'amazon-link') ),
+             'blink_open'   => array( 'Description' => __('Create an Amazon link to the authors biography page, of the form %BLINK_OPEN%My Content%LINK_CLOSE%', 'amazon-link') ),
              'slink_open'   => array( 'Description' => __('Create an Amazon link to a search page with user defined content, of the form %SLINK_OPEN%My Content%LINK_CLOSE%', 'amazon-link') ),
              'link_close'   => array( 'Description' => __('Must follow a LINK_OPEN (translates to "</a>").', 'amazon-link') ),
 
@@ -559,6 +566,7 @@ if ( ! class_exists ( 'Amazon_Link_Admin_Support' ) ) {
              'search_text'  => array( 'Description' => __('Search Link Text from Settings Page', 'amazon-link') ),
              'url'          => array( 'Description' => __('The raw URL for a item\'s product page', 'amazon-link') ),
              'surl'         => array( 'Description' => __('The raw URL for a item\'s search page', 'amazon-link') ),
+             'burl'         => array( 'Description' => __('The raw URL for a item\'s biography page', 'amazon-link') ),
              'rurl'         => array( 'Description' => __('The raw URL for a item\'s review page', 'amazon-link') ),
              'rank'         => array( 'Description' => __('Amazon Rank', 'amazon-link') ),
              'rating'       => array( 'Description' => __('Numeric User Rating - (No longer Available)', 'amazon-link') ),
@@ -665,6 +673,7 @@ if ( ! class_exists ( 'Amazon_Link_Admin_Support' ) ) {
                                                                                                        'Context' => 'normal', 
                                                                                                        'Priority' => 'core'))
                                                            ));
+         if ( empty($this->plugin_extras) ) unset($menus['amazon-link-extras']);
          return apply_filters( 'amazon_link_admin_menus', $menus, $this);
       }
 
@@ -712,7 +721,7 @@ if ( ! class_exists ( 'Amazon_Link_Admin_Support' ) ) {
             }
             $options['search_text_s'] = $search_text_s;
          }
-
+         $options['plugin_extras'] = $options['plugin_ids'];
          update_option(self::optionName, $options);
          $this->default_settings = $options;
       }

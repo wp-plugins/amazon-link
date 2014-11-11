@@ -175,4 +175,13 @@ if ($Opts['version'] == 7) {
       $this->saveOptions($Opts);
    }
    
+   if ($Opts['version'] == 9) {
+      
+      // Enable plugin_extras
+      $Opts = get_option(self::optionName, array());
+      $Opts['plugin_extras'] = $Opts['plugin_ids'];
+      $Opts['version'] = 10;
+      $this->saveOptions($Opts);
+   }
+   
 ?>

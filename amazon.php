@@ -4,7 +4,7 @@
 Plugin Name: Amazon Link
 Plugin URI: http://www.houseindorset.co.uk/plugins/amazon-link
 Description: A plugin that provides a facility to insert Amazon product links directly into your site's Pages, Posts, Widgets and Templates.
-Version: 3.2.5-rc1
+Version: 3.2.5-rc2
 Text Domain: amazon-link
 Author: Paul Stuttard
 Author URI: http://www.houseindorset.co.uk
@@ -105,8 +105,8 @@ To serve a page containing amazon links the plugin performs the following:
 
 *******************************************************************************************************/
 
-include ('include/ip2nation.php');
    //include ('include/ip2location.php');
+include ('include/ip2nation.php');
 
 if (!class_exists('AmazonWishlist_For_WordPress')) {
    class AmazonWishlist_For_WordPress {
@@ -123,7 +123,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
       const channels_name    = 'AmazonLinkChannels';
 
       var $option_version    = 9;
-      var $plugin_version    = '3.2.5-rc1';
+      var $plugin_version    = '3.2.5-rc2';
       var $plugin_home       = 'http://www.houseindorset.co.uk/plugins/amazon-link/';
 
       var $stats             = array();
@@ -137,7 +137,6 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          
          $this->filename   = __FILE__;
          $this->URLRoot    = plugins_url('', __FILE__);
-         $this->ip2n       = new AmazonWishlist_ip2nation;
          
          // Register Initialisation Hook
          add_action( 'init', array( $this, 'init' ) );
@@ -156,13 +155,17 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
        */
       function init() {
 
-         do_action( 'amazon_link_pre_init', $this );
+         $settings = get_option( self::optionName, array() );
+         $this->plugin_extras = !empty($settings['plugin_extras']);
+         if ( ! empty($this->plugin_extras) ) {
+            do_action( 'amazon_link_pre_init', $this );
+         }
          
          $settings = $this->get_default_settings();
          
          // Create and Initialise Dependent Class Instances:
          
-         if ( ! is_admin() && ! empty( $settings['media_library'] ) ) {
+         if ( ! empty( $settings['media_library'] ) ) {
 
             /*
              * If user is using the media_library to store Amazon images then
@@ -172,8 +175,12 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
             $this->search = new AmazonLinkSearch;
             $this->search->init( $this );
          }
-         // ip2nation needed on Frontend
-         $this->ip2n->init( $this );
+         
+         if ( ! empty ( $settings['localise'] ) ) {
+            // ip2nation needed on Frontend
+            $this->ip2n = new AmazonWishlist_ip2nation;
+            $this->ip2n->init( $this );
+         }
 
          // Register our frontend styles and scripts:
 
@@ -199,7 +206,9 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          
          // Add default url generator - low priority
          add_filter( 'amazon_link_url',                     array( $this, 'get_url' ), 20, 6 );
-         add_filter( 'amazon_link_url',                     'esc_url', 21, 1);
+         
+         // Default Country Mapping to Store Locale
+         add_filter( 'amazon_link_map_country',             array( $this, 'map_country' ), 20, 1);
          
          /* Set up the default channel filters - priority determines order */
          if ( ! empty($settings['do_channels']) ) {
@@ -214,9 +223,11 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          add_filter( 'amazon_link_template_get_link_open',  array( $this, 'get_links_filter' ), 12, 5 );
          add_filter( 'amazon_link_template_get_rlink_open', array( $this, 'get_links_filter' ), 12, 5 );
          add_filter( 'amazon_link_template_get_slink_open', array( $this, 'get_links_filter' ), 12, 5 );
+         add_filter( 'amazon_link_template_get_blink_open', array( $this, 'get_links_filter' ), 12, 5 );
          add_filter( 'amazon_link_template_get_url',        array( $this, 'get_urls_filter' ), 12, 5 );
          add_filter( 'amazon_link_template_get_rurl',       array( $this, 'get_urls_filter' ), 12, 5 );
          add_filter( 'amazon_link_template_get_surl',       array( $this, 'get_urls_filter' ), 12, 5 );
+         add_filter( 'amazon_link_template_get_burl',       array( $this, 'get_urls_filter' ), 12, 5 );
          add_filter( 'amazon_link_template_get_tag',        array( $this, 'get_tags_filter' ), 12, 5 );
          add_filter( 'amazon_link_template_get_chan',       array( $this, 'get_channel_filter' ), 12, 5 );
 
@@ -283,6 +294,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
                'link_open'    => array(  ),
                'rlink_open'   => array(  ),
                'slink_open'   => array(  ),
+               'blink_open'   => array(  ),
                'link_close'   => array( 'Default' => '</a>'),
                'asin'         => array( 'Live' => '1', 'Group' => 'ItemAttributes', 'Default' => '0',
                                         'Position' => array(array('ASIN'))),
@@ -314,6 +326,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
                'search_text'  => array( ),
                'url'          => array( ),
                'surl'         => array( ),
+               'burl'         => array( ),
                'rurl'         => array( ),
                'rank'         => array( 'Live' => '1', 'Group' => 'SalesRank',
                                         'Position' => array(array('SalesRank'))),
@@ -421,10 +434,14 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
 
          if ( ! isset( $this->link_templates ) ) {
             
+            /*
+             * Templates must be correctly encoded
+             */
             $this->link_templates = apply_filters( 'amazon_link_multi_link_templates', 
-                                                   array( 'A'=>'http://www.amazon.%TLD%/gp/product/%ARG%?ie=UTF8&linkCode=as2&camp=1634&creative=6738&tag=%TAG%%CC%#&creativeASIN=%ARG%',
-                                                          'S'=>'http://www.amazon.%TLD%/mn/search/?_encoding=UTF8&linkCode=ur2&camp=1634&creative=19450&tag=%TAG%%CC%#&field-keywords=%ARG%',
-                                                          'R'=>'http://www.amazon.%TLD%/review/%ARG%?ie=UTF8&linkCode=ur2&camp=1634&creative=6738&tag=%TAG%%CC%#',
+                                                   array( 'A'=>'http://www.amazon.%TLD%/gp/product/%ARG%?ie=UTF8&amp;linkCode=as2&amp;camp=1634&amp;creative=6738&amp;tag=%TAG%%CC%#&amp;creativeASIN=%ARG%',
+                                                          'S'=>'http://www.amazon.%TLD%/mn/search/?_encoding=UTF8&amp;linkCode=ur2&amp;camp=1634&amp;creative=19450&amp;tag=%TAG%%CC%#&amp;field-keywords=%ARG%',
+                                                          'R'=>'http://www.amazon.%TLD%/review/%ARG%?ie=UTF8&amp;linkCode=ur2&amp;camp=1634&amp;creative=6738&amp;tag=%TAG%%CC%#',
+                                                          'B'=>'http://www.amazon.%TLD%/e/e/%ARG%?tag=%TAG%%CC%#',
                                                           'U'=>'%ARG%',
                                                           'X'=>'%ARG%'),
                                                    $this);
@@ -583,18 +600,20 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
       /*
        * Check the channels in order until we get a match
        *
-       * TODO: Add option to enable Channel Rules, (i.e. remove all filters)
        */
       function get_channel( $settings ) {
-        
+
          // get post ID if in post, needed for channel cache.
          if ( ! empty( $settings['in_post'] ) ) {
+            
             global $post;
             $cache_index = $settings['asin']. $post->ID;
          } else {
+            
             $post = NULL;
             $cache_index = $settings['asin'].'X';
          }
+         $cache_index .= (isset($settings['chan']) ? $settings['chan'] : 'default');
 
          $channels = $this->get_channels( True );
          if ( isset( $this->channel_cache[$cache_index] ) ) {
@@ -604,7 +623,8 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
             // No match found return default channel.
             if ( empty( $channel_data ) ) $channel_data = $channels['default'];
             $this->channel_cache[$cache_index] = $channel_data['ID'];
-         }      
+         }
+
          return $channel_data;
       }
 
@@ -614,7 +634,6 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
       function get_channel_by_setting ( $channel_data, $channels, $post, $settings ) {
 
          if ( ! empty( $channel_data ) ) return $channel_data;
-
          if ( isset( $settings['chan'] ) && isset( $channels[strtolower( $settings['chan'] )] ) ) {
             return $channels[strtolower( $settings['chan'] )];
          }
@@ -776,36 +795,44 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
       /*****************************************************************************************/
       /// Localise Link Facility
 
+      function map_country( $cc ) {
+         
+         if ( $cc === NULL ) {
+            $settings = $this->get_default_settings();
+            return $settings['default_cc'];
+         }
+         
+         // Pretty arbitrary mapping of domains to Amazon sites, default to 'com' - the 'international' site.
+         $country_map = array( 'uk' => 'uk', 'ie' => 'uk', 'im' => 'uk', 'gi' => 'uk', 'gl' => 'uk', 'nl' => 'uk',
+                               'vg' => 'uk', 'cy' => 'uk', 'gb' => 'uk', 'dk' => 'uk', 'gb' => 'uk',
+                               'fr' => 'fr', 'be' => 'fr', 'bj' => 'fr', 'bf' => 'fr', 'bi' => 'fr', 'cm' => 'fr',
+                               'cf' => 'fr', 'td' => 'fr', 'km' => 'fr', 'cg' => 'fr', 'dj' => 'fr', 'ga' => 'fr',
+                               'gp' => 'fr', 'gf' => 'fr', 'gr' => 'fr', 'pf' => 'fr', 'tf' => 'fr', 'ht' => 'fr',
+                               'ci' => 'fr', 'lu' => 'fr', 'mg' => 'fr', 'ml' => 'fr', 'mq' => 'fr', 'yt' => 'fr',
+                               'mc' => 'fr', 'nc' => 'fr', 'ne' => 'fr', 're' => 'fr', 'sn' => 'fr', 'sc' => 'fr',
+                               'tg' => 'fr', 'vu' => 'fr', 'wf' => 'fr',
+                               'de' => 'de', 'at' => 'de', 'ch' => 'de', 'no' => 'de', 'dn' => 'de', 'li' => 'de',
+                               'sk' => 'de',
+                               'es' => 'es',
+                               'it' => 'it', 'va' => 'it',
+                               'cn' => 'cn',
+                               'ca' => 'ca', 'pm' => 'ca',
+                               'jp' => 'jp',
+                               'in' => 'in',
+                               'br' => 'br');
+
+         if ( ! empty( $country_map[$cc] ) ) {
+            return $country_map[$cc];
+         } else {
+            return 'us';
+         }
+      }
+      
       function get_country( $settings ) {
 
-         if ( ! empty( $settings['localise'] ) ) {
+         if ( ! empty( $settings['localise'] ) && isset( $this->ip2n ) ) {
             if ( empty( $this->local_country ) ) {
-               
-               // Pretty arbitrary mapping of domains to Amazon sites, default to 'com' - the 'international' site.
-               $country_map = array( 'uk' => array('uk', 'ie', 'im', 'gi', 'gl', 'nl', 'vg', 'cy', 'gb', 'dk', 'gb'),
-                                     'fr' => array('fr', 'be', 'bj', 'bf', 'bi', 'cm', 'cf', 'td', 'km', 'cg', 'dj', 'ga', 'gp',
-                                                   'gf', 'gr', 'pf', 'tf', 'ht', 'ci', 'lu', 'mg', 'ml', 'mq', 'yt', 'mc', 'nc',
-                                                   'ne', 're', 'sn', 'sc', 'tg', 'vu', 'wf'),
-                                     'de' => array('de', 'at', 'ch', 'no', 'dn', 'li', 'sk'),
-                                     'es' => array('es'),
-                                     'it' => array('it', 'va'),
-                                     'cn' => array('cn'),
-                                     'ca' => array('ca', 'pm'),
-                                     'jp' => array('jp'),
-                                     'in' => array('in'),
-                                     'br' => array('br')
-                                    );
-
-               $cc = $this->ip2n->get_cc();
-               if ( $cc === NULL ) return $settings['default_cc'];
-               $country = 'us';
-               foreach ( $country_map as $key => $countries ) {
-                  if ( in_array( $cc, $countries ) ) {
-                     $country = $key;
-                     continue;
-                  }
-               }
-               $this->local_country = $country;
+               $this->local_country = apply_filters( 'amazon_link_map_country', $this->ip2n->get_cc(), $this );
             }
             return $this->local_country;
          }
@@ -1185,7 +1212,6 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
       function get_tags_filter ( $tag, $keyword, $country, $data, $settings ) {
 
          if (!empty($tag)) return $tag;
-
          $channel = $this->get_channel( $data[$country] );
          return $channel['tag_'.$country];
       }
@@ -1194,8 +1220,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
 
          if ( ! empty( $url ) ) return $url;
 
-         $map = array( 'url' => 'A', 'rurl' => 'R', 'surl' => 'S' );
-         $type = $map[$keyword];
+         $type = ($keyword == 'url' ? 'A' : strtoupper($keyword[0]));
 
          $url = apply_filters( 'amazon_link_url', '', $type, $data, $data[$cc]['search_text_s'], $data[$cc]['cc'], $settings, $this );
          return $url;
@@ -1207,8 +1232,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          // TODO: Use $settings / $data[$cc]?, rationalise
          if ( empty( $this->temp_settings['multi_cc'] ) && ! empty( $link ) ) return $link;
 
-         $map = array( 'link_open' => 'A', 'rlink_open' => 'R', 'slink_open' => 'S' );
-         $type = $map[$keyword];
+         $type = ($keyword == 'link_open' ? 'A' : strtoupper($keyword[0]));
 
          $attributes = 'rel="nofollow"' . ( $settings['new_window'] ? ' target="_blank"' : '' );
          $attributes .= ! empty( $data[$cc]['link_title'] ) ? ' title="'.addslashes( $data[$cc]['link_title'] ).'"' : '';
