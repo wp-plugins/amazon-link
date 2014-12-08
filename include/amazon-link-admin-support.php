@@ -68,11 +68,12 @@ if ( ! class_exists ( 'Amazon_Link_Admin_Support' ) ) {
          /* Initialise dependent classes */
          $this->form = new AmazonWishlist_Options;
          $this->form->init( $this );                        // Need to register form styles
-         if ( ! empty( $this->search ) ) {
+         
+         if ( empty( $this->search ) ) {
             $this->search = new AmazonLinkSearch;
             $this->search->init( $this );                   // Need to register scripts & ajax callbacks
          }
-         if ( ! empty( $this->ip2n ) ) {
+         if ( empty( $this->ip2n ) ) {
             $this->ip2n = new AmazonWishlist_ip2nation;
             $this->ip2n->init( $this );
          }
@@ -754,8 +755,13 @@ if ( ! class_exists ( 'Amazon_Link_Admin_Support' ) ) {
             $rules['rand'] = $matches['rand'];
 
          $author = preg_match('~author\s*=\s*(?P<author>\w*)~i', $data['Filter'], $matches);
-         if (!empty($matches['author']))
+         if (!empty($matches['author'])) {
+            if ( ! is_numeric($matches['author'])) {
+               $author = get_user_by('slug', $matches['author']);
+               if ($author) $matches['author'] = $author->ID;
+            }
             $rules['author'] = $matches['author'];
+         }
 
          $type   = preg_match('~type\s*=\s*(?P<type>\w*)~i', $data['Filter'], $matches);
          if (!empty($matches['type']))

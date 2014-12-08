@@ -938,7 +938,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
             $output .= print_r( $settings, true ) . ' -->';
          }
 
-         if ( empty( $settings[$cc]['cat'] ) && empty( $settings[$cc]['s_index'] ) ) {
+         if ( empty( $settings[$cc]['cat'] ) && empty( $settings[$cc]['s_index'] ) && empty( $settings[$cc]['alt'] ) ) {
 
             // Standard shortcode
             
@@ -1154,7 +1154,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
                $settings[$cc]['asins'] .= $sep .( is_array( $asin ) ? ( isset( $asin[$cc] ) ? $asin[$cc] : $asin[$settings['default_cc']]) : $asin );
                $sep=',';
             }
-
+            
             $output = $this->parse_template( $settings );
             
          } elseif ( $settings[$cc]['template_type'] == 'No ASIN' ) {
@@ -1380,7 +1380,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
           */
          $phrase = $this->temp_data[$country][$keyword];
          if ( is_array( $phrase ) ) {
-            $phrase = $phrase[$keyword_index];
+            $phrase = !empty($phrase[$keyword_index]) ? $phrase[$keyword_index] : $phrase[0];
          }
          
          /*
