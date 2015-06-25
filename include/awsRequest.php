@@ -71,7 +71,7 @@
     
  //  echo "<!-- REQ: "; print_r($request); echo "-->";
     // do request
-    $result = wp_remote_request( $request ); 
+    $result = wp_remote_request( $request); 
 //   echo "<!--RESP:"; print_r($result); echo "-->";
 
     if ($result instanceof WP_Error )

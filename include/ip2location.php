@@ -2,18 +2,18 @@
 
 if (!class_exists('AmazonWishlist_ip2nation')) {
    class AmazonWishlist_ip2nation {
-      
+
 /*****************************************************************************************/
 
       /// Set up paths and other constants
 
       function __construct() {
-         
-         $this->db = 'ip2nation';
-         $this->remote_file = 'http://www.ip2nation.com/ip2nation.zip';
+
+         $this->db = 'ip2country';
+         $this->remote_file = 'http://geolite.maxmind.com/download/geoip/database/GeoIPCountryCSV.zip';
          $upload_dir = wp_upload_dir();
          $this->temp_dir  = $upload_dir['basedir'] . '/ip2nation';
-         $this->temp_file = $this->temp_dir . '/ip2nation.sql';
+         $this->temp_file = $this->temp_dir . '/GeoIPCountryWhois.csv';
       }
 
       function init() {
@@ -71,7 +71,7 @@ if (!class_exists('AmazonWishlist_ip2nation')) {
 
          return array( 'Uninstall' => $uninstall, 'Install' => $install, 'Message' => $message);
       }
-      
+
 /*****************************************************************************************/
 
       /// Download and install the ip2nation mysql database
@@ -82,7 +82,7 @@ if (!class_exists('AmazonWishlist_ip2nation')) {
          /*
           * Use WordPress WP_Filesystem methods to install DB
           */
-
+         
          // Check Credentials
          if (false === ($creds = request_filesystem_credentials($url,NULL,false,false,$args))) {
             // Not yet valid, a form will have been presented - drop out.
@@ -94,10 +94,10 @@ if (!class_exists('AmazonWishlist_ip2nation')) {
             request_filesystem_credentials($url,NULL,true,false,$args);
             return array ( 'HideForm' => true);
          }
-                  
+         
          /* Skip the download if it has already been done */
          if ( ! is_readable ( $this->temp_file ) ) {
-
+            
             $temp_file = download_url($this->remote_file);
             if (is_wp_error($temp_file))
                return array ( 'Success' => False, 'Message' => __('ip2nation install: Failed to download file: ','amazon-link') . $temp_file->get_error_message());
@@ -108,37 +108,55 @@ if (!class_exists('AmazonWishlist_ip2nation')) {
                return array ( 'Success' => False, 'Message' => __('ip2nation install: Failed to unzip file: ','amazon-link') . $result->get_error_message());
             }
          }
-
+         
          // Install the database
          // This can take a while on slow servers, disable aborts until
          // I do a proper jquery progress version.
          set_time_limit(0);
          ignore_user_abort(true);
          
-         // Process database file
-         $sql = $wp_filesystem->get_contents( $this->temp_file );
-         $lines = explode( ';', $sql );
-         unset( $sql );
-         
-         $queries =0;
-         foreach ( $lines as $line ) {
-            
-            $line = trim($line);
-            if ( ! empty($line) && ($wpdb->query($line.';') === FALSE) ) {
-               return array ( 'Success' => False, 'Message' => '='.$line.'='.sprintf(__('ip2nation install: Database downloaded and unzipped but failed to install [%s]','amazon-link'), $wpdb->last_error));
-            }
-            $queries++;
+         // Create the database Table
+         $query = 'DROP TABLE IF EXISTS '. $this->db .';';
+         if ($wpdb->query($query) === FALSE) {
+            return array( 'Success' => False, 'Message' => sprintf(__('ip2nation uninstall: Database failed to uninstall [%s]','amazon-link'), $wpdb->last_error));
+         }
+         $query = "CREATE TABLE " . $this->db . " (
+                   ip int(11) unsigned NOT NULL default '0',
+                   country char(2) NOT NULL default '',
+                   KEY ip (ip));";
+         if ($wpdb->query($query) === FALSE) {
+            return array( 'Success' => False, 'Message' => sprintf(__('ip2nation uninstall: Database failed to uninstall [%s]','amazon-link'), $wpdb->last_error));
          }
          
+         // Process database file
+         $lines = $wp_filesystem->get_contents_array($this->temp_file);
+
+         $queries = 0;
+         foreach ($lines as $line) {
+
+            $items = explode(',',trim($line));
+            if ( array($items) && (count($items) > 5) ) {
+               $ip = trim( $items[2], '"');
+               $cc = strtolower(trim( $items[4], '"'));
+               if ( ! empty ($ip) && ! empty ($cc) ) {
+                  $data = array ( 'ip' => $ip, 'country' => $cc );
+                  if ( $wpdb->insert( $this->db, $data) === FALSE ) {
+                     return array ( 'Success' => False, 'Message' => '='. print_r($line,true).'='.sprintf(__('ip2nation install: Database downloaded and unzipped but failed to install [%s]','amazon-link'), $wpdb->last_error));
+                  }
+                  $queries++;
+               }
+            }
+         }
+
          $wp_filesystem->delete($this->temp_dir,true);
          return array ( 'Success' => True, 'Message' =>  sprintf(__('ip2nation install: Database downloaded and installed successfully. %s queries executed.','amazon-link'), $queries));
-         
       }
+      
 /*****************************************************************************************/
 
       function uninstall () {
          global $wpdb;
-         $query = 'DROP TABLE IF EXISTS ip2nation,ip2nationCountries;';
+         $query = 'DROP TABLE IF EXISTS '. $this->db .';';
          if ($wpdb->query($query) === FALSE) {
             return sprintf(__('ip2nation uninstall: Database failed to uninstall [%s]','amazon-link'), $wpdb->last_error);
          } else {
