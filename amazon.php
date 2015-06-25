@@ -4,7 +4,7 @@
 Plugin Name: Amazon Link
 Plugin URI: http://www.houseindorset.co.uk/plugins/amazon-link
 Description: A plugin that provides a facility to insert Amazon product links directly into your site's Pages, Posts, Widgets and Templates.
-Version: 3.2.5-rc2
+Version: 3.2.5-rc3
 Text Domain: amazon-link
 Author: Paul Stuttard
 Author URI: http://www.houseindorset.co.uk
@@ -123,7 +123,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
       const channels_name    = 'AmazonLinkChannels';
 
       var $option_version    = 9;
-      var $plugin_version    = '3.2.5-rc2';
+      var $plugin_version    = '3.2.5-rc3';
       var $plugin_home       = 'http://www.houseindorset.co.uk/plugins/amazon-link/';
 
       var $stats             = array();
@@ -204,9 +204,10 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
 
          // Set up default plugin filters:
          
-         // Add default url generator - low priority
+         // Add default link generator filters - low priority
          add_filter( 'amazon_link_url',                     array( $this, 'get_url' ), 20, 6 );
-         
+         add_filter( 'amazon_link_attributes',              array( $this, 'apply_link_attributes' ), 20, 2 );
+
          // Default Country Mapping to Store Locale
          add_filter( 'amazon_link_map_country',             array( $this, 'map_country' ), 20, 1);
          
@@ -401,7 +402,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
              * - buy_button   -> example buy button stored on Amazon Servers
              * - language     -> Language of each locale.
              */
-            $this->country_data = array(
+            $this->country_data = apply_filters( 'amazon_link_get_country_data', array(
                'uk' => array( 'cc' => 'uk', 'mplace' => 'GB', 'mplace_id' => '2',  'lang' => 'en',     'flag' => $this->URLRoot. '/'. 'images/flag_uk.gif', 'tld' => 'co.uk', 'language' => 'English',    'region' => 'eu', 'imp' => 'ir-uk', 'rcm' => 'rcm-eu.amazon-adsystem.com',   'site' => 'https://affiliate-program.amazon.co.uk', 'buy_button' => 'https://images-na.ssl-images-amazon.com/images/G/02/buttons/buy-from-tan.gif', 'country_name' => 'United Kingdom', 'link_close' => '</a>'),
                'us' => array( 'cc' => 'us', 'mplace' => 'US', 'mplace_id' => '1',  'lang' => 'en',     'flag' => $this->URLRoot. '/'. 'images/flag_us.gif', 'tld' => 'com',   'language' => 'English',    'region' => 'na', 'imp' => 'ir-na', 'rcm' => 'rcm.amazon.com',            'site' => 'https://affiliate-program.amazon.com', 'buy_button' => 'https://images-na.ssl-images-amazon.com/images/G/01/buttons/buy-from-tan.gif', 'country_name' => 'United States', 'link_close' => '</a>'),
                'de' => array( 'cc' => 'de', 'mplace' => 'DE', 'mplace_id' => '3',  'lang' => 'de',     'flag' => $this->URLRoot. '/'. 'images/flag_de.gif', 'tld' => 'de',    'language' => 'Deutsch',    'region' => 'eu', 'imp' => 'ir-de', 'rcm' => 'rcm-de.amazon.de',             'site' => 'https://partnernet.amazon.de', 'buy_button' => 'https://images-na.ssl-images-amazon.com/images/G/03/buttons/buy-from-tan.gif', 'country_name' => 'Germany', 'link_close' => '</a>'),
@@ -413,7 +414,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
                'in' => array( 'cc' => 'in', 'mplace' => 'IN', 'mplace_id' => '31', 'lang' => 'hi',     'flag' => $this->URLRoot. '/'. 'images/flag_in.gif', 'tld' => 'in',    'language' => 'Hindi',      'region' => 'in', 'imp' => 'ir-in', 'rcm' => 'ws-in.amazon-adsystem.com',    'site' => 'https://associates.amazon.in', 'buy_button' => 'https://images-na.ssl-images-amazon.com/images/G/31/buttons/buy-from-tan.gif', 'country_name' => 'India', 'link_close' => '</a>'),
                'ca' => array( 'cc' => 'ca', 'mplace' => 'CA', 'mplace_id' => '15', 'lang' => 'en',     'flag' => $this->URLRoot. '/'. 'images/flag_ca.gif', 'tld' => 'ca',    'language' => 'English',    'region' => 'na', 'imp' => 'ir-ca', 'rcm' => 'rcm-ca.amazon.ca',             'site' => 'https://associates.amazon.ca', 'buy_button' => 'https://images-na.ssl-images-amazon.com/images/G/15/buttons/buy-from-tan.gif', 'country_name' => 'Canada', 'link_close' => '</a>'),
                'br' => array( 'cc' => 'br', 'mplace' => 'BR', 'mplace_id' => '33', 'lang' => 'pt-br',  'flag' => $this->URLRoot. '/'. 'images/flag_br.gif', 'tld' => 'com.br','language' => 'Portuguese', 'region' => 'na', 'imp' => 'ir-br', 'rcm' => 'rcm-br.amazon-adsystem.br',    'site' => 'https://associados.amazon.com.br/', 'buy_button' => 'https://images-na.ssl-images-amazon.com/images/G/33/buttons/buy-from-tan.gif', 'country_name' => 'Brazil', 'link_close' => '</a>'),
-            );
+            ), $this);
          }
          if ( empty( $cc ) ) {
             return $this->country_data;
@@ -497,11 +498,11 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          if ( ! isset( $this->response_groups ) ) {
             $this->response_groups = array();
             foreach ( $this->get_keywords() as $key => $key_data ) {
-               if ( isset( $key_data['Group'] ) && ! in_array( $key_data['Group'], $this->response_groups ) ) {
-                  $this->response_groups[] = $key_data['Group'];
+               if ( isset( $key_data['Group'] ) ) {
+                  $this->response_groups[$key_data['Group']] = true ;
                }
             }
-            $this->response_groups = implode( ',', $this->response_groups );
+            $this->response_groups = implode( ',', array_keys($this->response_groups) );
          }
          
          return $this->response_groups;
@@ -1227,6 +1228,14 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
 
       }
 
+      function apply_link_attributes ( $attributes, $data ) {
+         
+         if ( ! empty( $data['new_window'] ) ) $attributes .= ' target="_blank"';
+         if ( ! empty( $data['link_title'] ) ) $attributes .= ' title="'.addslashes( $data['link_title'] ).'"';
+         
+         return $attributes;
+      }
+      
       function get_links_filter ( $link, $keyword, $cc, $data, $settings ) {
 
          // TODO: Use $settings / $data[$cc]?, rationalise
@@ -1234,8 +1243,8 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
 
          $type = ($keyword == 'link_open' ? 'A' : strtoupper($keyword[0]));
 
-         $attributes = 'rel="nofollow"' . ( $settings['new_window'] ? ' target="_blank"' : '' );
-         $attributes .= ! empty( $data[$cc]['link_title'] ) ? ' title="'.addslashes( $data[$cc]['link_title'] ).'"' : '';
+         $attributes = apply_filters( 'amazon_link_attributes', 'rel="nofollow"', $data[$cc], $this);
+         //. ( $settings['new_window'] ? ' target="_blank"' : '' );
          $url = apply_filters( 'amazon_link_url', '', $type, $data, $data[$cc]['search_text_s'], $data[$cc]['cc'], $settings, $this );
          $text = "<a $attributes href=\"$url\">";
          if ( $settings['multi_cc'] ) {
@@ -1448,7 +1457,8 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
                $item_data['not_found'] = 1;
             }
          }
-         if ( $settings['debug'] && isset( $item_data['Error'] ) ) {
+         
+         if ( isset($settings['debug']) && isset( $item_data['aws_error'] ) ) {
             echo "<!-- amazon-link ERROR: "; print_r( $item_data ); echo "-->";
          }
          return $item_data;
@@ -1597,6 +1607,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
             $data[0] = $this->cache_lookup_item( $asin, $cc );
             if ($data[0] !== NULL) {
                $this->inc_stats( 'cache_hit', $asin );
+               if (isset($data[0]['aws_error'])) $data['Error'] = $data[0]['aws_error'];
                return $first_only ? $data[0] : $data;
             }
             $this->inc_stats( 'cache_miss', $asin );
@@ -1645,6 +1656,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
          /* Extract useful information from the xml */
          for ( $index = 0; $index < count( $items ); $index++ ) {
             $result = $items[$index];
+
             foreach ( $keywords as $keyword => $key_info ) {
                if ( ! empty( $key_info['Live'] ) &&                                      // Is a Live Keyword
                    isset( $key_info['Position'] ) && is_array( $key_info['Position'] ) ) // Has a pointer to what data to use
@@ -1654,6 +1666,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
                      /* Slow Callbacks skipped so flag partial data so as not to cache it */
                      $partial = True;
                   } else {
+
                      $key_data = $this->grab( $result, 
                                               $key_info['Position'], 
                                               isset( $key_info['Default'] ) ? ( is_array( $key_info['Default'] ) ? $key_info['Default'][$cc] : $key_info['Default'] ) : '-');
@@ -1669,6 +1682,7 @@ if (!class_exists('AmazonWishlist_For_WordPress')) {
             }
             $data[$index]['found']   = isset( $result['found'] ) ? $result['found'] : '1';
             $data[$index]['partial'] = $partial;
+            if (isset($result['Error'])) $data[$index]['error'] = $result['Error'];
             
             /* Save each item to the cache if it is enabled and got complete data */
             if ( ! $partial &&
@@ -1757,14 +1771,14 @@ function amazon_shortcode( $args )
    return $awlfw->shortcode_expand( array( 'args' => $args ) );
 }
 
-// Depreciated
+// Deprecated
 function amazon_recommends( $categories = '1', $last = '30' )
 {
    global $awlfw;
    return $awlfw->shortcode_expand( array( 'cat' => $categories, 'last' => $last ) );
 }
       
-// Depreciated
+// Deprecated
 function amazon_make_links($args)
 {
    return amazon_shortcode($args);
