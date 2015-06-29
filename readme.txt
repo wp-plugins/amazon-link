@@ -3,8 +3,8 @@ Contributors: paulstuttard
 Donate link: http://www.houseindorset.co.uk/plugins
 Tags: Amazon, links, wishlist, recommendations, shortcode, ip2nation, localise, images, media library, affiliate, product, template
 Requires at least: 3.3
-Tested up to: 4.0
-Stable tag: 3.2.4
+Tested up to: 4.2.2
+Stable tag: 3.2.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -56,21 +56,21 @@ To generate a list of products relevant to the content of your site use the 'cat
 
 This is created by either putting the line `amazon_recommends(<Category>,<Number of Posts>)` in your template. Or putting the line `[amazon cat=<Category>&last=<Number of Posts>]` within a post or page. Where 'Category' is a list of category ids to search within (e.g. as expected by the 'cat' argument of [query_posts](http://codex.wordpress.org/Class_Reference/WP_Query#Parameters) function. The 'last' parameter is the number of posts to search through.
 
-= Latest Version - 3.2.4 =
+= Latest Version - 3.2.5 =
 
 
 
-
-* Bug Fix - Save Affiliate IDs on Setup Screen.
-
-
-= Development Version - 3.2.5-rc1 =
-
-
-
-
-* Bug Fix - Validate AWS Keys in all locales.
+* Update - Update the Default Templates to use the new Amazon Widget URLS
 * Feature - 'Count' keyword for multi ASIN links
+* Feature - 'alt' option to return 'AlternateVersions' of an Item
+* Feature - Allow User names as well as IDs in the 'Author' Channel Filter
+* Feature - Add support for links to an book's author's Biography %BURL% and %BLINK_OPEN%
+* Feature - Update Amazon Link Images Extra to use image modifiers (e.g. SL800 [More](http://aaugh.com/imageabuse.html)) not just size (e.g. 800)
+* Feature - Add filters to change the country map, locales available to allow removal of support for specific locales.
+* Bug Fix - Validate AWS Keys in all locales.
+* Bug Fix - Tidy up ip2nation installer, in support of MaxMind alternate
+* Policy - Plugin Extras linked to Developer Support Option
+
 
 
 == Installation ==
@@ -111,8 +111,23 @@ To upgrade use the built in WordPress update option on the Plugins Admin page.
 
 6. On the Amazon Link Associate ID options page enter all your Amazon Associate IDs to earn commission from links.
 
+== Changelog ==
 
-== Changelog ==
+**3.2.5 - 25th June 2015**
+
+
+
+* Bug Fix - Validate AWS Keys in all locales.
+* Bug Fix - Tidy up ip2nation installer, in support of MaxMind alternate
+* Update - Update the Default Templates to use the new Amazon Widget URLS
+* Feature - 'Count' keyword for multi ASIN links
+* Feature - 'alt' option to return 'AlternateVersions' of an Item
+* Feature - Allow User names as well as IDs in the 'Author' Channel Filter
+* Feature - Add support for links to an book's author's Biography %BURL% and %BLINK_OPEN%
+* Feature - Update Amazon Link Images Extra to use image modifiers (e.g. SL800 [More](http://aaugh.com/imageabuse.html)) not just size (e.g. 800)
+* Feature - Add filters to change the country map, locales available to allow removal of support for specific locales.
+* Policy - Plugin Extras linked to Developer Support Option
+
 
 
 **3.2.4 - 24th June 2014**
@@ -350,11 +365,9 @@ Add internationalisation hooks into plugin.
 
 **1.0**
 First Release
+== Frequently Asked Questions ==
 
-== Frequently Asked Questions ==
-
-
-**I've tried the plugin and it doesn't do what I want, help?**
+**I've tried the plugin and it doesn't do what I want, help?**
 
 If you think the plugin doesn't work, please try contacting me and I will endeavour to help. You can either start a forum topic on the [Wordpress site](http://wordpress.org/support/plugin/amazon-link) or leave a comment on my site on the plugin page [Amazon Link Page](http://www.houseindorset.co.uk/plugins/amazon-link).
 
@@ -625,10 +638,10 @@ Produce a wishlist using the default template containing a random selection of p
 Produce an Amazon My Favourites widget containing a selection of related products to those already displayed on the current page.
 
 
-== Settings ==
 
+== Settings ==
 
-The plugin Settings page is where the author can modify the behaviour of all the links embedded in their site.
+The plugin Settings page is where the author can modify the behaviour of all the links embedded in their site.
 
 Note any changes here will affect all existing links that do not explicitly set these options via the [shortcode](#shortcode) content. These options can be viewed as the 'default' behaviour any of which can be overridden locally by adding the appropriate parameter to the shortcode.
 
@@ -895,11 +908,9 @@ Set the type of this particular wishlist. Overides the 'Wishlist Type' setting.
 
 
 
+== Technical ==
 
-== Technical ==
-
-
-== AWS Requests ==
+== AWS Requests ==
 
 The plugin relies upon the php script aws_signed_request kindly crafted by [Ulrich Mierendorff](http://www.ulrichmierendorff.com/software/aws_signed_query/).
 
@@ -935,9 +946,11 @@ Features I will be adding to the plugin in the future:
 * Add Price history database, graph popup -> cloud store/access data
 
 
+== Upgrade Notice ==
 
-== Upgrade Notice ==
+**3.2.5**
 
+Upgrade to update the Default Templates to use the new Amazon Widget URLS. NOTE you must go to the Templates page and install the new defaults!
 
 **3.2.4 - 24th June 2014**
 
@@ -1046,11 +1059,9 @@ Minor internal structural changes, add options link from plugin page.
 **1.1**
 
 Upgrade if you wish to have internationalisation (i18n) support.
+== Upgrading ==
 
-== Upgrading ==
-
-
-Some guidance on upgrading the Amazon Link plugin from one version to the next.
+Some guidance on upgrading the Amazon Link plugin from one version to the next.
 
 **Be prepared**
 

@@ -22,7 +22,7 @@
 
    /*
     * Search Based Wishlist
-   */
+    */
    if ( ! empty( $settings[$cc]['s_index'] ) ) {
       
       // Create instance of the search facility if it is not available.
@@ -65,6 +65,42 @@
       $settings[$cc]['home_cc'] = $cc;
       $settings['default_cc'] = $cc;
       $settings['home_cc'] = $cc;
+   } else if ( ! empty( $settings[$cc]['alt'] )) {
+       
+      /*
+       * Alternate Version based List
+       */
+      $request = array( 'Operation' => 'ItemLookup',
+                           'ItemId' => $settings[$cc]['alt'],
+                           'ResponseGroup' => 'AlternateVersions',
+                           'IdType' => 'ASIN' );
+      $response = $this->doQuery( $request, $settings[$cc] );
+      
+
+      if ( empty($response['Items']['Item']['AlternateVersions']['AlternateVersion'] ) ) {
+         
+         $output = '<!--' . __('Amazon query failed to return any results - Have you configured the AWS settings?', 'amazon-link').'-->';
+         $output .= '<!-- '. print_r($response, true) . '-->';
+         return $output;
+         
+      } else {
+         
+         $asins_list = array();
+         // Extract ASINs from the response
+         if ( ! array_key_exists( '0', $response['Items']['Item']['AlternateVersions']['AlternateVersion'] ) ) {
+            $asins_list[] = array ( $cc => $response['Items']['Item']['AlternateVersions']['AlternateVersion'] );
+         } else {
+            foreach ( $response['Items']['Item']['AlternateVersions']['AlternateVersion'] as $details ) {
+               $asins_list[] = array ( $cc => $details['ASIN'] );
+            }
+         }
+      }
+      $settings[$cc]['wishlist_type'] = 'multi';
+      $settings[$cc]['default_cc'] = $cc;
+      $settings[$cc]['home_cc'] = $cc;
+      $settings['default_cc'] = $cc;
+      $settings['home_cc'] = $cc;
+
    } else if ( strcasecmp( $settings[$cc]['cat'], 'local' ) != 0 ) {
 
       // If using local tags then just process the ones on this page otherwise search categories.

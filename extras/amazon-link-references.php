@@ -4,7 +4,7 @@
 Plugin Name: Amazon Link Extra - References
 Plugin URI: http://www.houseindorset.co.uk/plugins/amazon-link/
 Description: !!!BETA!!! This plugin adds the ability to pre-define shortcodes and save them in the database with a unique reference that can be re-used many times across your site from within multiple shortcodes, updating the single item in the database will change all the links that use that reference. Create the named reference on the 'Reference' settings page and then in the shortcode simply add the argument 'ref=XXX'
-Version: 1.3.7
+Version: 1.3.8
 Author: Paul Stuttard
 Author URI: http://www.houseindorset.co.uk
 */
@@ -185,6 +185,7 @@ function alx_reference_show_panel ($post, $args) {
    /*
     * Display the modified search form
     */
+   $opts['form_template'] = isset($opts['template']) ? $opts['template'] : '';
    remove_filter('amazon_link_search_form', 'alx_reference_search_form',12,2);
    add_filter('amazon_link_search_form', 'alx_reference_form',12,2);
    $ths->insertForm('admin', array('results_template' => $results_template, 'Options' => $opts));
@@ -261,6 +262,7 @@ function alx_reference_form($options, $al) {
    // Create new options page using elements from the original
    $new_options = alx_reference_get_options ($al);
    $new_options['template'] = $options['template'];
+   unset($new_options['template']['Default']);
    $new_options['chan'] = $options['chan'];
 
 
@@ -330,7 +332,7 @@ function alx_reference_menus ($menu, $al) {
    return $menu;
 }
 
-function alx_reference_install() {
+function alx_reference_install_db() {
    global $wpdb;
 
    $awlfw = new AmazonWishlist_For_WordPress();
@@ -367,14 +369,6 @@ function alx_reference_keywords ($options) {
    return $options;
 }
 
-/*
- * Add to options so that by default does not exist
- */
-function alx_reference_options ($options) {
-   $options['ref'] = array ( 'Type' => 'hidden', 'Default' =>'' );
-   return $options;
-}
-
 function alx_reference_lookup ($args, $al) {
    global $wpdb;
    $refs_table = $wpdb->prefix . refs_table;
@@ -395,12 +389,15 @@ function alx_reference_lookup ($args, $al) {
  * Modifies the following Functions:
  *  - Add a new Admin Menu page that provides the Product Reference facility (alx_reference_menus)
  *  - Add a filter on the arguments to extract the 'reference' arguments (alx_reference_lookup)
- *  - Add a activation hook to install the database (alx_reference_install)
+ *  - Add a activation hook to install the database (alx_reference_install_db)
  */
-add_filter('amazon_link_admin_menus', 'alx_reference_menus',12,2);
-add_filter('amazon_link_process_args', 'alx_reference_lookup',12,2);
-add_filter('amazon_link_keywords', 'alx_reference_keywords',12,1);
-   //add_filter('amazon_link_option_list', 'alx_reference_options',12,1);
-add_filter('amazon_link_search_form', 'alx_reference_search_form',12,2);
-register_activation_hook( __FILE__, 'alx_reference_install');
+   add_action( 'amazon_link_pre_init', 'alx_reference_install');
+   function alx_reference_install()
+   {
+      add_filter('amazon_link_admin_menus', 'alx_reference_menus',12,2);
+      add_filter('amazon_link_process_args', 'alx_reference_lookup',12,2);
+      add_filter('amazon_link_keywords', 'alx_reference_keywords',12,1);
+      add_filter('amazon_link_search_form', 'alx_reference_search_form',12,2);
+   }
+   register_activation_hook( __FILE__, 'alx_reference_install_db');
 ?>

@@ -89,5 +89,12 @@
    color:red;
 }
 
+.amazon_price a img {
+   display: inline;
+}
+.amazon_price img {
+   display: inline;
+}
+
 .amazon_flag {
 }
